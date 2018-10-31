@@ -48,3 +48,13 @@ venv.bak/
 
 # Pyre type checker
 .pyre/
+
+
+
+# Custom
+data/airbnb_prague/reviews_details.csv
+data/airbnb_prague/listings_details.csv
+results/
+
+*.suo
+*.Rhistory
