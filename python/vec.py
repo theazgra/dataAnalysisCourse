@@ -23,7 +23,7 @@ class Vec(object):
     
     def euclidean_distance(self, other):
         self._check(other)
-        return sqrt(sum([((self.values[index] - other.values[index])**2) for index in range(0, self.size)]))
+        return sqrt(sum([((a - b)**2) for (a,b) in zip(self.values, other.values)]))
 
     def at(self, index):
         if index >= self.size:
@@ -58,12 +58,12 @@ class Vec(object):
 
     def __eq__(self, other):
         if isinstance(other, Vec):
-            return self.values ==  other.values
+            return self.values == other.values
         return False
 
     def __add__(self, other):
         self._check(other)
-        newValues = [(self.values[index] + other.values[index]) for index in range(0, self.size)]
+        newValues = [(a+b) for (a,b) in zip(self.values, other.values)]
         return Vec(newValues)
 
     def __radd__(self, other):
@@ -71,7 +71,7 @@ class Vec(object):
 
     def __sub__(self, other):
         self._check(other)
-        newValues = [(self.values[index] - other.values[index]) for index in range(0, self.size)]
+        newValues = [(a-b) for (a,b) in zip(self.values, other.values)]
         return Vec(newValues)
 
     def __rsub__(self, other):
@@ -85,11 +85,32 @@ class Vec(object):
         
         # Dot product
         if isinstance(other, Vec):
-            dotProduct = sum([(self.values[index] * other.values[index]) for index in range(0, self.size)])
+            dotProduct = [(a*b) for (a,b) in zip(self.values, other.values)]
             return dotProduct
 
-    def __rmud__(self, other):
+    def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __truediv__(self, other):
+        return self.__div__(other)
+
+    def __div__(self, other):
+        if isinstance(other, float) or isinstance(other, int):
+            newValues = [(v / other) for v in self.values]
+            return Vec(newValues)
+        else:
+            raise Exception("Vector can only be divided by real number.")
+
+    def __pow__(self, exponent):
+        if isinstance(exponent, float) or isinstance(exponent, int):
+            newValues = [(v ** exponent) for v in self.values]
+            return Vec(newValues)
+            
+        else:
+            raise Exception("Bad exponent.")
+
+
+
 
     def __str__(self):
         return str(self.values)
