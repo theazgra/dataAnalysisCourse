@@ -10,3 +10,4 @@ iris_dataset
 
 kmeans(iris_dataset, centers = 3)
 
+#cumprod(iris_dataset$sepal_length)

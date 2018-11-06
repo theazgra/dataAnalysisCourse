@@ -11,6 +11,10 @@ class Cluster(object):
         else:
             return self.centroid == other.centroid
 
+    def get_sse(self):
+        sse = sum([(vec.euclidean_distance(self.centroid)**2) for vec in self.objects])
+        return sse
+
     def vector_sum(self, vectors):
         result = Vec([0 for x in range(len(vectors[0].values))])
         for vector in vectors:
@@ -30,5 +34,5 @@ class Cluster(object):
         self.objects.clear()
 
     def __str__(self):
-        return "Cluster;Centroid: {0} and {1} objects.".format(
-            str(self.centroid), len(self.objects))
+        return "Centroid: {0};SSE: {1}; {2} objects.".format(
+            str(self.centroid), self.get_sse(), len(self.objects))
