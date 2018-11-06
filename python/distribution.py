@@ -50,18 +50,25 @@ def get_normal_distribution(dataset, col):
 
 
 def get_probability(dataset, col, val):
-    return len([v for v in dataset if v[col] == val]) / len(dataset)
+    valCount = len([v for v in dataset if v[col] == val])
+    result = (valCount / len(dataset) )
+    return result
 
 
 def get_cumulative_distribution(dataset, col):
     result = {}
     for vector in dataset:
         x = vector[col]
-        probability = sum([get_probability(dataset, col, v[col])
-                           for v in dataset if v[col] <= x])
+        values = remove_duplicates([v[col] for v in dataset if v[col] <= x])
+        probability = sum([get_probability(dataset, col, v) for v in values])
         result[x] = probability
 
     return result
+
+    """
+    pro kazde X, najit x ktere jsou <= X, potom pro kazde (x zjistit pocet vyskytu a podelit poctem zaznamu) 
+    a secist to
+    """
 
 
 def ff(val):
@@ -77,7 +84,8 @@ def find_cluster_by_centroid(clusters, centroid):
 
 
 def k_means(dataset, k):
-    originalCentroids = [dataset[randint(0, len(dataset)-1)] for x in range(k)]
+    #originalCentroids = [dataset[randint(0, len(dataset)-1)] for x in range(k)]
+    originalCentroids = dataset[:k]
     clusters = [Cluster(centroid) for centroid in originalCentroids]
     newCentroids = []
     iteration = 0
@@ -143,7 +151,7 @@ def get_frequencies_of_attributes(dataset):
 def main():
     cols = 4
     # DEBUG
-    # df = load_iris_dataset_wo_species("data/iris.csv")
+    #df = load_iris_dataset_wo_species("data/iris.csv")
     df = load_iris_dataset_wo_species("../data/iris.csv")
 
     # List of attributes
@@ -152,19 +160,29 @@ def main():
     # https://homel.vsb.cz/~kud007/lectures/madi_07.pdf
     # 16
 
-    try:
-        k = int(input("K: "))
-        print("K-means for k = " + str(k))
-    except:
-        raise Exception("Bad k")
-
-    
-
+    # try:
+    #     k = int(input("K: "))
+    #     print("K-means for k = " + str(k))
+    # except:
+    #     raise Exception("Bad k")
+    k = 3
     clusters = k_means(df, k)
     totalSse = sum([c.get_sse() for c in clusters])
-    for c in clusters:
-        print(c)
-    print("Total SSE: " + str(totalSse))
+
+    indexes = []
+    
+    for v in df:
+        index = 0
+        for c in clusters:
+            if v in c.objects:
+                indexes.append(index)
+                break
+            index += 1
+    
+    print(indexes)
+    # for c in clusters:
+    #     print(c)
+    # print("Total SSE: " + str(totalSse))
 
     # normal distribution
     # for colIndex in range(cols):
@@ -182,14 +200,6 @@ def main():
     #         for x in cumulativeDistribution:
     #             outFile.write("{0};{1}\n".format(ff(x), ff(cumulativeDistribution[x])))
 
-
-"""
-absolutni cetnost
-relativni cetnost
-kumulativni cetnost
-
-
-"""
 
 if __name__ == "__main__":
     main()
