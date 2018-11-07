@@ -23,9 +23,11 @@ class Cluster(object):
 
     def recalculate_centroid(self):
         if len(self.objects) == 0:
-            raise Exception("Empty cluster")
-        self.centroid = self.vector_sum(self.objects) / len(self.objects)
-        return self.centroid
+            pass
+            #raise Exception("Empty cluster")
+        else:
+            self.centroid = self.vector_sum(self.objects) / len(self.objects)
+            return self.centroid
 
     def add_object(self, obj):
         self.objects.append(obj)

@@ -26,18 +26,19 @@ def eucld(a, b):
 def get_mean(dataset, col):
     return sum([r[col] for r in dataset]) / float(len(dataset))
 
-
 def get_var(dataset, col):
     mean = get_mean(dataset, col)
     var = sum([(eucld(r[col], mean)**2)
                for r in dataset]) / float(len(dataset))
     return var
 
+def get_var_w_mean(dataset, mean):
+    var = sum([(eucld(val, mean)**2) for val in dataset]) / float(len(dataset))
+    return var
 
 def normal_distribution_point(x, mean, var):
     result = (1.0 / sqrt(2*pi*var)) * exp(-1*(((x-mean)**2)/(2*var)))
     return result
-
 
 def get_normal_distribution(dataset, col):
     mean = get_mean(dataset, col)
@@ -48,12 +49,10 @@ def get_normal_distribution(dataset, col):
         result[x] = normal_distribution_point(x, mean, var)
     return result
 
-
 def get_probability(dataset, col, val):
     valCount = len([v for v in dataset if v[col] == val])
     result = (valCount / len(dataset) )
     return result
-
 
 def get_cumulative_distribution(dataset, col):
     result = {}
@@ -64,12 +63,6 @@ def get_cumulative_distribution(dataset, col):
         result[x] = probability
 
     return result
-
-    """
-    pro kazde X, najit x ktere jsou <= X, potom pro kazde (x zjistit pocet vyskytu a podelit poctem zaznamu) 
-    a secist to
-    """
-
 
 def ff(val):
     return str(val).replace('.', ',')
@@ -84,8 +77,8 @@ def find_cluster_by_centroid(clusters, centroid):
 
 
 def k_means(dataset, k):
-    #originalCentroids = [dataset[randint(0, len(dataset)-1)] for x in range(k)]
-    originalCentroids = dataset[:k]
+    originalCentroids = [dataset[randint(0, len(dataset)-1)] for x in range(k)]
+    #originalCentroids = dataset[:k]
     clusters = [Cluster(centroid) for centroid in originalCentroids]
     newCentroids = []
     iteration = 0
@@ -148,24 +141,13 @@ def get_frequencies_of_attributes(dataset):
     return attr
 
 
-def main():
-    cols = 4
-    # DEBUG
-    #df = load_iris_dataset_wo_species("data/iris.csv")
-    df = load_iris_dataset_wo_species("../data/iris.csv")
-
-    # List of attributes
-    #   Each list has dictionary of unique value - [absolute frequence, relative frequence, commulative frequency]
-    #result = get_frequencies_of_attributes(df)
-    # https://homel.vsb.cz/~kud007/lectures/madi_07.pdf
-    # 16
-
-    # try:
-    #     k = int(input("K: "))
-    #     print("K-means for k = " + str(k))
-    # except:
-    #     raise Exception("Bad k")
-    k = 3
+def do_k_means(df):
+    try:
+        k = int(input("K: "))
+        print("K-means for k = " + str(k))
+    except:
+        raise Exception("Bad k")
+    #k = 3
     clusters = k_means(df, k)
     totalSse = sum([c.get_sse() for c in clusters])
 
@@ -180,26 +162,60 @@ def main():
             index += 1
     
     print(indexes)
-    # for c in clusters:
-    #     print(c)
-    # print("Total SSE: " + str(totalSse))
 
-    # normal distribution
-    # for colIndex in range(cols):
-    #     distribution = get_normal_distribution(df, colIndex)
-    #     oF = "../results/distribution_{}.csv".format(colIndex)
-    #     with open(oF, 'w') as outFile:
-    #         for x in distribution:
-    #             outFile.write("{0};{1}\n".format(ff(x), ff(distribution[x])))
+    for c in clusters:
+        print(c)
+    print("Total SSE: " + str(totalSse))
 
-    # cumulative distribution
-    # for colIndex in range(cols):
-    #     cumulativeDistribution = get_cumulative_distribution(df, colIndex)
-    #     oF = "../results/cumulative_distribution_{}.csv".format(colIndex)
-    #     with open(oF, 'w') as outFile:
-    #         for x in cumulativeDistribution:
-    #             outFile.write("{0};{1}\n".format(ff(x), ff(cumulativeDistribution[x])))
+def do_normal_distribution(df):
+    cols = 4
+    for colIndex in range(cols):
+        distribution = get_normal_distribution(df, colIndex)
+        oF = "D:/gitrepos/dataAnalysisCourse/results/distribution_{}.csv".format(colIndex)
+        with open(oF, 'w') as outFile:
+            for x in distribution:
+                outFile.write("{0};{1}\n".format(ff(x), ff(distribution[x])))
 
+def do_cumulative_distribution(df):
+    cols = 4
+    for colIndex in range(cols):
+        cumulativeDistribution = get_cumulative_distribution(df, colIndex)
+        oF = "../results/cumulative_distribution_{}.csv".format(colIndex)
+        with open(oF, 'w') as outFile:
+            for x in cumulativeDistribution:
+                outFile.write("{0};{1}\n".format(ff(x), ff(cumulativeDistribution[x])))
+
+def do_mean_distance(df): 
+    meanVector = Vec([0,0,0,0])
+    for v in df:
+        meanVector += v
+    meanVector /= len(df)        
+    distances = [v.euclidean_distance(meanVector) for v in df]
+    
+    distanceMean = sum(distances) / len(distances)
+    distanceVar = get_var_w_mean(distances, distanceMean)
+    print(distanceMean)
+    print(distanceVar)
+    
+    distanceNormalDistribution = {}
+    for d in distances:
+        distanceNormalDistribution[d] = normal_distribution_point(d, distanceMean, distanceVar)
+
+    oF = "D:/gitrepos/dataAnalysisCourse/results/distance_normal_distribution.csv"
+    with open(oF, 'w') as outFile:
+        for x in distanceNormalDistribution:
+            outFile.write("{0};{1}\n".format(ff(x), ff(distanceNormalDistribution[x])))
+    print("Done")
+
+
+def main():
+    df = load_iris_dataset_wo_species("D:/gitrepos/dataAnalysisCourse/data/iris.csv")
+    
+    do_k_means(df)
+    #result = get_frequencies_of_attributes(df)
+    #do_normal_distribution(df)
+    #do_cumulative_distribution(df)
+    #do_mean_distance(df)
 
 if __name__ == "__main__":
     main()
