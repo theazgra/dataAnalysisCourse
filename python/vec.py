@@ -4,6 +4,7 @@ class Vec(object):
     def __init__(self, values):
         self.values = tuple([self._tryToFloat(v) for v in values])
         self.size = len(self.values)
+        self.customDistance = None
     
     def _tryToFloat(self, val):
         try:
@@ -24,6 +25,10 @@ class Vec(object):
     def euclidean_distance(self, other):
         self._check(other)
         return sqrt(sum([((a - b)**2) for (a,b) in zip(self.values, other.values)]))
+
+    def euclidean_distance(self, other, numOfCols):
+        self._check(other)
+        return sqrt(sum([((a - b)**2) for (a,b) in zip(self.values[0 : numOfCols], other.values[0 : numOfCols])]))
 
     def at(self, index):
         if index >= self.size:

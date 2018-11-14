@@ -1,8 +1,9 @@
 from math import sqrt, pi, exp, inf
 from vec import Vec
 from random import randint
+from random import shuffle
 from cluster import Cluster
-from scipy.integrate import quad
+from itertools import chain
 from sys import argv
 
 
@@ -207,11 +208,73 @@ def do_mean_distance(df):
             outFile.write("{0};{1}\n".format(ff(x), ff(distanceNormalDistribution[x])))
     print("Done")
 
+def create_fold(df, k, do_shuffle=True):
+    if do_shuffle:
+        shuffle(df)
+    
+    result = []
+    partSize = len(df) / k
+    for kIndex in range(k):
+        result.append(df[int(kIndex * partSize) : int((kIndex * partSize) + partSize)])
+
+    return result
+
+
+def k_NN(df, k, x, classIndex):
+    for v in df:
+        v.customDistance = x.euclidean_distance(v, 4)
+    
+    distanceSorted = sorted(df, key=lambda vector: vector.customDistance)
+    
+    nn = distanceSorted[0 : k]
+    classDict = {}
+    
+    for v in nn:
+        if v[classIndex] not in classDict:
+            classDict[v[classIndex]] = 0
+        classDict[v[classIndex]] += 1
+    
+    maxClass = max(classDict, key=lambda kv: classDict[kv])
+    return maxClass
+            
+
+def k_NN_for_df(training, k, testing, classIndex):
+    classes = []
+    correct = 0
+    for x in testing:
+        guessedClass = k_NN(training, k, x, classIndex)
+        if guessedClass == x[classIndex]:
+            correct += 1
+        else: 
+            classes.append("c: {0};g: {1}".format(x[classIndex], guessedClass))
+    
+    correctness = round(correct / len(testing),4)
+    return [correctness, classes]
+
+def do_kNN(df):
+    foldSize = 10
+    k = 4
+    classIndex = 4
+    kFold = create_fold(df, foldSize)
+    #result = k_NN_for_df(kFold[1], k, kFold[0], classIndex)
+
+    for foldIndex in range(foldSize):
+        testing = kFold[foldIndex]
+        training = kFold.copy()
+        training.pop(foldIndex)
+        training = list(chain.from_iterable(training))
+
+        foldResult = k_NN_for_df(training, k, testing, classIndex)
+        print(foldResult)
+
 
 def main():
     df = load_iris_dataset_wo_species("D:/gitrepos/dataAnalysisCourse/data/iris.csv")
+    dfAll = load_iris_dataset("D:/gitrepos/dataAnalysisCourse/data/iris.csv")
+
+    do_kNN(dfAll)
     
-    do_k_means(df)
+    #do_k_means(df)
     #result = get_frequencies_of_attributes(df)
     #do_normal_distribution(df)
     #do_cumulative_distribution(df)
