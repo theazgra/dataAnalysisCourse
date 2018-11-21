@@ -74,6 +74,11 @@ class Mat(object):
             result[vertex] = degree
         return result
 
+    def get_average_degree(self):
+        degrees = self.get_degree_of_vertices()
+        average = sum(degrees[vertex] for vertex in degrees) / len(degrees)
+        return average
+
     def _vector_dot_product(self, vecA, vecB):
         if len(vecA) != len(vecB):
             raise Exception("Vector sizes don't match.")
@@ -97,14 +102,16 @@ class Mat(object):
     def set_inf_where_no_edge(self):
         return Mat(tuple(tuple((self.values[rId][cId] if (self.values[rId][cId] > 0) else float('inf')) for cId in range(0, self.colCount)) for rId in range(0, self.rowCount)))
 
-    def floyd_distance(self):
+    def get_floyd_distance_matrix(self):
+        tmpMat = Mat(self.values)
         dimRange = range(0, self.colCount)
         for k in dimRange:
             for i in dimRange:
                 for j in dimRange:
-                    tmp = self.values[i][k] + self.values[k][j]
-                    if self.values[i][j] > tmp:
-                        self.values[i][j] = tmp
+                    tmp = tmpMat[i][k] + tmpMat[k][j]
+                    if tmpMat[i][j] > tmp:
+                        tmpMat[i][j] = tmp
+
         return self
     
     def closeness_centrality_for_vertices(self):
@@ -128,6 +135,11 @@ class Mat(object):
                 if n1 != n2 and self.values[n1][n2] == 1:
                     result += 1
         return (result / 2)
+
+    def get_average_clustering_coefficients_for_vertices(self):
+        clusteringCoeffForVertices = self.get_clustering_coefficients_for_vertices()
+        result = sum(clusteringCoeffForVertices.values()) / len(clusteringCoeffForVertices)
+        return result
 
     def get_clustering_coefficients_for_vertices(self, vertices=None):
         if vertices == None:
@@ -172,3 +184,10 @@ class Mat(object):
             for degree in result:
                 of.write("{0};{1}\n".format(degree, result[degree]))
         return result
+
+    def export_network(self, filename):
+        with open(filename, 'w') as file:
+            for r in range(self.rowCount):
+                for c in range(r, self.colCount):
+                    if r != c and self.values[r][c] == 1:
+                        file.write("{0};{1}\n".format(r,c))

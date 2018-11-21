@@ -24,7 +24,7 @@ def main():
     matrix = Mat(matrixValues)
     
     matrix = matrix.set_inf_where_no_edge()
-    distanceMatrix = matrix.floyd_distance()
+    distanceMatrix = matrix.get_floyd_distance_matrix()
     # print(matrix)
     closenessCentralityVector = distanceMatrix.closeness_centrality_for_vertices()
     print(closenessCentralityVector)

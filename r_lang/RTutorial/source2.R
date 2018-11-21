@@ -2,7 +2,20 @@ if (!require("igraph"))
   install.packages("igraph")
 library(igraph)
 
-df<-read.csv("../data/KarateClub.csv", header = F, sep = ";", dec = ",")
+
+generated<-read.csv("../../results/genNetwork.csv", header = F, sep = ";")
+generatedGraph <- graph_from_data_frame(generated, directed = F)
+plot(generatedGraph)
+plot(generatedGraph, layout = layout_randomly)
+plot(generatedGraph, layout = layout_in_circle)
+plot(generatedGraph, layout = layout_on_sphere)
+plot(generatedGraph, layout = layout_with_fr)
+plot(generatedGraph, layout = layout_as_tree)
+
+
+
+
+df <- read.csv("../../data/KarateClub.csv", header = F, sep = ";", dec = ",")
 df
 
 g1 <- graph_from_data_frame(d = df, directed = F)
