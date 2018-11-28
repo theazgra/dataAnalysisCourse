@@ -1,9 +1,19 @@
 #include "network_matrix.h"
 
-NetworkMatrix::NetworkMatrix(uint rowCount, uint colCount)
+NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
 {
     this->rowCount = rowCount;
     this->colCount = colCount;
+    this->data.reserve(this->rowCount * this->colCount);
+    set_matrix_to_one_value(0.0f);
+}
+
+void NetworkMatrix::reinitialize(const uint &rowCount, const uint &colCount)
+{
+    this->rowCount = rowCount;
+    this->colCount = colCount;
+    this->data.clear();
+    this->data.shrink_to_fit();
     this->data.reserve(this->rowCount * this->colCount);
     set_matrix_to_one_value(0.0f);
 }
@@ -23,17 +33,17 @@ uint NetworkMatrix::rows() const
     return this->rowCount;
 }
 
-inline float &NetworkMatrix::at(uint row, uint col)
+inline float &NetworkMatrix::at(const uint &row, const uint &col)
 {
     return this->data[((row * this->colCount) + col)];
 }
 
-inline const float &NetworkMatrix::at(uint row, uint col) const
+inline const float &NetworkMatrix::at(const uint &row, const uint &col) const
 {
     return this->data[((row * this->colCount) + col)];
 }
 
-const bool NetworkMatrix::is_infinity(uint row, uint col) const
+inline bool NetworkMatrix::is_infinity(const uint &row, const uint &col) const
 {
     bool result = at(row, col) == INFINITY;
     return result;
@@ -305,6 +315,7 @@ std::map<uint, std::vector<uint>> NetworkMatrix::get_vertices_grouped_by_degree(
 NetworkMatrix NetworkMatrix::get_distance_matrix() const
 {
     //TODO: Rework to  BFS or DFS, this is really bad implementation.
+    // https://github.com/theazgra/aMAZEing/blob/9711facd1baba625faec34373604f8d8be2ad3bf/aMaze_ingSolver/aMaze_ingSolver/Algorithms/BreadthFirst.cs#L274
     assert(this->rowCount == this->colCount);
 
     NetworkMatrix result = NetworkMatrix(this->rowCount, this->colCount);
@@ -348,6 +359,121 @@ void NetworkMatrix::print_matrix() const
     printf("%s", result.c_str());
 }
 
+float NetworkMatrix::get_probability_for_symmetric_network(const uint vertexCount) const
+{
+    float result = (float)(log(vertexCount) / (double)vertexCount);
+    return result;
+}
+
+void NetworkMatrix::generate_random_network(const uint vertexCount, const float edgeProbability, bool autoProbability)
+{
+    float prob = edgeProbability;
+    if (autoProbability)
+    {
+        prob = get_probability_for_symmetric_network(vertexCount);
+    }
+
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+    float weights[] = {(1.0f - prob), prob};
+
+    std::discrete_distribution<int> discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
+
+    int edge;
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row; col < this->colCount; col++)
+        {
+            if (row == col)
+            {
+                at(row, col) = 0;
+            }
+            else
+            {
+                edge = discreteDistribution(randomGenerator);
+                at(row, col) = edge;
+                at(col, row) = edge;
+            }
+        }
+    }
+}
+void NetworkMatrix::generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd)
+{
+    uint startingSize = 3;
+    uint resultSize = startingSize + numberOfVerticesToAdd;
+    uint currentSize = startingSize;
+
+    NetworkMatrix initialMat(3, 3);
+    {
+        initialMat.at(0, 0) = 0.0f;
+        initialMat.at(0, 1) = 1.0f;
+        initialMat.at(0, 2) = 1.0f;
+
+        initialMat.at(1, 0) = 1.0f;
+        initialMat.at(1, 1) = 0.0f;
+        initialMat.at(1, 2) = 1.0f;
+
+        initialMat.at(2, 0) = 1.0f;
+        initialMat.at(2, 1) = 1.0f;
+        initialMat.at(2, 2) = 0.0f;
+    }
+    std::vector<uint> vertexList = {0, 0, 1, 1, 2, 2};
+
+    reinitialize(resultSize, resultSize);
+    insert(initialMat);
+
+    uint newVertexIndex, neighbour;
+    float vertexListSize;
+
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+    std::discrete_distribution<int> discreteDistribution;
+
+    std::vector<float> weights;
+    std::vector<uint> neighbours;
+    for (uint step = 0; step < numberOfVerticesToAdd; step++)
+    {
+        weights.clear();
+        neighbours.clear();
+
+        weights.reserve(currentSize);
+        neighbours.reserve(numberOfConnections);
+
+        newVertexIndex = startingSize + step;
+        vertexListSize = (float)vertexList.size();
+
+        for (uint vertex = 0; vertex < currentSize; vertex++)
+        {
+            weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
+        }
+
+        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
+        for (uint neighbourStep = 0; neighbourStep < numberOfConnections; neighbourStep++)
+        {
+            neighbour = discreteDistribution(randomGenerator);
+            while (find(neighbours, neighbour))
+            {
+                neighbour = discreteDistribution(randomGenerator);
+            }
+            neighbours.push_back(neighbour);
+        }
+
+        assert(neighbours.size() == numberOfConnections);
+
+        vertexList.push_back(newVertexIndex);
+        vertexList.push_back(newVertexIndex);
+
+        for (const uint &newNeighbour : neighbours)
+        {
+            vertexList.push_back(newNeighbour);
+            at(newVertexIndex, newNeighbour) = 1.0;
+            at(newNeighbour, newVertexIndex) = 1.0;
+        }
+
+        currentSize++;
+    }
+}
+
 void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset)
 {
     uint rowIndex, colIndex;
@@ -359,6 +485,19 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
         at(colIndex, rowIndex) = 1.0f;
     }
 }
-/*
-    void NetworkMatrix::export_network(const char *filename) const;
-*/
+
+void NetworkMatrix::export_network(const char *filename) const
+{
+    std::vector<std::pair<uint, uint>> edges;
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row; col < this->colCount; col++)
+        {
+            if (!is_infinity(row, col) && (at(row, col) > 0.0))
+            {
+                edges.push_back(std::make_pair(row, col));
+            }
+        }
+    }
+    save_network(filename, edges);
+}

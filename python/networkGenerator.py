@@ -27,11 +27,6 @@ def generate_random_network(vertexCount, edgeProbability):
     result = Mat(matrixValues)
     return result
 
-# [
-#     [0,1,1],
-#     [1,0,1],
-#     [1,1,0],
-# ]
 def generate_small_world_network(startingSize, m, t):
     startingSize = 3
     resultSize = 3 + t
@@ -65,6 +60,6 @@ def generate_small_world_network(startingSize, m, t):
             resultMatrix.values[n][newVertexIndex] = 1
             
         currentSize += 1
-        print("Current size: " + str(currentSize))
+        #print("Current size: " + str(currentSize))
 
     return resultMatrix

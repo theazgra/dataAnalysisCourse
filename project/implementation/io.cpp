@@ -34,3 +34,14 @@ uint get_vertex_count_from_edge_pairs(const std::vector<std::pair<uint, uint>> &
     }
     return max;
 }
+
+void save_network(const char *filename, const std::vector<std::pair<uint, uint>> &data)
+{
+    std::ofstream outStream(filename);
+
+    for (const std::pair<uint, uint> &edge : data)
+    {
+        outStream << std::to_string(edge.first) << ";" << std::to_string(edge.second) << std::endl;
+    }
+    outStream.flush();
+}

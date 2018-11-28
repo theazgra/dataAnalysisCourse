@@ -27,7 +27,7 @@ def karate_club_average_degree():
     print(averageDegree)
 
 def generate_graph_and_its_properties():
-    vertexCount = 1000
+    vertexCount = 10000
     probability = ng.get_probability_for_symmetric_network(vertexCount)
     print("Vertex count: {}".format(vertexCount))
     print("Edge probability: {}".format(probability))
@@ -46,18 +46,20 @@ def generate_graph_and_its_properties():
     # print("Clustering coefficient for vertices: {}".format(network.get_clustering_coefficients_for_vertices()))
     print("Average vertex degree: {}".format(avgDegree))
     print("Average clustering coefficient: {}".format(avgClusteringCoeff))
-    print("Edge count: {}".format(network.get_edge_count()))
+    #print("Edge count: {}".format(network.get_edge_count()))
 
-    network.export_network("../results/genNetwork.csv")
+    #network.export_network("../results/genNetwork.csv")
 
 def small_world_experiment():
     sw = ng.generate_small_world_network(3, 2, 1000)
-    sw.export_network("../results/sw.csv")
+    avgDegree = sw.get_average_degree()
+    print("Average vertex degree: {}".format(avgDegree))
+    #sw.export_network("../results/sw.csv")
 
 
 def main():
-    generate_graph_and_its_properties()
-    #small_world_experiment()
+    #generate_graph_and_its_properties()
+    small_world_experiment()
     #karate_club_average_degree()
     
 

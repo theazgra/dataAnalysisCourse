@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <math.h>
 
 #include "custom_types.h"
 #include "utils.h"
