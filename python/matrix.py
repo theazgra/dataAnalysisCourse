@@ -1,5 +1,6 @@
 from itertools import groupby
 from collections import OrderedDict
+from math import inf
 
 class Mat(object):
     def __init__(self, values):
@@ -108,9 +109,9 @@ class Mat(object):
         for k in dimRange:
             for i in dimRange:
                 for j in dimRange:
-                    tmp = tmpMat[i][k] + tmpMat[k][j]
-                    if tmpMat[i][j] > tmp:
-                        tmpMat[i][j] = tmp
+                    tmp = tmpMat.values[i][k] + tmpMat.values[k][j]
+                    if tmpMat.values[i][j] > tmp:
+                        tmpMat.values[i][j] = tmp
 
         return self
     
@@ -128,6 +129,14 @@ class Mat(object):
         neighbours = [ nId for nId in range(0, self.colCount) if row[nId] == 1 and nId != vertex]
         return neighbours
     
+    def get_edge_count(self):
+        edgeCount = 0
+        for r in range(self.rowCount):
+            for c in range(r, self.colCount):
+                if self.values[r][c] > 0 and self.values[r][c] != inf:
+                    edgeCount += 1
+        return edgeCount
+
     def get_edge_count_between_neighbours(self, neighbours):
         result = 0
         for n1 in neighbours:
@@ -191,3 +200,11 @@ class Mat(object):
                 for c in range(r, self.colCount):
                     if r != c and self.values[r][c] == 1:
                         file.write("{0};{1}\n".format(r,c))
+
+    def insert(self, other):
+        if self.colCount < other.colCount or self.rowCount < other.colCount:
+            raise Exception("Cannot insert bigger matrix into smaller one.")
+        
+        for row in range(other.rowCount):
+            for col in range(other.colCount):
+                self.values[row][col] = other.values[row][col]

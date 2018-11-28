@@ -2,8 +2,12 @@ if (!require("igraph"))
   install.packages("igraph")
 library(igraph)
 
+swDf <- read.csv("../../results/sw.csv", header = F, sep = ";")
+swGraph <- graph_from_data_frame(swDf, directed = F)
+swDeg <- degree(swGraph, mode = "all")
+plot(swGraph, vertex.size = swDeg)
 
-generated<-read.csv("../../results/genNetwork.csv", header = F, sep = ";")
+ generated <- read.csv("../../results/genNetwork.csv", header = F, sep = ";")
 generatedGraph <- graph_from_data_frame(generated, directed = F)
 plot(generatedGraph)
 plot(generatedGraph, layout = layout_randomly)
