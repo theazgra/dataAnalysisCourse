@@ -157,6 +157,7 @@ class Mat(object):
         for vertex in vertices:
             vertexNeighbours = self.get_neighbours(vertex)
             neighbourCount = len(vertexNeighbours)
+            
             if neighbourCount > 1:
                 edgesBetweenNeighbours = self.get_edge_count_between_neighbours(vertexNeighbours)
                 clusteringCoefficien = (2.0 * edgesBetweenNeighbours) / (neighbourCount * (neighbourCount - 1))

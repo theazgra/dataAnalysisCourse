@@ -26,21 +26,29 @@ def load_zachary_karate_club():
 def main():
     matrix = load_zachary_karate_club()
 
-    x = matrix.get_clustering_coefficients_for_vertices()
-    print(x)
-    for a in x:
-       print("Vertex: {0}; Coefficient: {1}".format( a+1, x[a]))
-    avg = sum(x.values()) / len(x)
-    print("Average clustering coefficient in graph: {0}".format(avg))
+    print("Avg. degree: {}".format(matrix.get_average_degree()))
+    print("Avg. clustering coeff: {}".format(matrix.get_average_clustering_coefficients_for_vertices()))
+
+    # x = matrix.get_clustering_coefficients_for_vertices()
+    # print(x)
+    # for a in x:
+    #    print("Vertex: {0}; Coefficient: {1}".format( a+1, x[a]))
+
+    grp = matrix.get_vertices_grouped_by_degree()
+    for d in grp:
+        print("Degree: {}; VC: {}".format(d, len(grp[d])))
     
-    # print(matrix.get_degree_of_vertices())
-    """ 
-    1. Shlukovaci koeficient pro kazdy vrchol
-    2. Prumerny shlukovaci koeficient cele site, + smerodatnou odchylku
-    3. Distribuce shlukovaciho koeficientu vzhedem ke stupni
-        - prumerny shlukovaci koeficient pro ruzne stupne vrcholu
-    """
-    matrix.save_clustering_coefficient_for_degree_groups("data.csv")
+    # avg = sum(x.values()) / len(x)
+    # print("Average clustering coefficient in graph: {0}".format(avg))
+    
+    # # print(matrix.get_degree_of_vertices())
+    # """ 
+    # 1. Shlukovaci koeficient pro kazdy vrchol
+    # 2. Prumerny shlukovaci koeficient cele site, + smerodatnou odchylku
+    # 3. Distribuce shlukovaciho koeficientu vzhedem ke stupni
+    #     - prumerny shlukovaci koeficient pro ruzne stupne vrcholu
+    # """
+    # matrix.save_clustering_coefficient_for_degree_groups("data.csv")
 
 
 
