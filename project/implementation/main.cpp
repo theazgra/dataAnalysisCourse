@@ -70,6 +70,24 @@ int main(int, char **)
 {
     //karate_test();
     //random_network_test();
-    scale_free_network_test();
+    //scale_free_network_test();
+
+    NetworkMatrix nm(3, 3);
+    nm.at(0, 0) = 1.0;
+    nm.at(0, 1) = 2.0;
+    nm.at(0, 2) = 3.0;
+
+    nm.at(1, 0) = 0.0;
+    nm.at(1, 1) = 0.0;
+    nm.at(1, 2) = 0.0;
+
+    nm.at(2, 0) = 1.0;
+    nm.at(2, 1) = 2.0;
+    nm.at(2, 2) = 3.0;
+
+    nm.print_matrix();
+    nm.transpose();
+    printf("==============================\n");
+    nm.print_matrix();
     return 0;
 }

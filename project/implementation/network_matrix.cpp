@@ -38,6 +38,11 @@ inline float &NetworkMatrix::at(const uint &row, const uint &col)
     return this->data[((row * this->colCount) + col)];
 }
 
+inline float &NetworkMatrix::at_vec(const std::vector<float> &vec, const uint &row, const uint &col)
+{
+    return data[((row * this->colCount) + col)];
+}
+
 inline const float &NetworkMatrix::at(const uint &row, const uint &col) const
 {
     return this->data[((row * this->colCount) + col)];
@@ -148,17 +153,6 @@ void NetworkMatrix::set_matrix_to_one_value(const float value)
         for (uint col = 0; col < this->colCount; col++)
         {
             at(row, col) = value;
-        }
-    }
-}
-
-void NetworkMatrix::transpose()
-{
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        for (uint col = 0; col < this->colCount; col++)
-        {
-            at(col, row) = at(row, col);
         }
     }
 }

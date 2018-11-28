@@ -11,6 +11,7 @@ private:
   void reinitialize(const uint &rowCount, const uint &colCount);
   std::vector<uint> get_neighbours(const uint vertex) const;
   uint get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const;
+  inline float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
 
 public:
   NetworkMatrix(const uint &rowCount, const uint &colCount);
@@ -23,7 +24,6 @@ public:
 
   void insert(const NetworkMatrix &other);
   void set_matrix_to_one_value(const float value);
-  void transpose();
   std::vector<uint> get_degree_of_vertices() const;
   float get_average_degree() const;
   void set_inf_where_no_edge();
@@ -34,9 +34,6 @@ public:
   std::map<uint, std::vector<uint>> get_vertices_grouped_by_degree() const;
 
   //closeness_centrality_for_vertices
-
-  //
-  //save_clustering_coefficient_for_degree_groups
 
   void copy_data(const NetworkMatrix &source);
   inline float &at(const uint &row, const uint &col);
