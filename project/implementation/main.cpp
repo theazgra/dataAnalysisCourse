@@ -50,14 +50,17 @@ void random_network_test()
 
 void scale_free_network_test()
 {
-    const uint dim = 1000;
+    const uint dim = 500;
     NetworkMatrix nm(dim, dim);
-    nm.generate_scale_free_network(2, 2500);
+    nm.generate_scale_free_network(2, 500);
 
     float avgDegree = nm.get_average_degree();
     printf("Average degree: %f\n", avgDegree);
 
-    nm.export_network("small_world.csv");
+    auto distanceMatrix = nm.get_distance_matrix();
+    printf("Got distance matrix\n");
+
+    //nm.export_network("small_world.csv");
 }
 
 // Network is always indexed from zero!!! If in CSV file there is not vertex 0, then vertex 1 is renamed to 0.
@@ -65,31 +68,31 @@ int main(int, char **)
 {
     //karate_test();
     //random_network_test();
-    //scale_free_network_test();
+    scale_free_network_test();
 
-    NetworkMatrix nm(4, 4);
-    nm.at(0, 0) = 0.0f;
-    nm.at(0, 1) = 1.0f;
-    nm.at(0, 2) = 0.0f;
-    nm.at(0, 3) = 1.0f;
+    // NetworkMatrix nm(4, 4);
+    // nm.at(0, 0) = 0.0f;
+    // nm.at(0, 1) = 1.0f;
+    // nm.at(0, 2) = 0.0f;
+    // nm.at(0, 3) = 1.0f;
 
-    nm.at(1, 0) = 1.0f;
-    nm.at(1, 1) = 0.0f;
-    nm.at(1, 2) = 1.0f;
-    nm.at(1, 3) = 1.0f;
+    // nm.at(1, 0) = 1.0f;
+    // nm.at(1, 1) = 0.0f;
+    // nm.at(1, 2) = 1.0f;
+    // nm.at(1, 3) = 1.0f;
 
-    nm.at(2, 0) = 0.0f;
-    nm.at(2, 1) = 1.0f;
-    nm.at(2, 2) = 0.0f;
-    nm.at(2, 3) = 1.0f;
+    // nm.at(2, 0) = 0.0f;
+    // nm.at(2, 1) = 1.0f;
+    // nm.at(2, 2) = 0.0f;
+    // nm.at(2, 3) = 1.0f;
 
-    nm.at(3, 0) = 1.0f;
-    nm.at(3, 1) = 1.0f;
-    nm.at(3, 2) = 1.0f;
-    nm.at(3, 3) = 0.0f;
+    // nm.at(3, 0) = 1.0f;
+    // nm.at(3, 1) = 1.0f;
+    // nm.at(3, 2) = 1.0f;
+    // nm.at(3, 3) = 0.0f;
 
-    NetworkMatrix distanceMat = nm.get_distance_matrix();
-    distanceMat.print_matrix();
+    // NetworkMatrix distanceMat = nm.get_distance_matrix();
+    // distanceMat.print_matrix();
 
     //GT
     /*

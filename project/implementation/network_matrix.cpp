@@ -148,6 +148,7 @@ void NetworkMatrix::insert(const NetworkMatrix &other)
 
 void NetworkMatrix::set_matrix_to_one_value(const float value)
 {
+    //this->data.assign(this->data.size(), value);
     for (uint row = 0; row < this->rowCount; row++)
     {
         for (uint col = 0; col < this->colCount; col++)
@@ -305,64 +306,104 @@ std::map<uint, std::vector<uint>> NetworkMatrix::get_vertices_grouped_by_degree(
 
     return result;
 }
-
-// DijkstraVertex *get_min_dijkstra_vertex(const std::vector<DijkstraVertex *> &vec)
-// {
-//     DijkstraVertex *min;
-//     float minDist = INFINITY;
-//     for (DijkstraVertex *v : vec)
-//     {
-//         if ((!v->deleted) && v->distance < minDist)
-//         {
-//             minDist = v->distance;
-//             min = v;
-//         }
-//     }
-
-//     return min;
-// }
-
-uint find_min_distance_index(const std::vector<float> &dist, const std::vector<bool> &sptSet)
+/************************************************************************************************************/
+uint get_best_unvisited(const std::vector<uint> &unvisited, const std::vector<float> &distances)
 {
+    uint best = 0;
     float min = INFINITY;
-    uint minIndex;
-
-    for (uint v = 0; v < dist.size(); v++)
+    for (const uint &vertex : unvisited)
     {
-        if (sptSet[v] == false && dist[v] <= min)
+        if (distances[vertex] < min)
         {
-            min = dist[v];
-            minIndex = v;
+            min = distances[vertex];
+            best = vertex;
         }
+        return vertex;
     }
-    return minIndex;
 }
 
-std::vector<float> NetworkMatrix::dijkstra_paths_for_vertex(const uint &source) const
+void new_best_distance(const uint &currentVertex, std::vector<uint> &unvisited, std::vector<float> &distances, const float distance)
 {
-    //https://www.quora.com/What-is-the-most-simple-efficient-C++-code-for-Dijkstras-shortest-path-algorithm
+    distances.at(currentVertex) = distance;
+    if (!find(unvisited, currentVertex))
+    {
+        unvisited.push_back(currentVertex);
+    }
+}
+
+float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
+{
+    uint vc = vertex_count();
+    std::vector<uint> unvisited;
+    std::vector<float> distances;
+    std::vector<bool> visited;
+    unvisited.reserve(vc);
+    distances.reserve(vc);
+    visited.reserve(vc);
+
+    for (uint v = 0; v < vc; v++)
+    {
+        unvisited.push_back(v);
+        distances.push_back(INFINITY);
+        visited.push_back(false);
+    }
+    uint current = source;
+    new_best_distance(current, unvisited, distances, 0);
+    for (const uint &neighbour : get_neighbours(current))
+    {
+        new_best_distance(neighbour, unvisited, distances, INFINITY);
+    }
+    bool destVisited = false;
+    while (!destVisited)
+    {
+        current = get_best_unvisited(unvisited, distances);
+        for (const uint &neighbour : get_neighbours(current))
+        {
+            if (visited[neighbour])
+                continue;
+            float distanceToNeighbour = distances[current] + mat.at(current, neighbour);
+            if (distanceToNeighbour < distances[neighbour])
+            {
+                distances[neighbour] = distanceToNeighbour;
+            }
+        }
+        if (current == dest)
+            break;
+
+        visited[current] = true;
+
+        unvisited.erase(std::remove(std::begin(unvisited), std::end(unvisited), current));
+        assert(!find(unvisited, current));
+    }
+
+    float result = distances[dest];
+    return result;
 }
 
 NetworkMatrix NetworkMatrix::get_distance_matrix() const
 {
     assert(this->rowCount == this->colCount);
 
+    NetworkMatrix dijkstraMat(this->rowCount, this->colCount);
     NetworkMatrix result(this->rowCount, this->colCount);
-    result.set_inf_where_no_edge();
 
-    float distance;
-    for (uint vertex = 0; vertex < this->rowCount; vertex++)
+    dijkstraMat.copy_data(*this);
+    result.copy_data(*this);
+
+    dijkstraMat.set_inf_where_no_edge();
+
+#pragma omp parallel for
+    for (uint row = 0; row < this->rowCount; row++)
     {
-        auto dijkstraRow = dijkstra_paths_for_vertex(vertex);
-        // for (uint nei = vertex; nei < this->colCount; nei++)
-        // {
-        //     if (vertex == nei)
-        //         continue;
-
-        //     // result.at(vertex, nei) = distance;
-        //     // result.at(nei, vertex) = distance;
-        // }
+        for (uint col = row + 1; col < this->colCount; col++)
+        {
+            float distance = dijkstra_path(dijkstraMat, row, col);
+            result.at(row, col) = distance;
+            result.at(col, row) = distance;
+        }
+        //printf("Done row %i\n", row);
     }
+    return result;
 
     //Floyd
     // NetworkMatrix result = NetworkMatrix(this->rowCount, this->colCount);
