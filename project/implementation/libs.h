@@ -11,4 +11,5 @@
 
 #include "custom_types.h"
 #include "utils.h"
+#include "stack.h"
 #include "io.h"

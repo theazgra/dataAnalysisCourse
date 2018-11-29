@@ -34,7 +34,6 @@ public:
   std::map<uint, std::vector<uint>> get_vertices_grouped_by_degree() const;
 
   //closeness_centrality_for_vertices
-
   void copy_data(const NetworkMatrix &source);
   inline float &at(const uint &row, const uint &col);
   inline const float &at(const uint &row, const uint &col) const;
