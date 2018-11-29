@@ -1,6 +1,21 @@
 #pragma once
 #include "libs.h"
 
+// struct DijkstraVertex
+// {
+//   uint vertex;
+//   float distance;
+//   bool visited = false;
+//   bool deleted = false;
+//   bool hasNeighSetAlready = false;
+//   std::vector<DijkstraVertex *> neighbours;
+
+//   bool operator==(const DijkstraVertex &o)
+//   {
+//     return (this->vertex == o.vertex);
+//   }
+// };
+
 class NetworkMatrix
 {
 private:
@@ -45,6 +60,7 @@ public:
   NetworkMatrix operator-(const NetworkMatrix &other);
   NetworkMatrix &operator-=(const NetworkMatrix &other);
 
+  std::vector<float> dijkstra_paths_for_vertex(const uint &source) const;
   float get_probability_for_symmetric_network(const uint vertexCount) const;
   void generate_random_network(const uint vertexCount, const float edgeProbability, bool autoProbability = true);
   void generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd);

@@ -306,32 +306,94 @@ std::map<uint, std::vector<uint>> NetworkMatrix::get_vertices_grouped_by_degree(
     return result;
 }
 
-NetworkMatrix NetworkMatrix::get_distance_matrix() const
+// DijkstraVertex *get_min_dijkstra_vertex(const std::vector<DijkstraVertex *> &vec)
+// {
+//     DijkstraVertex *min;
+//     float minDist = INFINITY;
+//     for (DijkstraVertex *v : vec)
+//     {
+//         if ((!v->deleted) && v->distance < minDist)
+//         {
+//             minDist = v->distance;
+//             min = v;
+//         }
+//     }
+
+//     return min;
+// }
+
+uint find_min_distance_index(const std::vector<float> &dist, const std::vector<bool> &sptSet)
 {
-    //TODO: Rework to  BFS or DFS, this is really bad implementation.
-    // https://github.com/theazgra/aMAZEing/blob/9711facd1baba625faec34373604f8d8be2ad3bf/aMaze_ingSolver/aMaze_ingSolver/Algorithms/BreadthFirst.cs#L274
-    assert(this->rowCount == this->colCount);
+    float min = INFINITY;
+    uint minIndex;
 
-    NetworkMatrix result = NetworkMatrix(this->rowCount, this->colCount);
-    result.copy_data(*this);
-    uint upperBound = this->rowCount;
-
-    float tmpDistance;
-    for (uint k = 0; k < upperBound; k++)
+    for (uint v = 0; v < dist.size(); v++)
     {
-        for (uint i = 0; i < upperBound; i++)
+        if (sptSet[v] == false && dist[v] <= min)
         {
-
-            for (uint j = 0; j < upperBound; j++)
-            {
-                tmpDistance = result.at(i, k) + result.at(k, j);
-                if (result.at(i, j) > tmpDistance)
-                    result.at(i, k) = tmpDistance;
-            }
+            min = dist[v];
+            minIndex = v;
         }
     }
+    return minIndex;
+}
 
-    return result;
+std::vector<float> NetworkMatrix::dijkstra_paths_for_vertex(const uint &source) const
+{
+    //https://www.quora.com/What-is-the-most-simple-efficient-C++-code-for-Dijkstras-shortest-path-algorithm
+}
+
+NetworkMatrix NetworkMatrix::get_distance_matrix() const
+{
+    assert(this->rowCount == this->colCount);
+
+    NetworkMatrix result(this->rowCount, this->colCount);
+    result.set_inf_where_no_edge();
+
+    float distance;
+    for (uint vertex = 0; vertex < this->rowCount; vertex++)
+    {
+        auto dijkstraRow = dijkstra_paths_for_vertex(vertex);
+        // for (uint nei = vertex; nei < this->colCount; nei++)
+        // {
+        //     if (vertex == nei)
+        //         continue;
+
+        //     // result.at(vertex, nei) = distance;
+        //     // result.at(nei, vertex) = distance;
+        // }
+    }
+
+    //Floyd
+    // NetworkMatrix result = NetworkMatrix(this->rowCount, this->colCount);
+    // result.copy_data(*this);
+    // result.set_inf_where_no_edge();
+    // uint upperBound = this->rowCount;
+
+    // float tmpDistance;
+
+    // for (uint k = 0; k < upperBound; k++)
+    // {
+    //     for (uint i = 0; i < upperBound; i++)
+    //     {
+    //         for (uint j = 0; j < upperBound; j++)
+    //         {
+
+    //             if (result.is_infinity(i, k) || result.is_infinity(k, j))
+    //                 continue;
+    //             tmpDistance = result.at(i, k) + result.at(k, j);
+    //             if (result.at(i, j) > tmpDistance)
+    //                 result.at(i, j) = tmpDistance;
+    //         }
+    //     }
+    // }
+
+    // for (uint d = 0; d < upperBound; d++)
+    // {
+    //     result.at(d, d) = INFINITY;
+    // }
+
+    // return result;
 }
 
 void NetworkMatrix::print_matrix() const

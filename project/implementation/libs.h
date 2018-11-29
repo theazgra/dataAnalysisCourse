@@ -8,6 +8,7 @@
 #include <string>
 #include <fstream>
 #include <math.h>
+#include <algorithm>
 
 #include "custom_types.h"
 #include "utils.h"

@@ -1,10 +1,5 @@
 
-// #include <iostream>
-// #include <random>
-// #include <map>
-// #include <stdio.h>
 #include "network_matrix.h"
-//#include "network_matrix.cpp"
 
 void karate_test()
 {
@@ -29,7 +24,7 @@ void karate_test()
 
     for (auto &&i : grouped)
     {
-        printf("Degree: %i; VC: %d\n", i.first, i.second.size());
+        //printf("Degree: %i; VC: %d\n", i.first, i.second.size());
     }
 }
 
@@ -68,22 +63,41 @@ void scale_free_network_test()
 // Network is always indexed from zero!!! If in CSV file there is not vertex 0, then vertex 1 is renamed to 0.
 int main(int, char **)
 {
-    Stack<int> s;
-    s.push(5);
-    printf("Peek: %i\n", s.peek());
-    s.push(4);
-    s.push(3);
-    printf("Peek: %i\n", s.peek());
-
-    while (s)
-    {
-        int x = s.pop();
-        printf("Pop-ed: %i\n", x);
-    }
-
     //karate_test();
     //random_network_test();
     //scale_free_network_test();
+
+    NetworkMatrix nm(4, 4);
+    nm.at(0, 0) = 0.0f;
+    nm.at(0, 1) = 1.0f;
+    nm.at(0, 2) = 0.0f;
+    nm.at(0, 3) = 1.0f;
+
+    nm.at(1, 0) = 1.0f;
+    nm.at(1, 1) = 0.0f;
+    nm.at(1, 2) = 1.0f;
+    nm.at(1, 3) = 1.0f;
+
+    nm.at(2, 0) = 0.0f;
+    nm.at(2, 1) = 1.0f;
+    nm.at(2, 2) = 0.0f;
+    nm.at(2, 3) = 1.0f;
+
+    nm.at(3, 0) = 1.0f;
+    nm.at(3, 1) = 1.0f;
+    nm.at(3, 2) = 1.0f;
+    nm.at(3, 3) = 0.0f;
+
+    NetworkMatrix distanceMat = nm.get_distance_matrix();
+    distanceMat.print_matrix();
+
+    //GT
+    /*
+    inf 1.000000 2.000000 1.000000
+    1.000000 inf 1.000000 1.000000
+    2.000000 1.000000 inf 1.000000
+    1.000000 1.000000 1.000000 inf
+    */
 
     return 0;
 }
