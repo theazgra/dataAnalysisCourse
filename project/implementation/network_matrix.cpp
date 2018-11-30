@@ -74,7 +74,7 @@ uint NetworkMatrix::edge_count() const
             }
         }
     }
-    return result;
+    return (uint)(result / 2);
 }
 NetworkMatrix NetworkMatrix::operator+(const NetworkMatrix &other)
 {
@@ -469,10 +469,10 @@ std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const Ne
 // for rId in range(0, self.rowCount):
 //             result.append(round(1 / (sum([self.values[rId][cId] for cId in range(0, self.colCount) if cId != rId]) / vertexCount), 7))
 
-NetworkMatrix NetworkMatrix::get_distance_matrix() const
+NetworkMatrix NetworkMatrix::get_distance_matrix(const bool forceDijkstra) const
 {
     assert(this->rowCount == this->colCount);
-    bool bfs = can_use_bfs();
+    bool bfs = !forceDijkstra && can_use_bfs();
     printf("Will use %s alg.\n", bfs ? "BFS" : "DIJKSTRA");
 
     NetworkMatrix distanceMat(this->rowCount, this->colCount);
@@ -655,4 +655,140 @@ void NetworkMatrix::export_network(const char *filename) const
         }
     }
     save_network(filename, edges);
+}
+
+float NetworkMatrix::get_network_longest_distance(const NetworkMatrix &distanceMatrix) const
+{
+    float max = 0;
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row + 1; col < this->colCount; col++)
+        {
+            if (distanceMatrix.at(row, col) > max)
+                max = distanceMatrix.at(row, col);
+        }
+    }
+    return max;
+}
+
+float NetworkMatrix::get_network_average_distance(const NetworkMatrix &distanceMatrix) const
+{
+    //  The average distance is the average shortest path of a graph, corresponding to the summa of all shortest paths between vertex
+    //      couples divided for the total number of vertex couples.
+    /*
+    The average distance in a graph is defined as the average length of a shortest path between two vertices, taken over all pairs of vertices
+    */
+
+    assert(this->rowCount == this->colCount);
+    float sum2 = 0;
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row + 1; col < this->colCount; col++)
+        {
+            sum2 += distanceMatrix.at(row, col);
+        }
+    }
+
+    float result = sum2 / (float)(this->rowCount * this->rowCount);
+    return result;
+}
+std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distanceMatrix) const
+{
+    assert(this->rowCount == this->colCount);
+    std::vector<float> result;
+    result.reserve(this->rowCount);
+
+    float max;
+    for (uint vertex = 0; vertex < this->rowCount; vertex++)
+    {
+        max = 0;
+
+        for (uint col = 0; col < this->colCount; col++)
+        {
+            if (distanceMatrix.at(vertex, col) > max)
+                max = distanceMatrix.at(vertex, col);
+        }
+        result.push_back(max);
+    }
+
+    return result;
+}
+
+void NetworkMatrix::complete_analysis(const char *networkName, const char *filename) const
+{
+    using namespace std;
+
+    std::ofstream outStream(filename);
+    assert(outStream.is_open());
+
+    outStream << "=====================Analysis for network: " << networkName << "=====================" << endl;
+
+    uint vertexCount = vertex_count();
+    printf("Vertex count: %i\n", vertexCount);
+    outStream << "Vertex count: " << vertexCount << endl;
+
+    uint edgeCount = edge_count();
+    printf("Edge count: %i\n", edgeCount);
+    outStream << "Edge count: " << edgeCount << endl;
+
+    // Vertex degree distribution
+    std::vector<uint> degrees = get_degree_of_vertices();
+    outStream << "Degree distribution:" << endl;
+
+    for (size_t i = 0; i < degrees.size(); i++)
+        outStream << degrees[i] << ";";
+    outStream << endl
+              << endl;
+
+    // Average vertex degree.
+    float averageDegree = get_average_degree();
+    printf("Average degree: %f\n", averageDegree);
+    outStream << "Average degree: " << averageDegree << endl;
+
+    // Clustering coefficient for vertices.
+    std::vector<float> clusteringCofficients = get_clustering_coeff_for_all_vertices();
+    outStream << "Clustering coefficients:" << endl;
+
+    for (size_t i = 0; i < clusteringCofficients.size(); i++)
+        outStream << clusteringCofficients[i] << ";";
+    outStream << endl
+              << endl;
+
+    // Average clustering coefficient.
+    float averageClusteringCoefficient = get_average_clustering_coefficient();
+    printf("Average clustering coefficient: %f\n", averageClusteringCoefficient);
+    outStream << "Average clustering coefficient: " << averageClusteringCoefficient << endl;
+
+    // Closeness centrality.
+    NetworkMatrix distanceMatrix = get_distance_matrix();
+    std::vector<float> closenessCentrality = get_closeness_centrality_for_vertices(distanceMatrix);
+    outStream << "Closeness centralities:" << endl;
+
+    for (size_t i = 0; i < closenessCentrality.size(); i++)
+        outStream << closenessCentrality[i] << ";";
+    outStream << endl
+              << endl;
+
+    // Network average. Longest distance.
+    float networkAverage = get_network_longest_distance(distanceMatrix);
+    printf("Network average: %f\n", networkAverage);
+    outStream << "Network average: " << networkAverage << endl;
+
+    // Network average distance.
+    float averageDistance = get_network_average_distance(distanceMatrix);
+    printf("Average distance: %f\n", averageDistance);
+    outStream << "Average distance: " << averageDistance << endl;
+
+    // Vertices eccentricity.
+    std::vector<float> eccentricities = get_eccentricities(distanceMatrix);
+    outStream << "Eccentricities:" << endl;
+
+    for (size_t i = 0; i < eccentricities.size(); i++)
+        outStream << eccentricities[i] << ";";
+    outStream << endl
+              << endl;
+
+    outStream << "======================================END==================================" << endl;
+    outStream.flush();
+    outStream.close();
 }

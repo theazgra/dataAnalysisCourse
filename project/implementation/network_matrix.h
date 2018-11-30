@@ -61,7 +61,7 @@ public:
   void set_inf_where_no_edge();
 
   // Get matrix of distances from vertex to every other one.
-  NetworkMatrix get_distance_matrix() const;
+  NetworkMatrix get_distance_matrix(const bool forceDijkstra = false) const;
 
   // Get average clustering coefficient.
   float get_average_clustering_coefficient() const;
@@ -113,6 +113,12 @@ public:
 
   // Export network to file.
   void export_network(const char *filename) const;
+
+  void complete_analysis(const char *networkName, const char *filename) const;
+
+  float get_network_longest_distance(const NetworkMatrix &distanceMatrix) const;
+  float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
+  std::vector<float> get_eccentricities(const NetworkMatrix &distanceMatrix) const;
 };
 
 #include "network_matrix.cpp"
