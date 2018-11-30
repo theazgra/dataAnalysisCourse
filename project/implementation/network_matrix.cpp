@@ -460,7 +460,7 @@ std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const Ne
         {
             distanceSum += distanceMatrix.at(vertex, col);
         }
-        cc = 1.0f / distanceSum;
+        cc = (1.0f / distanceSum) * ((float)vc - 1.0f);
         result.push_back(cc);
     }
 
@@ -673,23 +673,19 @@ float NetworkMatrix::get_network_longest_distance(const NetworkMatrix &distanceM
 
 float NetworkMatrix::get_network_average_distance(const NetworkMatrix &distanceMatrix) const
 {
-    //  The average distance is the average shortest path of a graph, corresponding to the summa of all shortest paths between vertex
-    //      couples divided for the total number of vertex couples.
-    /*
-    The average distance in a graph is defined as the average length of a shortest path between two vertices, taken over all pairs of vertices
-    */
-
     assert(this->rowCount == this->colCount);
-    float sum2 = 0;
+    float distanceSum = 0;
+    uint count = 0;
     for (uint row = 0; row < this->rowCount; row++)
     {
         for (uint col = row + 1; col < this->colCount; col++)
         {
-            sum2 += distanceMatrix.at(row, col);
+            count++;
+            distanceSum += distanceMatrix.at(row, col);
         }
     }
 
-    float result = sum2 / (float)(this->rowCount * this->rowCount);
+    float result = distanceSum / (float)((this->rowCount * (this->rowCount - 1)) / 2.0f);
     return result;
 }
 std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distanceMatrix) const
@@ -719,7 +715,7 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
     using namespace std;
 
     std::ofstream outStream(filename);
-    assert(outStream.is_open());
+    assert(outStream.is_open() && "Failed to open report file.");
 
     outStream << "=====================Analysis for network: " << networkName << "=====================" << endl;
 
@@ -765,9 +761,13 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
     outStream << "Closeness centralities:" << endl;
 
     for (size_t i = 0; i < closenessCentrality.size(); i++)
+    {
         outStream << closenessCentrality[i] << ";";
+        printf("%f;", closenessCentrality[i]);
+    }
     outStream << endl
               << endl;
+    printf("\n");
 
     // Network average. Longest distance.
     float networkAverage = get_network_longest_distance(distanceMatrix);

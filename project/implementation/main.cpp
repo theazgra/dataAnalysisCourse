@@ -102,13 +102,13 @@ int main(int argc, char **argv)
     //     reportFile = argv[2];
     // }
 
-#if 0
+#if 1
     auto karateEdges = load_edge_pairs(csvFile, ";");
     uint vc = get_vertex_count_from_edge_pairs(karateEdges);
     NetworkMatrix network = NetworkMatrix(vc, vc);
     network.load_from_edges(karateEdges);
     //network.get_distance_matrix(true).print_matrix();
-    network.complete_analysis("Zachary-karate-club", "../out/report.txt");
+    network.complete_analysis("Zachary-karate-club", "/home/mor0146/github/dataAnalysisCourse/project/implementation/out/report.txt");
 
 #else
     // PROJECT
