@@ -102,6 +102,7 @@ int main(int argc, char **argv)
     //     reportFile = argv[2];
     // }
 
+#if 0
     auto karateEdges = load_edge_pairs(csvFile, ";");
     uint vc = get_vertex_count_from_edge_pairs(karateEdges);
     NetworkMatrix network = NetworkMatrix(vc, vc);
@@ -109,12 +110,12 @@ int main(int argc, char **argv)
     //network.get_distance_matrix(true).print_matrix();
     network.complete_analysis("Zachary-karate-club", "../out/report.txt");
 
-#if 0
+#else
     // PROJECT
     const uint vertexCount = 1000;
     const uint m = 2;
-    const char *exportNetworkFile = "sw.csv";
-    const char *reportFile = "report.txt";
+    const char *exportNetworkFile = "../out/scaleFreeNet.csv";
+    const char *reportFile = "scaleFreeReport.txt";
 
     // 1. Scale free network generation, exporting to exportNetworkFile.
     NetworkMatrix network(vertexCount, vertexCount);
@@ -123,7 +124,7 @@ int main(int argc, char **argv)
     network.export_network(exportNetworkFile);
 
     // 2. Network Analysis
-    network.complete_analysis(reportFile);
+    network.complete_analysis("ScaleFreeTest", reportFile);
 #endif
     return 0;
 }
