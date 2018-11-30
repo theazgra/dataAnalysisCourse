@@ -307,7 +307,7 @@ std::map<uint, std::vector<uint>> NetworkMatrix::get_vertices_grouped_by_degree(
     return result;
 }
 /************************************************************************************************************/
-uint get_best_unvisited(const std::vector<uint> &unvisited, const std::vector<float> &distances)
+inline uint get_best_unvisited(const std::vector<uint> &unvisited, const std::vector<float> &distances)
 {
     uint best = 0;
     float min = INFINITY;
@@ -322,7 +322,7 @@ uint get_best_unvisited(const std::vector<uint> &unvisited, const std::vector<fl
     }
 }
 
-void new_best_distance(const uint &currentVertex, std::vector<uint> &unvisited, std::vector<float> &distances, const float distance)
+inline void new_best_distance(const uint &currentVertex, std::vector<uint> &unvisited, std::vector<float> &distances, const float distance)
 {
     distances.at(currentVertex) = distance;
     if (!find(unvisited, currentVertex))
