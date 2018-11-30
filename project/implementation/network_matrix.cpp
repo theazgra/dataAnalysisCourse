@@ -405,37 +405,38 @@ float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source,
 
     for (uint v = 0; v < vc; v++)
     {
-        unvisited.push_back(v);
         distances.push_back(INFINITY);
         visited.push_back(false);
     }
     uint current = source;
     new_best_distance(current, unvisited, distances, 0);
-    for (const uint &neighbour : get_neighbours(current))
+    auto neis = get_neighbours(current);
+    assert(neis.size() > 0);
+    for (const uint &neighbour : neis)
     {
         new_best_distance(neighbour, unvisited, distances, INFINITY);
     }
-    bool destVisited = false;
-    while (!destVisited)
+
+    while (!visited[dest])
     {
         current = get_best_unvisited(unvisited, distances);
-        for (const uint &neighbour : get_neighbours(current))
+        auto neighbours = get_neighbours(current);
+        if (neighbours.size() > 0)
         {
-            if (visited[neighbour])
-                continue;
-            float distanceToNeighbour = distances[current] + mat.at(current, neighbour);
-            if (distanceToNeighbour < distances[neighbour])
+            for (const uint &neighbour : neighbours)
             {
-                distances[neighbour] = distanceToNeighbour;
+                if (visited[neighbour])
+                    continue;
+                float distanceToNeighbour = distances[current] + mat.at(current, neighbour);
+                if (distanceToNeighbour < distances[neighbour])
+                {
+                    new_best_distance(neighbour, unvisited, distances, distanceToNeighbour);
+                }
             }
         }
-        if (current == dest)
-            break;
 
         visited[current] = true;
-
         unvisited.erase(std::remove(std::begin(unvisited), std::end(unvisited), current));
-        assert(!find(unvisited, current));
     }
 
     float result = distances[dest];

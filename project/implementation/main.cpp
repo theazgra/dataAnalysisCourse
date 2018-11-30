@@ -65,6 +65,54 @@ void scale_free_network_test()
     //nm.export_network("small_world.csv");
 }
 
+bool eq_mat(const NetworkMatrix &a, const NetworkMatrix &b)
+{
+    if (a.rows() != b.rows() || a.cols() != b.cols())
+        return false;
+    for (uint row = 0; row < a.rows(); row++)
+    {
+        for (uint col = 0; col < a.cols(); col++)
+        {
+            if (a.at(row, col) != b.at(row, col))
+                return false;
+        }
+    }
+    return true;
+}
+
+void dijkstra_test()
+{
+    NetworkMatrix nm(6, 6);
+    nm.at(0, 1) = 1.0f;
+    nm.at(0, 3) = 1.0f;
+    nm.at(0, 4) = 1.0f;
+
+    nm.at(1, 0) = 1.0f;
+    nm.at(1, 2) = 1.0f;
+    nm.at(1, 3) = 1.0f;
+
+    nm.at(2, 1) = 1.0f;
+    nm.at(2, 3) = 1.0f;
+    nm.at(2, 5) = 1.0f;
+
+    nm.at(3, 0) = 1.0f;
+    nm.at(3, 1) = 1.0f;
+    nm.at(3, 2) = 1.0f;
+    nm.at(3, 4) = 1.0f;
+
+    nm.at(4, 0) = 1.0f;
+    nm.at(4, 5) = 1.0f;
+
+    nm.at(5, 4) = 1.0f;
+    nm.at(5, 2) = 1.0f;
+
+    auto bfs = nm.get_distance_matrix(false);
+    auto dij = nm.get_distance_matrix(true);
+
+    assert(eq_mat(bfs, dij) && "NOT EQUAL");
+
+    dij.print_matrix();
+}
 // Network is always indexed from zero!!! If in CSV file there is not vertex 0, then vertex 1 is renamed to 0.
 int main(int argc, char **argv)
 {
@@ -86,36 +134,20 @@ int main(int argc, char **argv)
         
         add 4. Výstupy algoritmu budou validovány použitím některého z nástrojů (např. R), jehož výstupy by měly odpovídat výstupům algoritmu. 
 */
-
     char *csvFile = "/home/mor0146/github/dataAnalysisCourse/data/KarateClub.csv";
-    // char *reportFile;
-    // char *outNetworkFile;
-    // if (argc == 2)
-    // {
-    //     outNetworkFile = argv[0];
-    //     reportFile = argv[1];
-    // }
-    // else
-    // {
-    //     csvFile = argv[0];
-    //     outNetworkFile = argv[1];
-    //     reportFile = argv[2];
-    // }
-
-#if 1
+#if 0
     auto karateEdges = load_edge_pairs(csvFile, ";");
     uint vc = get_vertex_count_from_edge_pairs(karateEdges);
     NetworkMatrix network = NetworkMatrix(vc, vc);
     network.load_from_edges(karateEdges);
-    //network.get_distance_matrix(true).print_matrix();
-    network.complete_analysis("Zachary-karate-club", "/home/mor0146/github/dataAnalysisCourse/project/implementation/out/report.txt");
+    network.complete_analysis("Zachary-karate-club", "../out/zacharyReport.txt");
 
 #else
     // PROJECT
     const uint vertexCount = 1000;
     const uint m = 2;
     const char *exportNetworkFile = "../out/scaleFreeNet.csv";
-    const char *reportFile = "scaleFreeReport.txt";
+    const char *reportFile = "../out/scaleFreeReport.txt";
 
     // 1. Scale free network generation, exporting to exportNetworkFile.
     NetworkMatrix network(vertexCount, vertexCount);
@@ -124,7 +156,7 @@ int main(int argc, char **argv)
     network.export_network(exportNetworkFile);
 
     // 2. Network Analysis
-    network.complete_analysis("ScaleFreeTest", reportFile);
+    network.complete_analysis("ScaleFreeNetwork", reportFile);
 #endif
     return 0;
 }
