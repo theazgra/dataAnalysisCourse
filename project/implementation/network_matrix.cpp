@@ -148,12 +148,12 @@ void NetworkMatrix::insert(const NetworkMatrix &other)
 
 void NetworkMatrix::set_matrix_to_one_value(const float value)
 {
-    //this->data.assign(this->data.size(), value);
     for (uint row = 0; row < this->rowCount; row++)
     {
-        for (uint col = 0; col < this->colCount; col++)
+        for (uint col = row; col < this->colCount; col++)
         {
             at(row, col) = value;
+            at(col, row) = value;
         }
     }
 }
@@ -331,6 +331,68 @@ void new_best_distance(const uint &currentVertex, std::vector<uint> &unvisited, 
     }
 }
 
+bool NetworkMatrix::can_use_bfs() const
+{
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = 0; col < this->colCount; col++)
+        {
+            if (at(row, col) > 1.0f)
+                return false;
+        }
+    }
+    return true;
+}
+
+float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
+{
+    std::vector<bool> visited;
+    std::vector<int> previous;
+    visited.reserve(this->colCount);
+    previous.reserve(this->colCount);
+
+    for (uint i = 0; i < this->colCount; i++)
+    {
+        previous.push_back(-1);
+        visited.push_back(false);
+    }
+
+    uint current;
+    std::queue<uint> q;
+    q.push(source);
+    previous[source] = -1;
+
+    std::vector<uint> neighbours;
+    while (true)
+    {
+        current = q.front();
+        q.pop();
+
+        if (current == dest)
+            break;
+
+        neighbours = get_neighbours(current);
+        for (const uint &neighbour : neighbours)
+        {
+            if (!visited[neighbour])
+            {
+                q.push(neighbour);
+                visited[neighbour] = true;
+                previous[neighbour] = current;
+            }
+        }
+    }
+
+    float result = 0;
+    current = dest;
+    while (current != source)
+    {
+        result++;
+        current = previous[current];
+    }
+    return result;
+}
+
 float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
 {
     uint vc = vertex_count();
@@ -380,61 +442,57 @@ float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source,
     return result;
 }
 
-NetworkMatrix NetworkMatrix::get_distance_matrix() const
+std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const NetworkMatrix &distanceMatrix) const
 {
     assert(this->rowCount == this->colCount);
 
-    NetworkMatrix dijkstraMat(this->rowCount, this->colCount);
+    uint vc = vertex_count();
+    std::vector<float> result;
+    result.reserve(vc);
+
+    float cc, distanceSum;
+    for (uint vertex = 0; vertex < vc; vertex++)
+    {
+        cc = 1.0f;
+        distanceSum = 0.0f;
+
+        for (uint col = 0; col < vc; col++)
+        {
+            distanceSum += distanceMatrix.at(vertex, col);
+        }
+        cc = 1.0f / distanceSum;
+        result.push_back(cc);
+    }
+
+    return result;
+}
+// for rId in range(0, self.rowCount):
+//             result.append(round(1 / (sum([self.values[rId][cId] for cId in range(0, self.colCount) if cId != rId]) / vertexCount), 7))
+
+NetworkMatrix NetworkMatrix::get_distance_matrix() const
+{
+    assert(this->rowCount == this->colCount);
+    bool bfs = can_use_bfs();
+    printf("Will use %s alg.\n", bfs ? "BFS" : "DIJKSTRA");
+
+    NetworkMatrix distanceMat(this->rowCount, this->colCount);
     NetworkMatrix result(this->rowCount, this->colCount);
 
-    dijkstraMat.copy_data(*this);
+    distanceMat.copy_data(*this);
     result.copy_data(*this);
-
-    dijkstraMat.set_inf_where_no_edge();
+    distanceMat.set_inf_where_no_edge();
 
 #pragma omp parallel for
     for (uint row = 0; row < this->rowCount; row++)
     {
         for (uint col = row + 1; col < this->colCount; col++)
         {
-            float distance = dijkstra_path(dijkstraMat, row, col);
+            float distance = bfs ? bfs_path(distanceMat, row, col) : dijkstra_path(distanceMat, row, col);
             result.at(row, col) = distance;
             result.at(col, row) = distance;
         }
-        //printf("Done row %i\n", row);
     }
     return result;
-
-    //Floyd
-    // NetworkMatrix result = NetworkMatrix(this->rowCount, this->colCount);
-    // result.copy_data(*this);
-    // result.set_inf_where_no_edge();
-    // uint upperBound = this->rowCount;
-
-    // float tmpDistance;
-
-    // for (uint k = 0; k < upperBound; k++)
-    // {
-    //     for (uint i = 0; i < upperBound; i++)
-    //     {
-    //         for (uint j = 0; j < upperBound; j++)
-    //         {
-
-    //             if (result.is_infinity(i, k) || result.is_infinity(k, j))
-    //                 continue;
-    //             tmpDistance = result.at(i, k) + result.at(k, j);
-    //             if (result.at(i, j) > tmpDistance)
-    //                 result.at(i, j) = tmpDistance;
-    //         }
-    //     }
-    // }
-
-    // for (uint d = 0; d < upperBound; d++)
-    // {
-    //     result.at(d, d) = INFINITY;
-    // }
-
-    // return result;
 }
 
 void NetworkMatrix::print_matrix() const
@@ -462,12 +520,12 @@ float NetworkMatrix::get_probability_for_symmetric_network(const uint vertexCoun
     return result;
 }
 
-void NetworkMatrix::generate_random_network(const uint vertexCount, const float edgeProbability, bool autoProbability)
+void NetworkMatrix::generate_random_network(const float edgeProbability, bool autoProbability)
 {
     float prob = edgeProbability;
     if (autoProbability)
     {
-        prob = get_probability_for_symmetric_network(vertexCount);
+        prob = get_probability_for_symmetric_network(vertex_count());
     }
 
     std::random_device randomDevice;

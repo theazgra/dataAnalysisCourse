@@ -20,12 +20,14 @@ void karate_test()
     for (const float &f : coeffs)
         printf("%i:%f\n", index++, f);
 
-    auto grouped = karateClub.get_vertices_grouped_by_degree();
-
-    for (auto &&i : grouped)
-    {
-        //printf("Degree: %i; VC: %d\n", i.first, i.second.size());
-    }
+    // auto grouped = karateClub.get_vertices_grouped_by_degree();
+    // for (auto &&i : grouped)
+    // {
+    //     printf("Degree: %i; VC: %d\n", i.first, i.second.size());
+    // }
+    auto distanceMat = karateClub.get_distance_matrix();
+    auto cc = karateClub.get_closeness_centrality_for_vertices(distanceMat);
+    print_vector(cc);
 }
 
 void random_network_test()
@@ -38,7 +40,7 @@ void random_network_test()
     printf("Edge prob: %f\n", prob);
     printf("Expected average degree: %f\n", ((dim - 1) * prob));
 
-    nm.generate_random_network(dim, prob, false);
+    nm.generate_random_network(prob, false);
     printf("Done generating.\n");
 
     float avgDegree = nm.get_average_degree();
@@ -50,9 +52,9 @@ void random_network_test()
 
 void scale_free_network_test()
 {
-    const uint dim = 500;
+    const uint dim = 1000;
     NetworkMatrix nm(dim, dim);
-    nm.generate_scale_free_network(2, 500);
+    nm.generate_scale_free_network(2, dim);
 
     float avgDegree = nm.get_average_degree();
     printf("Average degree: %f\n", avgDegree);
@@ -66,9 +68,9 @@ void scale_free_network_test()
 // Network is always indexed from zero!!! If in CSV file there is not vertex 0, then vertex 1 is renamed to 0.
 int main(int, char **)
 {
-    //karate_test();
+    karate_test();
     //random_network_test();
-    scale_free_network_test();
+    //scale_free_network_test();
 
     // NetworkMatrix nm(4, 4);
     // nm.at(0, 0) = 0.0f;
@@ -92,7 +94,8 @@ int main(int, char **)
     // nm.at(3, 3) = 0.0f;
 
     // NetworkMatrix distanceMat = nm.get_distance_matrix();
-    // distanceMat.print_matrix();
+    // auto cc = nm.get_closeness_centrality_for_vertices(distanceMat);
+    // print_vector(cc);
 
     //GT
     /*

@@ -3,6 +3,21 @@
 #include "custom_types.h"
 #include <vector>
 
+#include <iostream>
+
+template <typename T>
+void print_vector(const std::vector<T> &vector)
+{
+    size_t vs = vector.size();
+    for (size_t i = 0; i < vs; i++)
+    {
+        if (i == vs - 1)
+            std::cout << vector[i] << std::endl;
+        else
+            std::cout << vector[i] << ", ";
+    }
+}
+
 template <typename T>
 bool find(const std::vector<T> &vector, const T &element)
 {
