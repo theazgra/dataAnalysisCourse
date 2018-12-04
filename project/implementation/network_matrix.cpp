@@ -736,7 +736,7 @@ std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distan
     return result;
 }
 
-void NetworkMatrix::complete_analysis(const char *networkName, const char *filename, const bool verbose) const
+void NetworkMatrix::complete_analysis(const char *networkName, const char *filename, const bool verbose, const bool complete) const
 {
     using namespace std;
 
@@ -786,42 +786,45 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
         printf("Average clustering coefficient: %f\n", averageClusteringCoefficient);
     outStream << "Average clustering coefficient: " << averageClusteringCoefficient << endl;
 
-    // Closeness centrality.
-    NetworkMatrix distanceMatrix = get_distance_matrix();
-    std::vector<float> closenessCentrality = get_closeness_centrality_for_vertices(distanceMatrix);
-    outStream << "Closeness centralities:" << endl;
-
-    for (size_t i = 0; i < closenessCentrality.size(); i++)
+    if (complete)
     {
-        outStream << closenessCentrality[i] << ";";
+        // Closeness centrality.
+        NetworkMatrix distanceMatrix = get_distance_matrix();
+        std::vector<float> closenessCentrality = get_closeness_centrality_for_vertices(distanceMatrix);
+        outStream << "Closeness centralities:" << endl;
+
+        for (size_t i = 0; i < closenessCentrality.size(); i++)
+        {
+            outStream << closenessCentrality[i] << ";";
+            if (verbose)
+                printf("%f;", closenessCentrality[i]);
+        }
+        outStream << endl
+                  << endl;
         if (verbose)
-            printf("%f;", closenessCentrality[i]);
+            printf("\n");
+
+        // Network average. Longest distance.
+        float networkAverage = get_network_longest_distance(distanceMatrix);
+        if (verbose)
+            printf("Network average: %f\n", networkAverage);
+        outStream << "Network average: " << networkAverage << endl;
+
+        // Network average distance.
+        float averageDistance = get_network_average_distance(distanceMatrix);
+        if (verbose)
+            printf("Average distance: %f\n", averageDistance);
+        outStream << "Average distance: " << averageDistance << endl;
+
+        // Vertices eccentricity.
+        std::vector<float> eccentricities = get_eccentricities(distanceMatrix);
+        outStream << "Eccentricities:" << endl;
+
+        for (size_t i = 0; i < eccentricities.size(); i++)
+            outStream << eccentricities[i] << ";";
+        outStream << endl
+                  << endl;
     }
-    outStream << endl
-              << endl;
-    if (verbose)
-        printf("\n");
-
-    // Network average. Longest distance.
-    float networkAverage = get_network_longest_distance(distanceMatrix);
-    if (verbose)
-        printf("Network average: %f\n", networkAverage);
-    outStream << "Network average: " << networkAverage << endl;
-
-    // Network average distance.
-    float averageDistance = get_network_average_distance(distanceMatrix);
-    if (verbose)
-        printf("Average distance: %f\n", averageDistance);
-    outStream << "Average distance: " << averageDistance << endl;
-
-    // Vertices eccentricity.
-    std::vector<float> eccentricities = get_eccentricities(distanceMatrix);
-    outStream << "Eccentricities:" << endl;
-
-    for (size_t i = 0; i < eccentricities.size(); i++)
-        outStream << eccentricities[i] << ";";
-    outStream << endl
-              << endl;
 
     outStream << "======================================END==================================" << endl;
     outStream.flush();

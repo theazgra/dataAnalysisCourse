@@ -118,7 +118,7 @@ public:
   // Export network to file.
   void export_network(const char *filename) const;
 
-  void complete_analysis(const char *networkName, const char *filename, const bool verbose = false) const;
+  void complete_analysis(const char *networkName, const char *filename, const bool verbose = false, const bool complete = true) const;
 
   float get_network_longest_distance(const NetworkMatrix &distanceMatrix) const;
   float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
