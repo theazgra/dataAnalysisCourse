@@ -123,6 +123,31 @@ NetworkMatrix &NetworkMatrix::operator-=(const NetworkMatrix &other)
     }
 }
 
+bool NetworkMatrix::equals(const NetworkMatrix &other)
+{
+    if (this->rowCount != other.rows() || this->colCount != other.cols())
+        return false;
+
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = 0; col < this->colCount; col++)
+        {
+            if (at(row, col) != other.at(row, col))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool NetworkMatrix::operator==(const NetworkMatrix &other)
+{
+    return equals(other);
+}
+bool NetworkMatrix::operator!=(const NetworkMatrix &other)
+{
+    return !equals(other);
+}
+
 void NetworkMatrix::copy_data(const NetworkMatrix &source)
 {
     for (uint row = 0; row < this->rowCount; row++)
@@ -711,7 +736,7 @@ std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distan
     return result;
 }
 
-void NetworkMatrix::complete_analysis(const char *networkName, const char *filename) const
+void NetworkMatrix::complete_analysis(const char *networkName, const char *filename, const bool verbose) const
 {
     using namespace std;
 
@@ -721,11 +746,14 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
     outStream << "=====================Analysis for network: " << networkName << "=====================" << endl;
 
     uint vertexCount = vertex_count();
-    printf("Vertex count: %i\n", vertexCount);
+
+    if (verbose)
+        printf("Vertex count: %i\n", vertexCount);
     outStream << "Vertex count: " << vertexCount << endl;
 
     uint edgeCount = edge_count();
-    printf("Edge count: %i\n", edgeCount);
+    if (verbose)
+        printf("Edge count: %i\n", edgeCount);
     outStream << "Edge count: " << edgeCount << endl;
 
     // Vertex degree distribution
@@ -739,7 +767,8 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
 
     // Average vertex degree.
     float averageDegree = get_average_degree();
-    printf("Average degree: %f\n", averageDegree);
+    if (verbose)
+        printf("Average degree: %f\n", averageDegree);
     outStream << "Average degree: " << averageDegree << endl;
 
     // Clustering coefficient for vertices.
@@ -753,7 +782,8 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
 
     // Average clustering coefficient.
     float averageClusteringCoefficient = get_average_clustering_coefficient();
-    printf("Average clustering coefficient: %f\n", averageClusteringCoefficient);
+    if (verbose)
+        printf("Average clustering coefficient: %f\n", averageClusteringCoefficient);
     outStream << "Average clustering coefficient: " << averageClusteringCoefficient << endl;
 
     // Closeness centrality.
@@ -764,20 +794,24 @@ void NetworkMatrix::complete_analysis(const char *networkName, const char *filen
     for (size_t i = 0; i < closenessCentrality.size(); i++)
     {
         outStream << closenessCentrality[i] << ";";
-        printf("%f;", closenessCentrality[i]);
+        if (verbose)
+            printf("%f;", closenessCentrality[i]);
     }
     outStream << endl
               << endl;
-    printf("\n");
+    if (verbose)
+        printf("\n");
 
     // Network average. Longest distance.
     float networkAverage = get_network_longest_distance(distanceMatrix);
-    printf("Network average: %f\n", networkAverage);
+    if (verbose)
+        printf("Network average: %f\n", networkAverage);
     outStream << "Network average: " << networkAverage << endl;
 
     // Network average distance.
     float averageDistance = get_network_average_distance(distanceMatrix);
-    printf("Average distance: %f\n", averageDistance);
+    if (verbose)
+        printf("Average distance: %f\n", averageDistance);
     outStream << "Average distance: " << averageDistance << endl;
 
     // Vertices eccentricity.

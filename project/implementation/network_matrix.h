@@ -8,6 +8,8 @@ private:
   uint rowCount;
   uint colCount;
 
+  bool equals(const NetworkMatrix &other);
+
   // Reinitialize this matrix to new dimenstions and fill it with zeros.
   void reinitialize(const uint &rowCount, const uint &colCount);
 
@@ -95,6 +97,8 @@ public:
 
   NetworkMatrix operator-(const NetworkMatrix &other);
   NetworkMatrix &operator-=(const NetworkMatrix &other);
+  bool operator==(const NetworkMatrix &other);
+  bool operator!=(const NetworkMatrix &other);
 
   // Calculate edge probability for symmetric random network.
   float get_probability_for_symmetric_network(const uint vertexCount) const;
@@ -114,7 +118,7 @@ public:
   // Export network to file.
   void export_network(const char *filename) const;
 
-  void complete_analysis(const char *networkName, const char *filename) const;
+  void complete_analysis(const char *networkName, const char *filename, const bool verbose = false) const;
 
   float get_network_longest_distance(const NetworkMatrix &distanceMatrix) const;
   float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
