@@ -1,5 +1,6 @@
 from itertools import groupby
 from collections import OrderedDict
+from math import inf
 
 class Mat(object):
     def __init__(self, values):
@@ -74,6 +75,11 @@ class Mat(object):
             result[vertex] = degree
         return result
 
+    def get_average_degree(self):
+        degrees = self.get_degree_of_vertices()
+        average = sum(degrees[vertex] for vertex in degrees) / len(degrees)
+        return average
+
     def _vector_dot_product(self, vecA, vecB):
         if len(vecA) != len(vecB):
             raise Exception("Vector sizes don't match.")
@@ -97,14 +103,16 @@ class Mat(object):
     def set_inf_where_no_edge(self):
         return Mat(tuple(tuple((self.values[rId][cId] if (self.values[rId][cId] > 0) else float('inf')) for cId in range(0, self.colCount)) for rId in range(0, self.rowCount)))
 
-    def floyd_distance(self):
+    def get_floyd_distance_matrix(self):
+        tmpMat = Mat(self.values)
         dimRange = range(0, self.colCount)
         for k in dimRange:
             for i in dimRange:
                 for j in dimRange:
-                    tmp = self.values[i][k] + self.values[k][j]
-                    if self.values[i][j] > tmp:
-                        self.values[i][j] = tmp
+                    tmp = tmpMat.values[i][k] + tmpMat.values[k][j]
+                    if tmpMat.values[i][j] > tmp:
+                        tmpMat.values[i][j] = tmp
+
         return self
     
     def closeness_centrality_for_vertices(self):
@@ -121,6 +129,14 @@ class Mat(object):
         neighbours = [ nId for nId in range(0, self.colCount) if row[nId] == 1 and nId != vertex]
         return neighbours
     
+    def get_edge_count(self):
+        edgeCount = 0
+        for r in range(self.rowCount):
+            for c in range(r, self.colCount):
+                if self.values[r][c] > 0 and self.values[r][c] != inf:
+                    edgeCount += 1
+        return edgeCount
+
     def get_edge_count_between_neighbours(self, neighbours):
         result = 0
         for n1 in neighbours:
@@ -129,6 +145,11 @@ class Mat(object):
                     result += 1
         return (result / 2)
 
+    def get_average_clustering_coefficients_for_vertices(self):
+        clusteringCoeffForVertices = self.get_clustering_coefficients_for_vertices()
+        result = sum(clusteringCoeffForVertices.values()) / len(clusteringCoeffForVertices)
+        return result
+
     def get_clustering_coefficients_for_vertices(self, vertices=None):
         if vertices == None:
             vertices = range(0, self.rowCount)
@@ -136,6 +157,7 @@ class Mat(object):
         for vertex in vertices:
             vertexNeighbours = self.get_neighbours(vertex)
             neighbourCount = len(vertexNeighbours)
+            
             if neighbourCount > 1:
                 edgesBetweenNeighbours = self.get_edge_count_between_neighbours(vertexNeighbours)
                 clusteringCoefficien = (2.0 * edgesBetweenNeighbours) / (neighbourCount * (neighbourCount - 1))
@@ -172,3 +194,18 @@ class Mat(object):
             for degree in result:
                 of.write("{0};{1}\n".format(degree, result[degree]))
         return result
+
+    def export_network(self, filename):
+        with open(filename, 'w') as file:
+            for r in range(self.rowCount):
+                for c in range(r, self.colCount):
+                    if r != c and self.values[r][c] == 1:
+                        file.write("{0};{1}\n".format(r,c))
+
+    def insert(self, other):
+        if self.colCount < other.colCount or self.rowCount < other.colCount:
+            raise Exception("Cannot insert bigger matrix into smaller one.")
+        
+        for row in range(other.rowCount):
+            for col in range(other.colCount):
+                self.values[row][col] = other.values[row][col]
