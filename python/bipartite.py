@@ -49,15 +49,21 @@ def main():
     print("Matrix of actors. There is no connection.")
     leftMat.print_labels()
     print(leftMat)
-    print("Average degree: " + str(leftMat.get_average_degree()))
+    leftDistanceMat = leftMat.get_distance_matrix()
+    print(leftDistanceMat)
+    # print(leftMat)
+    # print("Average degree: " + str(leftMat.get_average_degree()))
+    # print("Network average: " + str(leftMat.get_network_average(leftDistanceMat)))
+    print(leftMat.get_degree_of_vertices())
 
     print("Matrix of movies")
-    print(rightMat)
+    # print(rightMat)
 
     print("Average degree: " + str(rightMat.get_average_degree()))
     print("Average clustering coefficient: " +
           str(rightMat.get_average_clustering_coefficients_for_vertices()))
     print("Edge count: " + str(rightMat.get_edge_count()))
+    print(rightMat.get_degree_of_vertices())
 
 
 if __name__ == "__main__":

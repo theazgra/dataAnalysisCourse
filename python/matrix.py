@@ -15,11 +15,9 @@ class Mat(object):
                 raise Exception(
                     "Bad matrix values. Values need to have same number of elements in every column.")
 
-        self.values = list(list(map(self._tryToFloat, row)) for row in values)
-
-        """
-        @values will be enumerable with some enumerables in it.
-        """
+        self.values = [[self._tryToFloat(rowVal)
+                        for rowVal in row] for row in values]
+        #self.values = list(list(map(self._tryToFloat, row)) for row in values)
 
     def get_label(self, vertex):
         assert vertex < self.rowCount
@@ -34,8 +32,8 @@ class Mat(object):
                 print("Vertex: {}: {}".format(r, self.labels[r]))
 
     def set_all_values(self, value):
-        self.values = tuple(tuple(value for cId in range(0, self.colCount))
-                            for rId in range(0, self.rowCount))
+        self.values = [[value for c in range(
+            self.colCount)] for r in range(self.rowCount)]
 
     def col(self, colIndex):
         return tuple(row[colIndex] for row in self.values)
@@ -98,6 +96,14 @@ class Mat(object):
         average = sum(degrees[vertex] for vertex in degrees) / len(degrees)
         return average
 
+    def get_network_average(self, distanceMatrix):
+        max = 0
+        for row in self.values:
+            for rowVal in row:
+                if rowVal > max and rowVal != inf:
+                    max = rowVal
+        return max
+
     def _vector_dot_product(self, vecA, vecB):
         if len(vecA) != len(vecB):
             raise Exception("Vector sizes don't match.")
@@ -119,6 +125,16 @@ class Mat(object):
 
     def set_inf_where_no_edge(self):
         return Mat(tuple(tuple((self.values[rId][cId] if (self.values[rId][cId] > 0) else float('inf')) for cId in range(0, self.colCount)) for rId in range(0, self.rowCount)))
+
+    def get_distance_matrix(self):
+        distanceMat = Mat(self.values)
+        distanceMat.set_all_values(inf)
+        for row in range(self.rowCount):
+            for col in range(row, self.colCount):
+                dist = self.bfs(row, col)
+                distanceMat.values[row][col] = dist
+                distanceMat.values[col][row] = dist
+        return distanceMat
 
     def get_floyd_distance_matrix(self):
         tmpMat = Mat(self.values)
@@ -274,24 +290,28 @@ class Mat(object):
         # Left bipartite side
         leftMatValues = [[0 for c in range(self.rowCount)]
                          for r in range(self.rowCount)]
-        rightMatValues = [[0 for c in range(self.colCount)]
-                          for r in range(self.colCount)]
+        rightMatValues = [[0 for c in range(self.colCount - self.rowCount)]
+                          for r in range(self.colCount - self.rowCount)]
 
-        for vertex in range(self.rowCount):
-            for otherVertex in range(self.rowCount):
-                if otherVertex == vertex:
+        for v1 in range(self.rowCount):
+            for v2 in range(self.rowCount):
+                if v1 == v2:
                     continue
-                pathDistance = self.bfs(vertex, otherVertex)
-                if pathDistance <= 2:
-                    leftMatValues[vertex][otherVertex] = 1
+                for col in range(self.colCount):
+                    if self.values[v1][col] > 0 and self.values[v2][col] > 0:
+                        leftMatValues[v1][v2] = 1
+                        leftMatValues[v2][v1] = 1
 
-        for vertex in range(self.colCount):
-            for otherVertex in range(self.colCount):
-                if otherVertex == vertex:
-                    continue
-                pathDistance = self.bfs(vertex, otherVertex)
-                if pathDistance != inf:
-                    rightMatValues[vertex][otherVertex] = 1
+        for v1 in range(self.colCount):
+            for row in range(self.rowCount):
+                for v2 in range(self.colCount):
+                    if v1 == v2:
+                        continue
+                    if self.values[row][v1] > 0 and self.values[row][v2] > 0:
+                        rightMatValues[v1 -
+                                       self.rowCount][v2 - self.rowCount] = 1
+                        rightMatValues[v2 -
+                                       self.rowCount][v1 - self.rowCount] = 1
 
         leftMat = Mat(leftMatValues, self.labels)
         rightMat = Mat(rightMatValues)
