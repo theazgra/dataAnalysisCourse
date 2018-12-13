@@ -1,6 +1,0 @@
-user u answered user v's question at time t (in the graph sx-askubuntu-a2q)
-user u commented on user v's question at time t (in the graph sx-askubuntu-c2q)
-user u commented on user v's answer at time t (in the graph sx-askubuntu-c2a)
-The graph sx-askubuntu contains the union of these graphs. 
-
-https://snap.stanford.edu/data/sx-askubuntu.html
