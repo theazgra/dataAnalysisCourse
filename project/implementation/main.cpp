@@ -10,7 +10,6 @@
 */
 int main(int argc, char **argv)
 {
-
     args::ArgumentParser parser("Network analysis. - MOR0146", "Required arguments are in < > optional in [].");
     args::Group methodGroup(parser, "Methods", args::Group::Validators::AtMostOne);
     args::HelpFlag _help(methodGroup, "help", "Print help", {'h', "help"});

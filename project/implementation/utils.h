@@ -2,8 +2,8 @@
 
 #include "custom_types.h"
 #include <vector>
-
 #include <iostream>
+#include <algorithm>
 
 template <typename T>
 void print_vector(const std::vector<T> &vector)
@@ -58,4 +58,35 @@ template <typename TKey, typename TValue>
 bool contains_key(const std::map<TKey, TValue> &dict, TKey key)
 {
     return !(dict.find(key) == dict.end());
+}
+
+template <typename T>
+std::vector<T> first_of(const std::vector<T> &src, const bool decreasing = false, const uint count = 5)
+{
+    std::vector<T> copy = std::vector<T>(src);
+    std::vector<T> result;
+    result.reserve(count);
+    std::sort(copy.begin(), copy.end());
+
+    size_t size = copy.size();
+    size_t end = size - 1;
+    if (decreasing)
+    {
+        for (size_t i = 0; i < count; i++)
+        {
+            if (i > end)
+                break;
+            result.push_back(copy[(end - i)]);
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < count; i++)
+        {
+            if (i >= size)
+                break;
+            result.push_back(copy[i]);
+        }
+    }
+    return result;
 }
