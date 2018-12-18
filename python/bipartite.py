@@ -4,7 +4,8 @@ from matrix import Mat
 def load_bipartite():
     lines = []
 
-    with open("D:/gitrepos/dataAnalysisCourse/data/actorsAndMovies.txt") as dataset:
+#    with open("D:/gitrepos/dataAnalysisCourse/data/actorsAndMovies.txt") as dataset:
+    with open("../data/actorsAndMovies.txt") as dataset:
         lines = dataset.readlines()
 
     labels = {}
