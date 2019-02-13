@@ -64,6 +64,8 @@ int main(int argc, char **argv)
 
         if (_baMethod)
         {
+            printf("M IS %i\n", _baM.Get());
+
             nm.generate_scale_free_network((_baM ? _baM.Get() : 2), vertexCount - 3);
             printf("Generated network using Barabasi-Albert method.\n");
             nm.export_network(_file.Get().c_str());

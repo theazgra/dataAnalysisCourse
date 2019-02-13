@@ -51,14 +51,14 @@ def main():
     leftMat.print_labels()
     print(leftMat)
     leftDistanceMat = leftMat.get_distance_matrix()
-    print(leftDistanceMat)
+    #print(leftDistanceMat)
     # print(leftMat)
     # print("Average degree: " + str(leftMat.get_average_degree()))
     # print("Network average: " + str(leftMat.get_network_average(leftDistanceMat)))
     print(leftMat.get_degree_of_vertices())
 
     print("Matrix of movies")
-    # print(rightMat)
+    print(rightMat)
 
     print("Average degree: " + str(rightMat.get_average_degree()))
     print("Average clustering coefficient: " +

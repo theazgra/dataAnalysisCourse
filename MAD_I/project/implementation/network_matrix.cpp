@@ -499,7 +499,7 @@ NetworkMatrix NetworkMatrix::get_distance_matrix(const bool forceDijkstra) const
 {
     assert(this->rowCount == this->colCount);
     bool bfs = !forceDijkstra && can_use_bfs();
-    printf("Will use %s alg.\n", bfs ? "BFS" : "DIJKSTRA");
+    printf("Will use %s alg.\n", bfs ? "BreadthFirstSearch" : "Dijkstra");
 
     NetworkMatrix distanceMat(this->rowCount, this->colCount);
     NetworkMatrix result(this->rowCount, this->colCount);
@@ -578,7 +578,7 @@ void NetworkMatrix::generate_random_network(const float edgeProbability, bool au
         }
     }
 }
-void NetworkMatrix::generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd)
+void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const uint numberOfVerticesToAdd)
 {
     uint startingSize = 3;
     uint resultSize = startingSize + numberOfVerticesToAdd;
@@ -614,6 +614,8 @@ void NetworkMatrix::generate_scale_free_network(const uint numberOfConnections, 
     std::vector<uint> neighbours;
     for (uint step = 0; step < numberOfVerticesToAdd; step++)
     {
+        numberOfConnections = currentSize > numberOfVerticesToAdd ? numberOfConnections : currentSize;
+
         weights.clear();
         neighbours.clear();
 
@@ -631,6 +633,7 @@ void NetworkMatrix::generate_scale_free_network(const uint numberOfConnections, 
         discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
         for (uint neighbourStep = 0; neighbourStep < numberOfConnections; neighbourStep++)
         {
+
             neighbour = discreteDistribution(randomGenerator);
             while (find(neighbours, neighbour))
             {
