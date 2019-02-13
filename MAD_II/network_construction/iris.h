@@ -19,7 +19,7 @@ struct IrisRecord
                                                                            petalWidth(pw),
                                                                            species(name) {}
 
-    float euclid_distance(const IrisRecord &other)
+    float euclid_distance(const IrisRecord &other) const
     {
         float result = sqrt((pow((other.sepalLen - sepalLen), 2.0f) +
                              pow((other.sepalWidth - sepalWidth), 2.0f) +
@@ -28,7 +28,7 @@ struct IrisRecord
         return result;
     }
 
-    float gauss_distance(const IrisRecord &other)
+    float gauss_distance(const IrisRecord &other) const
     {
         float euclid = euclid_distance(other);
         float result = exp((-euclid / 2.0f));

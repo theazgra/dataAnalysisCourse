@@ -8,6 +8,36 @@ NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
     set_matrix_to_one_value(0.0f);
 }
 
+NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
+{
+    size_t size = vectorData.size();
+    assert(size > 0);
+
+    this->rowCount = size;
+    this->colCount = size;
+
+    this->data.resize(size * size);
+    set_matrix_to_one_value(0.0f);
+
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row; col < this->colCount; col++)
+        {
+            if (row == col)
+            {
+                at(row, col) = 1.0f;
+                at(col, row) = 1.0f;
+            }
+            else
+            {
+                float gaussSimilarity = vectorData[row].gauss_distance(vectorData[col]);
+                at(row, col) = gaussSimilarity;
+                at(col, row) = gaussSimilarity;
+            }
+        }
+    }
+}
+
 void NetworkMatrix::reinitialize(const uint &rowCount, const uint &colCount)
 {
     this->rowCount = rowCount;
@@ -427,6 +457,56 @@ float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, cons
         current = previous[current];
     }
     return result;
+}
+
+std::vector<uint> NetworkMatrix::find_k_neighbors(const uint row, const uint k) const
+{
+    std::vector<std::pair<float, uint>> rowValues;
+    rowValues.resize(colCount);
+
+    for (uint col = 0; col < this->colCount; col++)
+    {
+        if (row == col)
+            continue;
+        rowValues[col] = std::make_pair(at(row, col), col);
+    }
+
+    std::sort(rowValues.begin(), rowValues.end());
+    uint take = rowValues.size() > k ? k : rowValues.size();
+
+    std::vector<uint> result;
+    result.resize(take);
+    for (size_t i = 0; i < take; i++)
+    {
+        result[i] = rowValues[i].second;
+    }
+
+    return result;
+}
+
+uint NetworkMatrix::count_in_e_radius(const uint row, const float e) const
+{
+    uint result = 0;
+    for (uint col = 0; col < this->colCount; col++)
+    {
+        if (row == col)
+            continue;
+        if (at(row, col) >= e)
+            result++;
+    }
+    return result;
+}
+
+void NetworkMatrix::filter_knn_row(const uint row, const uint k)
+{
+    auto kNeighbors = find_k_neighbors(row, k);
+
+    for (uint col = 0; col < this->colCount; col++)
+    {
+        at(row, col) = 0.0f;
+    }
+    for (const uint &neigh : kNeighbors)
+        at(row, neigh) = 1.0f;
 }
 
 float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
@@ -860,46 +940,35 @@ void NetworkMatrix::filter_e_radius(const float radius)
     }
 }
 
-std::vector<uint> NetworkMatrix::find_k_neighbors(const uint row, const uint k)
-{
-    std::vector<std::pair<float, uint>> rowValues;
-    rowValues.resize(colCount);
-
-    for (uint col = 0; col < this->colCount; col++)
-    {
-        if (row == col)
-            continue;
-        rowValues[col] = std::make_pair(at(row, col), col);
-    }
-
-    std::sort(rowValues.begin(), rowValues.end());
-    uint take = rowValues.size() > k ? k : rowValues.size();
-
-    std::vector<uint> result;
-    result.resize(take);
-    for (size_t i = 0; i < take; i++)
-    {
-        result[i] = rowValues[i].second;
-    }
-
-    return result;
-}
-
 void NetworkMatrix::filter_kNN(const uint k)
 {
     for (uint row = 0; row < this->rowCount; row++)
     {
-        auto kNeighbors = find_k_neighbors(row, k);
-
-        for (uint col = 0; col < this->colCount; col++)
-        {
-            at(row, col) = 0.0f;
-        }
-        for (const uint &neigh : kNeighbors)
-            at(row, neigh) = 1.0f;
+        filter_knn_row(row, k);
     }
 }
 
 void NetworkMatrix::filter_combinataion_e_knn(const float radius, const uint k)
 {
+    uint inRadiusCount = 0;
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        inRadiusCount = count_in_e_radius(row, radius);
+        if (inRadiusCount > k)
+        {
+            //Take in radius.
+            for (uint col = 0; col < this->colCount; col++)
+            {
+                if (at(row, col) >= radius)
+                    at(row, col) = 1.0f;
+                else
+                    at(row, col) = 0.0f;
+            }
+        }
+        else
+        {
+            // Take K neighbors.
+            filter_knn_row(row, k);
+        }
+    }
 }

@@ -30,10 +30,13 @@ private:
 
   // Find shortest path between source and dest vertex using breadth first search.
   float bfs_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
-  std::vector<uint> find_k_neighbors(const uint row, const uint k);
+  std::vector<uint> find_k_neighbors(const uint row, const uint k) const;
+  uint count_in_e_radius(const uint row, const float e) const;
+  void filter_knn_row(const uint row, const uint k);
 
 public:
   NetworkMatrix(const uint &rowCount, const uint &colCount);
+  NetworkMatrix(const std::vector<IrisRecord> &vectorData);
   ~NetworkMatrix();
 
   // Get number of rows.

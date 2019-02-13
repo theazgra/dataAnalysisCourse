@@ -63,8 +63,6 @@ std::vector<IrisRecord> read_iris_file(const char *filename)
 
     while (std::getline(inStream, line))
     {
-        //sepal_length,sepal_width,petal_length,petal_width,species
-        //5.1,3.5,1.4,0.2,setosa
         pos = line.find(',');
         sl = std::stof(line.substr(0, pos));
         lastPos = pos + 1;
@@ -85,7 +83,6 @@ std::vector<IrisRecord> read_iris_file(const char *filename)
         name = line.substr(lastPos, pos);
 
         result.push_back(IrisRecord(sl, sw, pl, pw, name.c_str()));
-        printf("%f %f %f %f \n", sl, sw, pl, pw);
     }
 
     return result;
