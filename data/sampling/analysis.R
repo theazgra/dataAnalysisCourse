@@ -4,11 +4,12 @@ library(ggplot2)
 #install.packages('igraph');
 #install.packages('ggplot2');
 
+setwd("D:/gitrepos/dataAnalysisCourse/data/sampling");
+getwd();
 #BA
-
-ba      = "/home/mor0146/github/dataAnalysisCourse/data/sampling/random.csv";
-baRNS   = "/home/mor0146/github/dataAnalysisCourse/data/sampling/randomRNS.csv";
-baRES   = "/home/mor0146/github/dataAnalysisCourse/data/sampling/randomRES.csv";
+ba      = "ba.csv";
+baRNS   = "baRNS.csv";
+baRES   = "baRES.csv";
 
 df      = as.data.frame(read.csv(ba,    header = F, sep = ";"));
 dfRNS   = as.data.frame(read.csv(baRNS, header = F, sep = ";"));
@@ -42,3 +43,11 @@ ggplot(cDDRES_DF, aes(x = d, y = cumFreq)) + geom_line() +
     scale_x_continuous("Stupen") + scale_y_continuous("Frekvence") +
     ggtitle("Kumulativní distribuce stupnu") +
     theme(plot.title = element_text(hjust = 0.5, size = 30));
+
+
+plot(x = 0:max(degree(g)), y = 1 - cDD, type = "l", col = "red", xlab = "Degree", ylab = "Cumulative Frequency")
+lines(x = 0:max(degree(gRNS)), y = 1 - cDDRNS, col = "green")
+lines(x = 0:max(degree(gRES)), y = 1 - cDDRES, col = "blue")
+legend("bottomright",
+       c("Barabasi-Albert", "Sample RNS", "Sample RDS"),
+       fill = c("red", "green", "blue"))
