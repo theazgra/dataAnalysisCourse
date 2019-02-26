@@ -643,12 +643,13 @@ void NetworkMatrix::generate_random_network(const float edgeProbability, bool au
     if (autoProbability)
     {
         prob = get_probability_for_symmetric_network(vertex_count());
+        printf("Used probability: %f\n", prob);
     }
 
     std::random_device randomDevice;
     std::mt19937 randomGenerator(randomDevice());
-    float weights[] = {(1.0f - prob), prob};
 
+    float weights[] = {(1.0f - prob), prob};
     std::discrete_distribution<int> discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
 
     int edge;
@@ -705,7 +706,8 @@ void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const 
     std::vector<uint> neighbours;
     for (uint step = 0; step < numberOfVerticesToAdd; step++)
     {
-        numberOfConnections = currentSize > numberOfVerticesToAdd ? numberOfConnections : currentSize;
+        // NOTE: WHAT? WHYY?
+        //numberOfConnections = cu>rrentSize > numberOfVerticesToAdd ? numberOfConnections : currentSize;
 
         weights.clear();
         neighbours.clear();
@@ -747,6 +749,8 @@ void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const 
 
         currentSize++;
     }
+
+    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
 }
 
 void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset)
@@ -756,6 +760,10 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
     {
         rowIndex = edge.first + offset;
         colIndex = edge.second + offset;
+        if (rowIndex >= rowCount || colIndex >= colCount)
+        {
+            printf("wha th  fucnk\n");
+        }
         at(rowIndex, colIndex) = 1.0f;
         at(colIndex, rowIndex) = 1.0f;
     }
@@ -971,4 +979,111 @@ void NetworkMatrix::filter_combinataion_e_knn(const float radius, const uint k)
             filter_knn_row(row, k);
         }
     }
+}
+
+NetworkMatrix NetworkMatrix::filter_random_node_sampling(const float targetPercentSize) const
+{
+    printf("Random based sampling\n");
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+
+    float weights[] = {(1.0f - targetPercentSize), targetPercentSize};
+    std::discrete_distribution<int> discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
+
+    bool isInSample;
+    std::vector<uint> sample;
+    sample.reserve(this->rowCount);
+
+    uint threshold = (uint)((float)rowCount * targetPercentSize);
+
+    for (size_t i = 0; i < this->rowCount; i++)
+    {
+        isInSample = discreteDistribution(randomGenerator) == 1;
+        if (isInSample)
+        {
+            sample.push_back(i);
+            for (const uint n : get_neighbours(i))
+            {
+                if (!find(sample, n))
+                    sample.push_back(n);
+            }
+        }
+        if (sample.size() > threshold)
+            break;
+    }
+    size_t sampleSize = sample.size();
+    NetworkMatrix sampleNetwork = NetworkMatrix(sampleSize, sampleSize);
+
+    uint u, v;
+    for (uint sampleRow = 0; sampleRow < sampleSize; sampleRow++)
+    {
+        u = sample[sampleRow];
+        for (uint sampleCol = sampleRow + 1; sampleCol < sampleSize; sampleCol++)
+        {
+            v = sample[sampleCol];
+            if (!is_infinity(u, v) && at(u, v) > 0.0f)
+            {
+                sampleNetwork.at(sampleRow, sampleCol) = 1.0f;
+            }
+        }
+    }
+
+    printf("Random Node sampling results: VC: %5u EC: %5u\n", sampleNetwork.vertex_count(), sampleNetwork.edge_count());
+    return sampleNetwork;
+}
+
+NetworkMatrix NetworkMatrix::filter_random_edge_sampling(const float targetPercentSize) const
+{
+    printf("Degree based sampling\n");
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+    std::discrete_distribution<int> discreteDistribution;
+
+    std::vector<uint> sample;
+    sample.reserve(rowCount);
+
+    auto degrees = get_degree_of_vertices();
+
+    uint threshold = (uint)((float)rowCount * targetPercentSize);
+    float weights[2];
+    float prob;
+    for (size_t row = 0; row < rowCount; row++)
+    {
+        prob = targetPercentSize / (float)degrees[row];
+        weights[0] = 1.0f - prob;
+        weights[1] = prob;
+        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
+        if (discreteDistribution(randomGenerator) == 1)
+        {
+            //sample.push_back(row);
+            sample.push_back(row);
+            for (const uint n : get_neighbours(row))
+            {
+                if (!find(sample, n))
+                    sample.push_back(n);
+            }
+
+            if (sample.size() > threshold)
+                break;
+        }
+    }
+    size_t sampleSize = sample.size();
+    NetworkMatrix sampleNetwork(sampleSize, sampleSize);
+
+    uint u, v;
+    for (uint sampleRow = 0; sampleRow < sampleSize; sampleRow++)
+    {
+        u = sample[sampleRow];
+        for (uint sampleCol = sampleRow + 1; sampleCol < sampleSize; sampleCol++)
+        {
+            v = sample[sampleCol];
+            if (!is_infinity(u, v) && at(u, v) > 0.0f)
+            {
+                sampleNetwork.at(sampleRow, sampleCol) = 1.0f;
+            }
+        }
+    }
+
+    printf("Random Edge Sampling results: VC: %5u EC: %5u\n", sampleNetwork.vertex_count(), sampleNetwork.edge_count());
+    return sampleNetwork;
 }

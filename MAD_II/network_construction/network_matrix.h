@@ -131,6 +131,8 @@ public:
   void filter_e_radius(const float radius);
   void filter_kNN(const uint k);
   void filter_combinataion_e_knn(const float radius, const uint k);
+  NetworkMatrix filter_random_node_sampling(const float targetPercentSize) const;
+  NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
 };
 
 #include "network_matrix.cpp"
