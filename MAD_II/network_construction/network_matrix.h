@@ -1,5 +1,6 @@
 #pragma once
 #include "libs.h"
+#include "io.h"
 
 class NetworkMatrix
 {
@@ -33,8 +34,10 @@ private:
   std::vector<uint> find_k_neighbors(const uint row, const uint k) const;
   uint count_in_e_radius(const uint row, const float e) const;
   void filter_knn_row(const uint row, const uint k);
+  uint calculate_cut_size(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
 
 public:
+  NetworkMatrix(const char *fName, const int offset);
   NetworkMatrix(const uint &rowCount, const uint &colCount);
   NetworkMatrix(const std::vector<IrisRecord> &vectorData);
   ~NetworkMatrix();
@@ -133,6 +136,8 @@ public:
   void filter_combinataion_e_knn(const float radius, const uint k);
   NetworkMatrix filter_random_node_sampling(const float targetPercentSize) const;
   NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
+
+  void kernighan_lin() const;
 };
 
 #include "network_matrix.cpp"

@@ -1,5 +1,18 @@
 #include "network_matrix.h"
 
+NetworkMatrix::NetworkMatrix(const char *fName, const int offset)
+{
+    auto loadedEdges = load_edge_pairs(fName, ";");
+    uint vc = get_vertex_count_from_edge_pairs(loadedEdges);
+    this->rowCount = vc;
+    this->colCount = vc;
+
+    this->data.resize(this->rowCount * this->colCount);
+    set_matrix_to_one_value(0.0f);
+
+    load_from_edges(loadedEdges, offset);
+}
+
 NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
 {
     this->rowCount = rowCount;
@@ -476,9 +489,10 @@ std::vector<uint> NetworkMatrix::find_k_neighbors(const uint row, const uint k) 
 
     std::vector<uint> result;
     result.resize(take);
+    size_t from = rowValues.size() - 1;
     for (size_t i = 0; i < take; i++)
     {
-        result[i] = rowValues[i].second;
+        result[i] = rowValues[from - i].second;
     }
 
     return result;
@@ -760,10 +774,10 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
     {
         rowIndex = edge.first + offset;
         colIndex = edge.second + offset;
-        if (rowIndex >= rowCount || colIndex >= colCount)
-        {
-            printf("wha th  fucnk\n");
-        }
+        // if (rowIndex >= rowCount || colIndex >= colCount)
+        // {
+        //     printf("wha th  fucnk\n");
+        // }
         at(rowIndex, colIndex) = 1.0f;
         at(colIndex, rowIndex) = 1.0f;
     }
@@ -952,7 +966,15 @@ void NetworkMatrix::filter_kNN(const uint k)
 {
     for (uint row = 0; row < this->rowCount; row++)
     {
-        filter_knn_row(row, k);
+        //filter_knn_row(row, k);
+        auto kNeighbors = find_k_neighbors(row, k);
+
+        for (uint col = 0; col < this->colCount; col++)
+        {
+            at(row, col) = 0.0f;
+        }
+        for (const uint &neigh : kNeighbors)
+            at(row, neigh) = 1.0f;
     }
 }
 
@@ -1086,4 +1108,122 @@ NetworkMatrix NetworkMatrix::filter_random_edge_sampling(const float targetPerce
 
     printf("Random Edge Sampling results: VC: %5u EC: %5u\n", sampleNetwork.vertex_count(), sampleNetwork.edge_count());
     return sampleNetwork;
+}
+
+uint NetworkMatrix::calculate_cut_size(const std::vector<uint> &gA, const std::vector<uint> &gB) const
+{
+    uint result = 0;
+    for (auto &&a : gA)
+    {
+        for (auto &&b : gB)
+        {
+            assert(a != b);
+            assert(!is_infinity(a, b));
+            result += at(a, b);
+        }
+    }
+    return result;
+}
+
+struct SwapInfo
+{
+    uint aIndex;
+    uint bIndex;
+    uint cut;
+
+    SwapInfo(uint _a, uint _b, uint _cut) : aIndex(_a), bIndex(_b), cut(_cut)
+    {
+    }
+
+    bool operator>(const SwapInfo &other) { return this->cut > other.cut; }
+    bool operator>=(const SwapInfo &other) { return this->cut >= other.cut; }
+    bool operator<(const SwapInfo &other) { return this->cut < other.cut; }
+    bool operator<=(const SwapInfo &other) { return this->cut <= other.cut; }
+};
+
+void NetworkMatrix::kernighan_lin() const
+{
+    const size_t groupCount = 2;
+    int groupSize = (this->rowCount + groupCount - 1) / 2;
+    std::vector<uint> alreadySwapped;
+    alreadySwapped.reserve(this->rowCount);
+
+    std::vector<uint> groupA;
+    std::vector<uint> groupB;
+    groupA.reserve(groupSize);
+    groupB.reserve(groupSize);
+
+    std::vector<uint> indices;
+    indices.resize(rowCount);
+    for (size_t i = 0; i < this->rowCount; i++)
+        indices[i] = i;
+
+    std::random_shuffle(indices.begin(), indices.end());
+
+    for (uint i = 0; i < this->rowCount; i++)
+    {
+        if (i % 2 == 0)
+            groupA.push_back(indices[i]);
+        else
+            groupB.push_back(indices[i]);
+    }
+
+    uint lastCut = calculate_cut_size(groupA, groupB);
+    uint cut = lastCut;
+    int iter = 0;
+
+    do
+    {
+        // one step.
+        std::vector<SwapInfo> stepSwaps;
+        for (size_t a = 0; a < groupA.size(); a++)
+        {
+            for (size_t b = 0; b < groupB.size(); b++)
+            {
+                uint vA = groupA[a];
+                uint vB = groupB[b];
+
+                if (find(alreadySwapped, vA) || find(alreadySwapped, vB))
+                    continue;
+
+                groupA[a] = vB;
+                groupB[b] = vA;
+
+                uint cut = calculate_cut_size(groupA, groupB);
+                stepSwaps.push_back(SwapInfo(a, b, cut));
+
+                groupA[a] = vA;
+                groupB[b] = vB;
+            }
+        }
+
+        std::sort(stepSwaps.begin(), stepSwaps.end());
+        SwapInfo bestSwap = stepSwaps[0];
+        // Swap them.
+        uint vA = groupA[bestSwap.aIndex];
+        uint vB = groupB[bestSwap.bIndex];
+        groupA[bestSwap.aIndex] = vB;
+        groupB[bestSwap.bIndex] = vA;
+        alreadySwapped.push_back(vA);
+        alreadySwapped.push_back(vB);
+
+        lastCut = cut;
+        cut = calculate_cut_size(groupA, groupB);
+
+        if (cut > lastCut)
+        {
+            groupA[bestSwap.aIndex] = vA;
+            groupB[bestSwap.bIndex] = vB;
+            cut = calculate_cut_size(groupA, groupB);
+            printf("Correcting result. Swapping pair back. Final cut: %4u\n", cut);
+            break;
+        }
+
+        printf("Finished iterataion %i; Went from %4u to %4u.\n", ++iter, lastCut, cut);
+    } while (cut < lastCut);
+
+    printf("First group: ");
+    print_vector(groupA);
+    printf("Second group: ");
+    print_vector(groupB);
 }
