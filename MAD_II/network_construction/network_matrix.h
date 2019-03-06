@@ -35,6 +35,7 @@ private:
   uint count_in_e_radius(const uint row, const float e) const;
   void filter_knn_row(const uint row, const uint k);
   uint calculate_cut_size(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
+  NetworkMatrix get_initial_matrix_of_size_3() const;
 
 public:
   NetworkMatrix(const char *fName, const int offset);
@@ -115,6 +116,9 @@ public:
 
   // Generate scale free network in this matrix.
   void generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd);
+
+  void generate_holme_kim(float probability, const uint newVertexConnections);
+  void generate_bianconi(float probability, const uint newVertexConnections);
 
   // Load matrix from edges.
   void load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset = -1);

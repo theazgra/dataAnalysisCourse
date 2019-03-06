@@ -21,6 +21,25 @@ NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
     set_matrix_to_one_value(0.0f);
 }
 
+NetworkMatrix NetworkMatrix::get_initial_matrix_of_size_3() const
+{
+    NetworkMatrix initialMat(3, 3);
+    {
+        initialMat.at(0, 0) = 0.0f;
+        initialMat.at(0, 1) = 1.0f;
+        initialMat.at(0, 2) = 1.0f;
+
+        initialMat.at(1, 0) = 1.0f;
+        initialMat.at(1, 1) = 0.0f;
+        initialMat.at(1, 2) = 1.0f;
+
+        initialMat.at(2, 0) = 1.0f;
+        initialMat.at(2, 1) = 1.0f;
+        initialMat.at(2, 2) = 0.0f;
+    }
+    return initialMat;
+}
+
 NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
 {
     size_t size = vectorData.size();
@@ -302,19 +321,19 @@ std::vector<float> NetworkMatrix::get_clustering_coeff_for_vertices(const std::v
     result.reserve(vertices.size());
 
     uint index = 0;
-    std::vector<uint> neighbours;
+    std::vector<uint> neighbors;
     float neighboursEdgeCount;
     float nc;
     float clusteringCoeff;
     for (const uint &vertex : vertices)
     {
-        neighbours.clear();
-        neighbours = get_neighbours(vertex);
+        neighbors.clear();
+        neighbors = get_neighbours(vertex);
 
-        if (neighbours.size() > 1)
+        if (neighbors.size() > 1)
         {
-            nc = neighbours.size();
-            neighboursEdgeCount = (float)get_edge_count_between_neighbours(neighbours);
+            nc = neighbors.size();
+            neighboursEdgeCount = (float)get_edge_count_between_neighbours(neighbors);
             clusteringCoeff = (2.0f * neighboursEdgeCount) / (nc * (nc - 1.0f));
 
             result.push_back(clusteringCoeff);
@@ -343,12 +362,12 @@ std::vector<uint> NetworkMatrix::get_neighbours(const uint vertex) const
     return result;
 }
 
-uint NetworkMatrix::get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const
+uint NetworkMatrix::get_edge_count_between_neighbours(const std::vector<uint> &neighbors) const
 {
     uint result = 0;
-    for (const uint &n1Index : neighbours)
+    for (const uint &n1Index : neighbors)
     {
-        for (const uint &n2Index : neighbours)
+        for (const uint &n2Index : neighbors)
         {
             if (n1Index == n2Index)
                 continue;
@@ -441,7 +460,7 @@ float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, cons
     q.push(source);
     previous[source] = -1;
 
-    std::vector<uint> neighbours;
+    std::vector<uint> neighbors;
     while (true)
     {
         current = q.front();
@@ -450,14 +469,14 @@ float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, cons
         if (current == dest)
             break;
 
-        neighbours = get_neighbours(current);
-        for (const uint &neighbour : neighbours)
+        neighbors = get_neighbours(current);
+        for (const uint &neighbor : neighbors)
         {
-            if (!visited[neighbour])
+            if (!visited[neighbor])
             {
-                q.push(neighbour);
-                visited[neighbour] = true;
-                previous[neighbour] = current;
+                q.push(neighbor);
+                visited[neighbor] = true;
+                previous[neighbor] = current;
             }
         }
     }
@@ -542,25 +561,25 @@ float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source,
     new_best_distance(current, unvisited, distances, 0);
     auto neis = get_neighbours(current);
     assert(neis.size() > 0);
-    for (const uint &neighbour : neis)
+    for (const uint &neighbor : neis)
     {
-        new_best_distance(neighbour, unvisited, distances, INFINITY);
+        new_best_distance(neighbor, unvisited, distances, INFINITY);
     }
 
     while (!visited[dest])
     {
         current = get_best_unvisited(unvisited, distances);
-        auto neighbours = get_neighbours(current);
-        if (neighbours.size() > 0)
+        auto neighbors = get_neighbours(current);
+        if (neighbors.size() > 0)
         {
-            for (const uint &neighbour : neighbours)
+            for (const uint &neighbor : neighbors)
             {
-                if (visited[neighbour])
+                if (visited[neighbor])
                     continue;
-                float distanceToNeighbour = distances[current] + mat.at(current, neighbour);
-                if (distanceToNeighbour < distances[neighbour])
+                float distanceToNeighbour = distances[current] + mat.at(current, neighbor);
+                if (distanceToNeighbour < distances[neighbor])
                 {
-                    new_best_distance(neighbour, unvisited, distances, distanceToNeighbour);
+                    new_best_distance(neighbor, unvisited, distances, distanceToNeighbour);
                 }
             }
         }
@@ -690,26 +709,13 @@ void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const 
     uint resultSize = startingSize + numberOfVerticesToAdd;
     uint currentSize = startingSize;
 
-    NetworkMatrix initialMat(3, 3);
-    {
-        initialMat.at(0, 0) = 0.0f;
-        initialMat.at(0, 1) = 1.0f;
-        initialMat.at(0, 2) = 1.0f;
-
-        initialMat.at(1, 0) = 1.0f;
-        initialMat.at(1, 1) = 0.0f;
-        initialMat.at(1, 2) = 1.0f;
-
-        initialMat.at(2, 0) = 1.0f;
-        initialMat.at(2, 1) = 1.0f;
-        initialMat.at(2, 2) = 0.0f;
-    }
+    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
     std::vector<uint> vertexList = {0, 0, 1, 1, 2, 2};
 
     reinitialize(resultSize, resultSize);
     insert(initialMat);
 
-    uint newVertexIndex, neighbour;
+    uint newVertexIndex, neighbor;
     float vertexListSize;
 
     std::random_device randomDevice;
@@ -717,17 +723,14 @@ void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const 
     std::discrete_distribution<int> discreteDistribution;
 
     std::vector<float> weights;
-    std::vector<uint> neighbours;
+    std::vector<uint> neighbors;
     for (uint step = 0; step < numberOfVerticesToAdd; step++)
     {
-        // NOTE: WHAT? WHYY?
-        //numberOfConnections = cu>rrentSize > numberOfVerticesToAdd ? numberOfConnections : currentSize;
-
         weights.clear();
-        neighbours.clear();
+        neighbors.clear();
 
         weights.reserve(currentSize);
-        neighbours.reserve(numberOfConnections);
+        neighbors.reserve(numberOfConnections);
 
         newVertexIndex = startingSize + step;
         vertexListSize = (float)vertexList.size();
@@ -741,22 +744,192 @@ void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const 
         for (uint neighbourStep = 0; neighbourStep < numberOfConnections; neighbourStep++)
         {
 
-            neighbour = discreteDistribution(randomGenerator);
-            while (find(neighbours, neighbour))
+            neighbor = discreteDistribution(randomGenerator);
+            while (find(neighbors, neighbor))
             {
-                neighbour = discreteDistribution(randomGenerator);
+                neighbor = discreteDistribution(randomGenerator);
             }
-            neighbours.push_back(neighbour);
+            neighbors.push_back(neighbor);
         }
 
-        assert(neighbours.size() == numberOfConnections);
+        assert(neighbors.size() == numberOfConnections);
 
         vertexList.push_back(newVertexIndex);
         vertexList.push_back(newVertexIndex);
 
-        for (const uint &newNeighbour : neighbours)
+        for (const uint &newNeighbour : neighbors)
         {
             vertexList.push_back(newNeighbour);
+            at(newVertexIndex, newNeighbour) = 1.0;
+            at(newNeighbour, newVertexIndex) = 1.0;
+        }
+
+        currentSize++;
+    }
+
+    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
+}
+
+void NetworkMatrix::generate_holme_kim(float probability, const uint newVertexConnectionsCount)
+{
+    uint startingSize = 3;
+    uint resultSize = vertex_count();
+    uint currentSize = startingSize;
+
+    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
+
+    std::vector<uint> vertexList = {0, 0, 1, 1, 2, 2};
+
+    reinitialize(resultSize, resultSize);
+    insert(initialMat);
+
+    uint newVertexIndex, neighbor;
+    float vertexListSize;
+
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+    std::discrete_distribution<int> discreteDistribution;
+
+    std::discrete_distribution<int> chooseNeighborOfNeighbor({1 - probability, probability});
+
+    std::vector<float> weights;
+    std::vector<uint> neighbors;
+    for (uint step = 0; step < (resultSize - startingSize); step++)
+    {
+        weights.clear();
+        neighbors.clear();
+
+        weights.reserve(currentSize);
+        neighbors.reserve(newVertexConnectionsCount);
+
+        newVertexIndex = startingSize + step;
+        vertexListSize = (float)vertexList.size();
+
+        for (uint vertex = 0; vertex < currentSize; vertex++)
+        {
+            weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
+        }
+
+        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
+        bool doPA = false;
+        uint lastConnectedVertex = 0;
+        for (uint neighbourStep = 0; neighbourStep < newVertexConnectionsCount; neighbourStep++)
+        {
+            if (neighbourStep == 0) // In first step always use PA.
+                doPA = true;
+            else
+            {
+                int pa = chooseNeighborOfNeighbor(randomGenerator);
+                if (pa) // Choose some random neighbot of neighbor
+                    doPA = false;
+                else // Do another pa step.
+                {
+                    doPA = true;
+                }
+            }
+
+            if (doPA)
+            {
+                do
+                {
+                    neighbor = discreteDistribution(randomGenerator);
+                } while (find(neighbors, neighbor));
+                neighbors.push_back(neighbor);
+                lastConnectedVertex = neighbor;
+            }
+            else
+            {
+                auto lastConnectedNeighbors = get_neighbours(lastConnectedVertex);
+                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
+                do
+                {
+                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
+                } while (find(neighbors, neighbor));
+
+                neighbors.push_back(neighbor);
+                lastConnectedVertex = neighbor;
+            }
+        }
+
+        assert(neighbors.size() == newVertexConnectionsCount);
+
+        vertexList.push_back(newVertexIndex);
+        vertexList.push_back(newVertexIndex);
+
+        for (const uint &newNeighbour : neighbors)
+        {
+            vertexList.push_back(newNeighbour);
+            at(newVertexIndex, newNeighbour) = 1.0;
+            at(newNeighbour, newVertexIndex) = 1.0;
+        }
+
+        currentSize++;
+    }
+
+    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
+}
+
+void NetworkMatrix::generate_bianconi(float probability, const uint newVertexConnectionsCount)
+{
+    uint startingSize = 3;
+    uint resultSize = vertex_count();
+    uint currentSize = startingSize;
+
+    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
+
+    reinitialize(resultSize, resultSize);
+    insert(initialMat);
+
+    uint newVertexIndex, neighbor;
+
+    std::random_device randomDevice;
+    std::mt19937 randomGenerator(randomDevice());
+
+    std::discrete_distribution<int> chooseNeighborOfNeighbor({1 - probability, probability});
+    std::vector<uint> neighbors;
+    std::uniform_int_distribution<> randomVertexGenerator;
+    for (uint step = 0; step < (resultSize - startingSize); step++)
+    {
+        neighbors.clear();
+        neighbors.reserve(newVertexConnectionsCount);
+
+        newVertexIndex = startingSize + step;
+        randomVertexGenerator = std::uniform_int_distribution<>(0, newVertexIndex - 1);
+        uint newRandomNeigh = randomVertexGenerator(randomGenerator);
+
+        neighbors.push_back(newRandomNeigh);
+        uint lastConnectedVertex = newRandomNeigh;
+
+        for (uint neighbourStep = 0; neighbourStep < newVertexConnectionsCount - 1; neighbourStep++)
+        {
+            if (chooseNeighborOfNeighbor(randomGenerator)) // Choose some random neighbor of neighbor
+            {
+                auto lastConnectedNeighbors = get_neighbours(lastConnectedVertex);
+                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
+                do
+                {
+                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
+                } while (find(neighbors, neighbor));
+
+                neighbors.push_back(neighbor);
+                lastConnectedVertex = neighbor;
+            }
+            else
+            {
+                do
+                {
+                    neighbor = randomVertexGenerator(randomGenerator);
+                } while (find(neighbors, neighbor));
+
+                neighbors.push_back(neighbor);
+                lastConnectedVertex = neighbor;
+            }
+        }
+
+        assert(neighbors.size() == newVertexConnectionsCount);
+
+        for (const uint &newNeighbour : neighbors)
+        {
             at(newVertexIndex, newNeighbour) = 1.0;
             at(newNeighbour, newVertexIndex) = 1.0;
         }

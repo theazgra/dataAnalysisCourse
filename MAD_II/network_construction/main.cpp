@@ -29,9 +29,11 @@ int main(int argc, char **argv)
     args::ValueFlag<std::string> _reportFile(parser, "report-file", "Report text file.", {'r', "report"});
     args::ValueFlag<uint> _vertexCount(parser, "vertex-count", "Vertex count.", {'v', "vertex-count"});
     args::ValueFlag<float> _prob(parser, "probability.", "Edge probability.", {'p', "edge-probability"});
-    args::ValueFlag<uint> _baM(parser, "m", "Number of connections in B-A method", {'m'});
+    args::ValueFlag<uint> _edgeCountInStep(parser, "m", "Number of edges to add in one step", {'m'});
 
     args::Flag _baMethod(parser, "BA", "Use Barabasi-Albert model for generating..", {"ba"});
+    args::Flag _holmeKimMethod(parser, "Holme-Kim", "Use Holme-Kim model for generating..", {"holme-kim"});
+    args::Flag _bianconiMethod(parser, "Bianconi", "Use Bianconi model for generating..", {"bianconi"});
 
     args::Flag _epsConstructionMethod(networkFromVectorDataMethod, "Epsilon radius", "Use epsilon as threshold value.", {"eps"});
     args::Flag _kNNConstructionMethod(networkFromVectorDataMethod, "k-NN", "Find k nearest neighbors.", {"knn"});
@@ -147,14 +149,31 @@ int main(int argc, char **argv)
 
     if (_generate)
     {
+        printf("Chosen to generate network with final vertex count: %u\n", _vertexCount.Get());
         uint vertexCount = _vertexCount.Get();
         NetworkMatrix nm(vertexCount, vertexCount);
 
-        if (_baMethod)
+        if (_holmeKimMethod)
         {
-            printf("M IS %i\n", _baM.Get());
+            printf("Holme-Kim method with probability %f edge count: %u\n", _prob.Get(), _edgeCountInStep.Get());
+            nm.generate_holme_kim(_prob.Get(), _edgeCountInStep.Get());
+            nm.export_network(_file.Get().c_str());
+            printf("Generated and saved in %s\n", _file.Get().c_str());
+            return 0;
+        }
+        else if (_bianconiMethod)
+        {
+            printf("Bianconi method with probability %f edge count: %u\n", _prob.Get(), _edgeCountInStep.Get());
+            nm.generate_bianconi(_prob.Get(), _edgeCountInStep.Get());
+            nm.export_network(_file.Get().c_str());
+            printf("Generated and saved in %s\n", _file.Get().c_str());
+            return 0;
+        }
+        else if (_baMethod)
+        {
+            printf("M IS %i\n", _edgeCountInStep.Get());
 
-            nm.generate_scale_free_network((_baM ? _baM.Get() : 2), vertexCount - 3);
+            nm.generate_scale_free_network((_edgeCountInStep ? _edgeCountInStep.Get() : 2), vertexCount - 3);
             printf("Generated network using Barabasi-Albert method.\n");
             nm.export_network(_file.Get().c_str());
             printf("Saved network in: %s\n", _file.Get().c_str());
