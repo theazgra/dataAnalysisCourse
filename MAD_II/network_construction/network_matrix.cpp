@@ -1283,7 +1283,7 @@ NetworkMatrix NetworkMatrix::filter_random_edge_sampling(const float targetPerce
     return sampleNetwork;
 }
 
-uint NetworkMatrix::calculate_cut_size(const std::vector<uint> &gA, const std::vector<uint> &gB) const
+uint NetworkMatrix::get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const
 {
     uint result = 0;
     for (auto &&a : gA)
@@ -1341,7 +1341,7 @@ void NetworkMatrix::kernighan_lin() const
             groupB.push_back(indices[i]);
     }
 
-    uint lastCut = calculate_cut_size(groupA, groupB);
+    uint lastCut = get_edge_count_between_groups(groupA, groupB);
     uint cut = lastCut;
     int iter = 0;
 
@@ -1362,7 +1362,7 @@ void NetworkMatrix::kernighan_lin() const
                 groupA[a] = vB;
                 groupB[b] = vA;
 
-                uint cut = calculate_cut_size(groupA, groupB);
+                uint cut = get_edge_count_between_groups(groupA, groupB);
                 stepSwaps.push_back(SwapInfo(a, b, cut));
 
                 groupA[a] = vA;
@@ -1381,13 +1381,13 @@ void NetworkMatrix::kernighan_lin() const
         alreadySwapped.push_back(vB);
 
         lastCut = cut;
-        cut = calculate_cut_size(groupA, groupB);
+        cut = get_edge_count_between_groups(groupA, groupB);
 
         if (cut > lastCut)
         {
             groupA[bestSwap.aIndex] = vA;
             groupB[bestSwap.bIndex] = vB;
-            cut = calculate_cut_size(groupA, groupB);
+            cut = get_edge_count_between_groups(groupA, groupB);
             printf("Correcting result. Swapping pair back. Final cut: %4u\n", cut);
             break;
         }

@@ -34,7 +34,11 @@ private:
   std::vector<uint> find_k_neighbors(const uint row, const uint k) const;
   uint count_in_e_radius(const uint row, const float e) const;
   void filter_knn_row(const uint row, const uint k);
-  uint calculate_cut_size(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
+
+  // Get number of edges between two groups.
+  uint get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
+
+  // Get symmetrical network of size 3.
   NetworkMatrix get_initial_matrix_of_size_3() const;
 
 public:
@@ -117,7 +121,10 @@ public:
   // Generate scale free network in this matrix.
   void generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd);
 
+  // Generate network based on Holme-Kim model.
   void generate_holme_kim(float probability, const uint newVertexConnections);
+
+  // Generate network based on Bianconi model.
   void generate_bianconi(float probability, const uint newVertexConnections);
 
   // Load matrix from edges.
@@ -135,10 +142,15 @@ public:
   float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
   std::vector<float> get_eccentricities(const NetworkMatrix &distanceMatrix) const;
 
+  // For network created from vector dataset. Filter edges based on epsilon radius.
   void filter_e_radius(const float radius);
+  // For network created from vector dataset. Filter edges based on KNN.
   void filter_kNN(const uint k);
+  // For network created from vector dataset. Filter edges based on combination of epilon radius and KNN.
   void filter_combinataion_e_knn(const float radius, const uint k);
+  // Create sample from this network, with random node sampling method. Sample vertex count is equal to vertex_count() * `targetPercentSize`, which is < 1.0f.
   NetworkMatrix filter_random_node_sampling(const float targetPercentSize) const;
+  // Create sample from this network, with random edge sampling method. Sample vertex count is equal to vertex_count() * `targetPercentSize`, which is < 1.0f.
   NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
 
   void kernighan_lin() const;
