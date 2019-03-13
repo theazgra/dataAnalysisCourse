@@ -41,6 +41,10 @@ private:
   // Get symmetrical network of size 3.
   NetworkMatrix get_initial_matrix_of_size_3() const;
 
+  NetworkMatrix get_cosine_similarity_matrix() const;
+
+  uint get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const;
+
 public:
   NetworkMatrix(const char *fName, const int offset);
   NetworkMatrix(const uint &rowCount, const uint &colCount);
@@ -154,6 +158,8 @@ public:
   NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
 
   void kernighan_lin() const;
+
+  void hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType) const;
 };
 
 #include "network_matrix.cpp"

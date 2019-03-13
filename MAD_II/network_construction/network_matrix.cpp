@@ -40,6 +40,170 @@ NetworkMatrix NetworkMatrix::get_initial_matrix_of_size_3() const
     return initialMat;
 }
 
+uint NetworkMatrix::get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const
+{
+    uint count = 0;
+    for (const uint &v : aNeighbors)
+    {
+        if (find(bNeighbors, v))
+            count++;
+    }
+    return count;
+}
+
+NetworkMatrix NetworkMatrix::get_cosine_similarity_matrix() const
+{
+    std::vector<std::vector<uint>> vertexNeighbors;
+    std::vector<uint> vertexDegree = get_degree_of_vertices();
+
+    vertexNeighbors.resize(this->rowCount);
+    for (uint vertex = 0; vertex < this->rowCount; vertex++)
+    {
+        vertexNeighbors[vertex] = get_neighbours(vertex);
+    }
+
+    NetworkMatrix cosineMat = NetworkMatrix(rowCount, rowCount);
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        for (uint col = row; col < this->colCount; col++)
+        {
+            if (row == col)
+            {
+                cosineMat.at(row, col) = 1.0f;
+            }
+            else
+            {
+                uint neighCount = get_count_of_same_neighbors(vertexNeighbors[row], vertexNeighbors[col]);
+
+                float sim = (float)neighCount / sqrt(((float)vertexDegree[row] * (float)vertexDegree[col]));
+
+                cosineMat.at(row, col) = sim;
+                cosineMat.at(col, row) = sim;
+            }
+        }
+    }
+
+    return cosineMat;
+}
+
+struct Cluster
+{
+    std::vector<uint> vertices;
+
+    Cluster() {}
+
+    Cluster(uint v)
+    {
+        vertices.push_back(v);
+    }
+
+    Cluster(const std::vector<uint> &a, const std::vector<uint> &b)
+    {
+        vertices.insert(vertices.begin(), a.begin(), a.end());
+        vertices.insert(vertices.end(), b.begin(), b.end());
+    }
+
+    bool operator==(const Cluster &b) const
+    {
+        return (vertices.data() == b.vertices.data());
+    }
+};
+
+struct ClusterCandidate
+{
+    Cluster i;
+    Cluster j;
+    float similarity;
+
+    void set_new(Cluster i, Cluster j, float sim)
+    {
+        this->i = i;
+        this->j = j;
+        similarity = sim;
+    }
+};
+
+float get_average_similarity(const NetworkMatrix &cosineMat,
+                             const std::vector<uint> &aVertices,
+                             const std::vector<uint> &bVertices)
+{
+    float totalCount = aVertices.size() * bVertices.size();
+    float sim = 0.0f;
+    for (const uint &u : aVertices)
+    {
+        for (const uint &v : bVertices)
+        {
+            sim += cosineMat.at(u, v);
+        }
+    }
+    sim /= totalCount;
+    return sim;
+}
+
+ClusterCandidate find_clusters_to_combine(const NetworkMatrix &cosineMat,
+                                          const std::unordered_set<Cluster> &clusters,
+                                          const LinkageType linkType)
+{
+    switch (linkType)
+    {
+    case LinkageType_Single:
+    case LinkageType_Complete:
+    {
+        assert(false && "Not implemented yet");
+    }
+    break;
+    case LinkageType_Average:
+    {
+        ClusterCandidate candidate = {};
+        candidate.similarity = -999.99f;
+
+        for (const Cluster &cI : clusters)
+        {
+            for (const Cluster &cJ : clusters)
+            {
+                if (cI == cJ)
+                    continue;
+                float currSim = get_average_similarity(cosineMat, cI.vertices, cJ.vertices);
+                if (currSim > candidate.similarity)
+                {
+                    candidate.set_new(cI, cJ, currSim);
+                }
+            }
+        }
+        return candidate;
+    }
+    break;
+    default:
+        assert(false);
+        break;
+    }
+}
+
+void NetworkMatrix::hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType) const
+{
+    NetworkMatrix cosineMat = get_cosine_similarity_matrix();
+
+    std::unordered_set<Cluster> clusters;
+
+    for (uint vertex = 0; vertex < rowCount; vertex++)
+    {
+        clusters.insert(Cluster(vertex));
+    }
+
+    uint currentClusterCount = rowCount;
+
+    while (currentClusterCount > clusterCount)
+    {
+        ClusterCandidate candidate = find_clusters_to_combine(cosineMat, clusters, linkType);
+
+        clusters.erase(candidate.i);
+        clusters.erase(candidate.j);
+
+        Cluster newCluster(candidate.i.vertices, candidate.j.vertices);
+        currentClusterCount = clusters.size();
+    }
+}
+
 NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
 {
     size_t size = vectorData.size();
