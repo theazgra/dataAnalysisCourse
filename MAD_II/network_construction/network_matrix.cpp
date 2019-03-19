@@ -255,6 +255,17 @@ void NetworkMatrix::remove_edges_outside_clusters(const std::vector<Cluster> &cl
 void NetworkMatrix::hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType)
 {
     auto clusters = find_clusters_hierarchical(clusterCount, linkType);
+
+    int id = 1;
+    for (const Cluster &c : clusters)
+    {
+        printf("Cluster %i, vertex count: %lu\nVertices: ", id++, c.vertices.size());
+        for (const uint &v : c.vertices)
+            printf("%u, ", v);
+
+        printf("\n");
+    }
+
     remove_edges_outside_clusters(clusters);
     export_network(reportFile);
 }
