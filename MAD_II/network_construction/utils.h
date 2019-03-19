@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <limits>
 
 template <typename T>
 void print_vector(const std::vector<T> &vector)
@@ -27,6 +28,18 @@ bool find(const std::vector<T> &vector, const T &element)
             return true;
     }
     return false;
+}
+
+template <typename T>
+T min(const std::vector<T> &vector)
+{
+    T min = std::numeric_limits<T>::max();
+    for (size_t i = 0; i < vector.size(); i++)
+    {
+        if (vector[i] < min)
+            min = vector[i];
+    }
+    return min;
 }
 
 template <typename T>

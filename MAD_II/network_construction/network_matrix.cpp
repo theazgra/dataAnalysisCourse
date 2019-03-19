@@ -13,6 +13,14 @@ NetworkMatrix::NetworkMatrix(const char *fName, const int offset)
     load_from_edges(loadedEdges, offset);
 }
 
+NetworkMatrix::NetworkMatrix(const NetworkMatrix &copySrc)
+{
+    this->rowCount = copySrc.rows();
+    this->colCount = copySrc.cols();
+    this->data.resize(this->rowCount * this->colCount);
+    copy_data(copySrc);
+}
+
 NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
 {
     this->rowCount = rowCount;
@@ -86,49 +94,13 @@ NetworkMatrix NetworkMatrix::get_cosine_similarity_matrix() const
     return cosineMat;
 }
 
-struct Cluster
-{
-    std::vector<uint> vertices;
-
-    Cluster() {}
-
-    Cluster(uint v)
-    {
-        vertices.push_back(v);
-    }
-
-    Cluster(const std::vector<uint> &a, const std::vector<uint> &b)
-    {
-        vertices.insert(vertices.begin(), a.begin(), a.end());
-        vertices.insert(vertices.end(), b.begin(), b.end());
-    }
-
-    bool operator==(const Cluster &b) const
-    {
-        return (vertices.data() == b.vertices.data());
-    }
-};
-
-struct ClusterCandidate
-{
-    Cluster i;
-    Cluster j;
-    float similarity;
-
-    void set_new(Cluster i, Cluster j, float sim)
-    {
-        this->i = i;
-        this->j = j;
-        similarity = sim;
-    }
-};
-
-float get_average_similarity(const NetworkMatrix &cosineMat,
-                             const std::vector<uint> &aVertices,
-                             const std::vector<uint> &bVertices)
+float get_average_linkage_similarity(const NetworkMatrix &cosineMat,
+                                     const std::vector<uint> &aVertices,
+                                     const std::vector<uint> &bVertices)
 {
     float totalCount = aVertices.size() * bVertices.size();
     float sim = 0.0f;
+
     for (const uint &u : aVertices)
     {
         for (const uint &v : bVertices)
@@ -136,74 +108,201 @@ float get_average_similarity(const NetworkMatrix &cosineMat,
             sim += cosineMat.at(u, v);
         }
     }
+
     sim /= totalCount;
     return sim;
 }
 
-ClusterCandidate find_clusters_to_combine(const NetworkMatrix &cosineMat,
-                                          const std::unordered_set<Cluster> &clusters,
-                                          const LinkageType linkType)
+float get_single_linkage_similarity(const NetworkMatrix &cosineMat,
+                                    const std::vector<uint> &aVertices,
+                                    const std::vector<uint> &bVertices)
 {
-    switch (linkType)
-    {
-    case LinkageType_Single:
-    case LinkageType_Complete:
-    {
-        assert(false && "Not implemented yet");
-    }
-    break;
-    case LinkageType_Average:
-    {
-        ClusterCandidate candidate = {};
-        candidate.similarity = -999.99f;
+    // Single linkage means the closest vertices, so similarity must be maximal.
+    float sim = -999999;
 
-        for (const Cluster &cI : clusters)
+    for (const uint &u : aVertices)
+    {
+        for (const uint &v : bVertices)
         {
-            for (const Cluster &cJ : clusters)
+            if (cosineMat.at(u, v) > sim)
             {
-                if (cI == cJ)
-                    continue;
-                float currSim = get_average_similarity(cosineMat, cI.vertices, cJ.vertices);
-                if (currSim > candidate.similarity)
+                sim = cosineMat.at(u, v);
+            }
+        }
+    }
+    return sim;
+}
+
+float get_complete_linkage_similarity(const NetworkMatrix &cosineMat,
+                                      const std::vector<uint> &aVertices,
+                                      const std::vector<uint> &bVertices)
+{
+    // Complete linkage means the furthest vertices, so similarity must be minimal.
+    float sim = 999999;
+
+    for (const uint &u : aVertices)
+    {
+        for (const uint &v : bVertices)
+        {
+            if (cosineMat.at(u, v) < sim)
+            {
+                sim = cosineMat.at(u, v);
+            }
+        }
+    }
+    return sim;
+}
+
+void recalculate_similarity_matrix(const NetworkMatrix &cosineMat, NetworkMatrix &clusterMat,
+                                   const std::map<uint, Cluster> &clusters,
+                                   const Cluster &newCluster, const LinkageType linkage)
+{
+    // We have to recalculate similarity for each cluster according to newCluster.
+    for (const std::pair<uint, Cluster> &c : clusters)
+    {
+        // We don't recalculate similarity to same cluster.
+        if (c.first == newCluster.representative)
+            continue;
+
+        float similarity;
+
+        switch (linkage)
+        {
+        case LinkageType_Single:
+            similarity = get_single_linkage_similarity(cosineMat, c.second.vertices, newCluster.vertices);
+            break;
+        case LinkageType_Complete:
+            similarity = get_complete_linkage_similarity(cosineMat, c.second.vertices, newCluster.vertices);
+            break;
+        case LinkageType_Average:
+            similarity = get_average_linkage_similarity(cosineMat, c.second.vertices, newCluster.vertices);
+            break;
+
+        default:
+            assert(false);
+            break;
+        }
+
+        clusterMat.at(c.first, newCluster.representative) = similarity;
+        clusterMat.at(newCluster.representative, c.first) = similarity;
+    }
+}
+
+ClusterCandidate find_clusters_to_combine(const NetworkMatrix &clusterMat,
+                                          const std::map<uint, Cluster> &clusters)
+{
+    ClusterCandidate candidate = {};
+    candidate.similarity = -999.99f;
+
+    for (const std::pair<uint, Cluster> &cI : clusters)
+    {
+        for (const std::pair<uint, Cluster> &cJ : clusters)
+        {
+            if (cI.first == cJ.first || cI.second.isDeleted || cJ.second.isDeleted)
+                continue;
+
+            float currSim = clusterMat.at(cI.first, cJ.first);
+            if (currSim > candidate.similarity)
+            {
+                candidate.set_new(cI.second, cJ.second, currSim);
+            }
+        }
+    }
+
+    assert(candidate.similarity != -999.99f);
+    return candidate;
+}
+
+void delete_cluster(std::map<uint, Cluster> &clusters, const uint key)
+{
+    size_t removedCount = clusters.erase(key);
+    assert(removedCount == 1);
+}
+
+size_t get_cluster_count(const std::vector<Cluster> &clusters)
+{
+    size_t result = 0;
+    for (size_t i = 0; i < clusters.size(); i++)
+    {
+        if (!clusters[i].isDeleted)
+            ++result;
+    }
+    return result;
+}
+
+void NetworkMatrix::remove_edges_outside_clusters(const std::vector<Cluster> &clusters)
+{
+    for (const Cluster &c : clusters)
+    {
+        for (uint row = 0; row < this->rowCount; row++)
+        {
+            for (uint col = row + 1; col < this->colCount; col++)
+            {
+                // If there is edge check if edge is from cluster out.
+                if (!is_infinity(row, col) && at(row, col) > 0.0f)
                 {
-                    candidate.set_new(cI, cJ, currSim);
+                    // If edge is from cluster outside, remove edge.
+                    if (find(c.vertices, row) && !find(c.vertices, col))
+                    {
+                        at(row, col) = 0.0f;
+                    }
                 }
             }
         }
-        return candidate;
-    }
-    break;
-    default:
-        assert(false);
-        break;
     }
 }
 
-void NetworkMatrix::hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType) const
+void NetworkMatrix::hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType)
 {
-    NetworkMatrix cosineMat = get_cosine_similarity_matrix();
+    auto clusters = find_clusters_hierarchical(clusterCount, linkType);
+    remove_edges_outside_clusters(clusters);
+    export_network(reportFile);
+}
 
-    std::unordered_set<Cluster> clusters;
+std::vector<Cluster> NetworkMatrix::find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const
+{
+    const NetworkMatrix cosineMat = get_cosine_similarity_matrix();
+    NetworkMatrix clusterMat = NetworkMatrix(cosineMat);
 
+    std::map<uint, Cluster> clusters;
+
+    // At start every vertex is in cluster of its own.
     for (uint vertex = 0; vertex < rowCount; vertex++)
-    {
-        clusters.insert(Cluster(vertex));
-    }
+        clusters[vertex] = Cluster(vertex);
 
-    uint currentClusterCount = rowCount;
+    uint currentClusterCount = clusters.size();
 
+    // Until we have required cluster count...
     while (currentClusterCount > clusterCount)
     {
-        ClusterCandidate candidate = find_clusters_to_combine(cosineMat, clusters, linkType);
+        // Fint two closest clusters.
 
-        clusters.erase(candidate.i);
-        clusters.erase(candidate.j);
+        ClusterCandidate candidate = find_clusters_to_combine(clusterMat, clusters);
+
+        // Merge the two closest clusters.
+        size_t beforeDelete = clusters.size(); // get_cluster_count(clusters);
+        delete_cluster(clusters, candidate.i.representative);
+        delete_cluster(clusters, candidate.j.representative);
+        size_t afterDelete = clusters.size(); //get_cluster_count(clusters);
+
+        assert(afterDelete == beforeDelete - 2);
 
         Cluster newCluster(candidate.i.vertices, candidate.j.vertices);
-        currentClusterCount = clusters.size();
-    }
-}
 
+        clusters[newCluster.representative] = newCluster;
+        currentClusterCount = clusters.size(); // get_cluster_count(clusters);
+
+        // Recalculate the cosineMat.
+        recalculate_similarity_matrix(cosineMat, clusterMat, clusters, newCluster, linkType);
+    }
+    std::vector<Cluster> result;
+    for (const std::pair<uint, Cluster> &c : clusters)
+    {
+        result.push_back(c.second);
+    }
+    printf("We are done with hierarchical clustering. Final cluster count: %lu\n", result.size());
+    return result;
+}
 NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
 {
     size_t size = vectorData.size();

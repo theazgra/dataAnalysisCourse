@@ -11,8 +11,6 @@
 #include <queue>
 #include <algorithm>
 
-#include <unordered_set>
-
 #include "custom_types.h"
 #include "utils.h"
 #include "stack.h"
