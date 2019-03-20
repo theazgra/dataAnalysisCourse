@@ -267,7 +267,7 @@ void NetworkMatrix::hierarchical_clustering(const uint clusterCount, const char 
     }
 
     remove_edges_outside_clusters(clusters);
-    export_network(reportFile);
+    export_network(reportFile, true);
 }
 
 std::vector<Cluster> NetworkMatrix::find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const
@@ -1230,11 +1230,14 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
     }
 }
 
-void NetworkMatrix::export_network(const char *filename) const
+void NetworkMatrix::export_network(const char *filename, bool allSelfEdge) const
 {
     std::vector<std::pair<uint, uint>> edges;
     for (uint row = 0; row < this->rowCount; row++)
     {
+        if (allSelfEdge)
+            edges.push_back(std::make_pair(row, row));
+
         for (uint col = row; col < this->colCount; col++)
         {
             if (!is_infinity(row, col) && (at(row, col) > 0.0f))
@@ -1673,4 +1676,53 @@ void NetworkMatrix::kernighan_lin() const
     print_vector(groupA);
     printf("Second group: ");
     print_vector(groupB);
+}
+
+void NetworkMatrix::delete_edges_for(const uint vertex)
+{
+    for (uint col = 0; col < this->colCount; col++)
+    {
+        at(vertex, col) = 0.0f;
+        at(col, vertex) = 0.0f;
+    }
+}
+
+void NetworkMatrix::filter_k_core(const uint k)
+{
+    //NetworkMatrix editMat = NetworkMatrix(*this);
+
+    /*
+    Postup – odstraníme všechny vrcholy se stupněm < k (nemohou být součástí k-core), 
+        toto opakujeme tak dlouho, dokud se v grafu vyskytují vrcholy se stupněm <k. 
+        Nakonec zůstane množina všech k-core
+    */
+
+    std::vector<uint> kCoreVertices;
+    kCoreVertices.resize(rowCount);
+    for (size_t i = 0; i < rowCount; i++)
+        kCoreVertices[i] = i;
+
+    bool reduce = true;
+    while (reduce)
+    {
+        reduce = false;
+        std::vector<uint> tmpKCoreVertices;
+        std::vector<uint> degrees = get_degree_of_vertices();
+
+        for (const uint &v : kCoreVertices)
+        {
+            if (degrees[v] >= k)
+            {
+                tmpKCoreVertices.push_back(v);
+            }
+            else
+            {
+                delete_edges_for(v);
+                reduce = true;
+            }
+        }
+
+        kCoreVertices.swap(tmpKCoreVertices);
+    }
+    printf("Final vertex count %lu\n", kCoreVertices.size());
 }

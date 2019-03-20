@@ -80,6 +80,8 @@ private:
   // Get number of edges between two groups.
   uint get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
 
+  void delete_edges_for(const uint vertex);
+
   // Get symmetrical network of size 3.
   NetworkMatrix get_initial_matrix_of_size_3() const;
 
@@ -184,7 +186,7 @@ public:
   void print_matrix() const;
 
   // Export network to file.
-  void export_network(const char *filename) const;
+  void export_network(const char *filename, bool allSelfEdge = false) const;
 
   void complete_analysis(const char *networkName, const char *filename, const bool verbose = false, const bool complete = true) const;
 
@@ -202,6 +204,8 @@ public:
   NetworkMatrix filter_random_node_sampling(const float targetPercentSize) const;
   // Create sample from this network, with random edge sampling method. Sample vertex count is equal to vertex_count() * `targetPercentSize`, which is < 1.0f.
   NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
+
+  void filter_k_core(const uint k);
 
   void kernighan_lin() const;
 
