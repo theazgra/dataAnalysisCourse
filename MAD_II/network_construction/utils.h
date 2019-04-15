@@ -31,6 +31,15 @@ bool find(const std::vector<T> &vector, const T &element)
 }
 
 template <typename T>
+void push_range(std::vector<T> &dst, const std::vector<T> &src)
+{
+    for (size_t i = 0; i < src.size(); i++)
+    {
+        dst.push_back(src[i]);
+    }
+}
+
+template <typename T>
 T min(const std::vector<T> &vector)
 {
     T min = std::numeric_limits<T>::max();

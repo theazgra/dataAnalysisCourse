@@ -10,6 +10,44 @@
 */
 int main(int argc, char **argv)
 {
+    NetworkMatrix baNetwork = NetworkMatrix(500, 500);
+    baNetwork.generate_scale_free_network(10, 500, 3);
+
+    NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
+    float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
+    randomNetwork.generate_random_network(randProb, false);
+
+    NetworkMatrix airportNetwork = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
+    NetworkMatrix airportNetwork2 = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
+
+    // baNetwork.print_network_stats("====== Barabasi-Albert ======");
+    // randomNetwork.print_network_stats("====== Random ======");
+
+    airportNetwork.print_network_stats("====== US Airport ======");
+
+    printf("Component count: %lu\n", airportNetwork.get_components().size());
+    for (size_t i = 0; i < 10; i++)
+    {
+        airportNetwork.attack_step();
+    }
+    airportNetwork.print_network_stats("====== US Airport after 10 attacks ======");
+
+    // size_t compCount = airportNetwork.get_components().size();
+    // printf("Component count after 10 attacks: %lu\n", compCount);
+
+    // size_t failure = 0;
+    // size_t failureCompCount = airportNetwork2.get_components().size();
+
+    // while (failureCompCount < compCount)
+    // {
+    //     airportNetwork2.failure_step();
+    //     ++failure;
+    //     failureCompCount = airportNetwork2.get_components().size();
+    // }
+    // printf("Failure needed %lu steps to reach %lu components\n", failure, failureCompCount);
+
+    return 0;
+
     args::ArgumentParser parser("Network analysis. - MOR0146", "Required arguments are in < > optional in [].");
     args::Group methodGroup(parser, "Methods", args::Group::Validators::AtMostOne);
     args::Group networkFromVectorDataMethod(parser, "Network from vector data construction methods", args::Group::Validators::AtMostOne);

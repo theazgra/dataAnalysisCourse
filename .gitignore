@@ -65,3 +65,4 @@ results/
 *.log
 *.out
 *.synctex.gz
+MAD_II/scripts/.rkward_autosave

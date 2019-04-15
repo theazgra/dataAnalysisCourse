@@ -1,34 +1,7 @@
 #pragma once
-#include "libs.h"
+#include "cluster.h"
+#include "graph_component.h"
 #include "io.h"
-
-struct Cluster
-{
-  bool isDeleted = false;
-  uint representative;
-  std::vector<uint> vertices;
-
-  Cluster() {}
-
-  Cluster(uint v)
-  {
-    vertices.push_back(v);
-    representative = v;
-  }
-
-  Cluster(const std::vector<uint> &a, const std::vector<uint> &b)
-  {
-    vertices.insert(vertices.begin(), a.begin(), a.end());
-    vertices.insert(vertices.end(), b.begin(), b.end());
-
-    representative = min(vertices);
-  }
-
-  bool operator==(const Cluster &b) const
-  {
-    return (vertices.data() == b.vertices.data());
-  }
-};
 
 struct ClusterCandidate
 {
@@ -60,7 +33,9 @@ private:
   inline float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
 
   // Get neighbours of vertex.
-  std::vector<uint> get_neighbours(const uint vertex) const;
+  std::vector<uint> get_neighbors(const uint vertex) const;
+  // Get neighbours of vertex which aren't in `except`
+  std::vector<uint> get_neighbors_except(const uint vertex, const std::vector<uint> &except) const;
 
   // Get edge count between neighbours.
   uint get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const;
@@ -92,6 +67,8 @@ private:
   std::vector<Cluster> find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const;
   void remove_edges_outside_clusters(const std::vector<Cluster> &clusters);
 
+  std::vector<uint> deletedVertices;
+
 public:
   NetworkMatrix(const NetworkMatrix &copySrc);
   NetworkMatrix(const char *fName, const int offset);
@@ -119,6 +96,8 @@ public:
 
   // Get degree of vertices. Return degrees vector.
   std::vector<uint> get_degree_of_vertices() const;
+
+  uint get_vertex_with_max_degree() const;
 
   // Get average degree of vertices.
   float get_average_degree() const;
@@ -173,6 +152,8 @@ public:
   // Generate scale free network in this matrix.
   void generate_scale_free_network(const uint numberOfConnections, const uint numberOfVerticesToAdd);
 
+  void generate_scale_free_network(const uint initialSize, const uint finalSize, const uint numberOfConnections);
+
   // Generate network based on Holme-Kim model.
   void generate_holme_kim(float probability, const uint newVertexConnections);
 
@@ -210,6 +191,11 @@ public:
   void kernighan_lin() const;
 
   void hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType);
+  std::vector<GraphComponent> get_components() const;
+  void print_network_stats(const char *header) const;
+
+  void failure_step();
+  void attack_step();
 };
 
 #include "network_matrix.cpp"
