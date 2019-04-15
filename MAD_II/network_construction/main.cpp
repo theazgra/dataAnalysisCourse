@@ -1,5 +1,59 @@
 #include "external/args.hxx"
 #include "network_matrix.h"
+#include <iomanip>
+#include <ostream>
+void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
+{
+    std::string reportFile = folder + "/report.csv";
+    std::ofstream reportStream(reportFile, std::ios::out);
+    if (!reportStream.is_open())
+    {
+        printf("Unable to open report stream\n");
+        return;
+    }
+    uint numberOfSteps = network.vertex_count();
+    reportStream << std::fixed << std::setprecision(5);
+    std::string sep = ";";
+
+    uint vertexCount = network.vertex_count();
+    uint edgeCount = network.edge_count();
+    std::vector<GraphComponent> components = network.get_components();
+    GraphComponent maxComponent = get_biggest_component(components);
+    //float averageDistance = network.get_network_average_distance(network.get_distance_matrix());
+    float averageDegree = network.get_average_degree();
+
+    //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
+    // reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+    //              << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+    reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDegree" << std::endl;
+    reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+                 << maxComponent.size() << sep << averageDegree << std::endl;
+
+    for (size_t step = 0; step < 200; step++)
+    {
+        if (attack)
+            network.attack_step();
+        else
+            network.failure_step();
+
+        vertexCount = network.vertex_count();
+        edgeCount = network.edge_count();
+        components = network.get_components();
+        maxComponent = get_biggest_component(components);
+        //averageDistance = network.get_network_average_distance(network.get_distance_matrix());
+        averageDegree = network.get_average_degree();
+
+        // reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+        //              << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+        reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+                     << maxComponent.size() << sep << averageDegree << std::endl;
+
+        std::string exportFName = folder + "/removed_" + std::to_string(step + 1) + ".csv";
+        network.export_network(exportFName.c_str());
+
+        printf("Finished iteration %lu\n", step + 1);
+    }
+}
 
 /*
     NetworkMatrix is always indexed from zero!!!
@@ -10,27 +64,40 @@
 */
 int main(int argc, char **argv)
 {
-    NetworkMatrix baNetwork = NetworkMatrix(500, 500);
-    baNetwork.generate_scale_free_network(10, 500, 3);
+    // NetworkMatrix baNetwork = NetworkMatrix(500, 500);
+    // baNetwork.generate_scale_free_network(10, 500, 3);
+    // NetworkMatrix ba1(baNetwork);
+    // NetworkMatrix ba2(baNetwork);
+    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba/failure", false);
+    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba/attack", true);
 
-    NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
-    float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
-    randomNetwork.generate_random_network(randProb, false);
+    // NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
+    // float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
+    // randomNetwork.generate_random_network(randProb, false);
+    // NetworkMatrix rand1(randomNetwork);
+    // NetworkMatrix rand2(randomNetwork);
+    // analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random/failure", false);
+    // analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random/attack", true);
+
+    //usairport
 
     NetworkMatrix airportNetwork = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
-    NetworkMatrix airportNetwork2 = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
+    NetworkMatrix airport1(airportNetwork);
+    NetworkMatrix airport2(airportNetwork);
+    analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport/failure", false);
+    analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport/attack", true);
 
-    // baNetwork.print_network_stats("====== Barabasi-Albert ======");
-    // randomNetwork.print_network_stats("====== Random ======");
+    // // baNetwork.print_network_stats("====== Barabasi-Albert ======");
+    // // randomNetwork.print_network_stats("====== Random ======");
 
-    airportNetwork.print_network_stats("====== US Airport ======");
+    // airportNetwork.print_network_stats("====== US Airport ======");
 
-    printf("Component count: %lu\n", airportNetwork.get_components().size());
-    for (size_t i = 0; i < 10; i++)
-    {
-        airportNetwork.attack_step();
-    }
-    airportNetwork.print_network_stats("====== US Airport after 10 attacks ======");
+    // printf("Component count: %lu\n", airportNetwork.get_components().size());
+    // for (size_t i = 0; i < 10; i++)
+    // {
+    //     airportNetwork.attack_step();
+    // }
+    // airportNetwork.print_network_stats("====== US Airport after 10 attacks ======");
 
     // size_t compCount = airportNetwork.get_components().size();
     // printf("Component count after 10 attacks: %lu\n", compCount);

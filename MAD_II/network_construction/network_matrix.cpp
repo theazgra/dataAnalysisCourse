@@ -966,6 +966,9 @@ NetworkMatrix NetworkMatrix::get_distance_matrix(const bool forceDijkstra) const
 #pragma omp parallel for
     for (uint row = 0; row < this->rowCount; row++)
     {
+        if (find(deletedVertices, row))
+            continue;
+
         for (uint col = row + 1; col < this->colCount; col++)
         {
             float distance = bfs ? bfs_path(distanceMat, row, col) : dijkstra_path(distanceMat, row, col);
