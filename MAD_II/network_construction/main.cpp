@@ -68,8 +68,8 @@ int main(int argc, char **argv)
     // baNetwork.generate_scale_free_network(10, 500, 3);
     // NetworkMatrix ba1(baNetwork);
     // NetworkMatrix ba2(baNetwork);
-    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_fail.csv", false);
-    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_attack.csv", true);
+    // analysis(ba1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_fail.csv", false);
+    // analysis(ba2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_attack.csv", true);
 
     // NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
     // float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
