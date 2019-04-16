@@ -5,7 +5,7 @@
 void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 {
     std::string reportFile = folder + "/report.csv";
-    std::ofstream reportStream(reportFile, std::ios::out);
+    std::ofstream reportStream(folder, std::ios::out);
     if (!reportStream.is_open())
     {
         printf("Unable to open report stream\n");
@@ -22,14 +22,14 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
     //float averageDistance = network.get_network_average_distance(network.get_distance_matrix());
     float averageDegree = network.get_average_degree();
 
-    //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
+    // reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
     // reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
     //              << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
     reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDegree" << std::endl;
     reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
                  << maxComponent.size() << sep << averageDegree << std::endl;
 
-    for (size_t step = 0; step < 200; step++)
+    for (size_t step = 0; step < 300; step++)
     {
         if (attack)
             network.attack_step();
@@ -49,7 +49,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
                      << maxComponent.size() << sep << averageDegree << std::endl;
 
         std::string exportFName = folder + "/removed_" + std::to_string(step + 1) + ".csv";
-        network.export_network(exportFName.c_str());
+        //network.export_network(exportFName.c_str());
 
         printf("Finished iteration %lu\n", step + 1);
     }
@@ -68,24 +68,22 @@ int main(int argc, char **argv)
     // baNetwork.generate_scale_free_network(10, 500, 3);
     // NetworkMatrix ba1(baNetwork);
     // NetworkMatrix ba2(baNetwork);
-    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba/failure", false);
-    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba/attack", true);
+    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_fail.csv", false);
+    // analysis(baNetwork, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_attack.csv", true);
 
     // NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
     // float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
     // randomNetwork.generate_random_network(randProb, false);
     // NetworkMatrix rand1(randomNetwork);
     // NetworkMatrix rand2(randomNetwork);
-    // analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random/failure", false);
-    // analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random/attack", true);
-
-    //usairport
+    // analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_fail.csv", false);
+    // analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_attack.csv", true);
 
     NetworkMatrix airportNetwork = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
     NetworkMatrix airport1(airportNetwork);
     NetworkMatrix airport2(airportNetwork);
-    analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport/failure", false);
-    analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport/attack", true);
+    analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_fail.csv", false);
+    analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_attack.csv", true);
 
     // // baNetwork.print_network_stats("====== Barabasi-Albert ======");
     // // randomNetwork.print_network_stats("====== Random ======");

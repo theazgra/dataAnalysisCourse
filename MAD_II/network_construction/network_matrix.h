@@ -67,7 +67,10 @@ private:
   std::vector<Cluster> find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const;
   void remove_edges_outside_clusters(const std::vector<Cluster> &clusters);
 
-  std::vector<uint> deletedVertices;
+  void initialize_deleted();
+
+  //std::vector<uint> deletedVertices;
+  std::vector<bool> deleted;
 
 public:
   NetworkMatrix(const NetworkMatrix &copySrc);

@@ -1,5 +1,11 @@
 #include "network_matrix.h"
 
+void NetworkMatrix::initialize_deleted()
+{
+    deleted.resize(rowCount);
+    for (size_t i = 0; i < rowCount; i++)
+        deleted[i] = false;
+}
 NetworkMatrix::NetworkMatrix(const char *fName, const int offset)
 {
     auto loadedEdges = load_edge_pairs(fName, ";");
@@ -8,9 +14,11 @@ NetworkMatrix::NetworkMatrix(const char *fName, const int offset)
     this->colCount = vc;
 
     this->data.resize(this->rowCount * this->colCount);
+
     set_matrix_to_one_value(0.0f);
 
     load_from_edges(loadedEdges, offset);
+    initialize_deleted();
 }
 
 NetworkMatrix::NetworkMatrix(const NetworkMatrix &copySrc)
@@ -19,6 +27,7 @@ NetworkMatrix::NetworkMatrix(const NetworkMatrix &copySrc)
     this->colCount = copySrc.cols();
     this->data.resize(this->rowCount * this->colCount);
     copy_data(copySrc);
+    initialize_deleted();
 }
 
 NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
@@ -27,6 +36,7 @@ NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
     this->colCount = colCount;
     this->data.resize(this->rowCount * this->colCount);
     set_matrix_to_one_value(0.0f);
+    initialize_deleted();
 }
 
 NetworkMatrix NetworkMatrix::get_initial_matrix_of_size_3() const
@@ -342,6 +352,7 @@ NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
             }
         }
     }
+    initialize_deleted();
 }
 
 void NetworkMatrix::reinitialize(const uint &rowCount, const uint &colCount)
@@ -393,7 +404,8 @@ inline bool NetworkMatrix::is_infinity(const uint &row, const uint &col) const
 uint NetworkMatrix::vertex_count() const
 {
     assert(this->rowCount == this->colCount);
-    return (this->rowCount - this->deletedVertices.size());
+    return count(deleted, false);
+    //return (this->rowCount - this->deletedVertices.size());
 }
 
 uint NetworkMatrix::edge_count() const
@@ -402,8 +414,13 @@ uint NetworkMatrix::edge_count() const
 
     for (uint row = 0; row < this->rowCount; row++)
     {
+        if (deleted[row])
+            continue;
         for (uint col = 0; col < this->colCount; col++)
         {
+            if (deleted[row] || deleted[col])
+                continue;
+
             if (!is_infinity(row, col) && (at(row, col) > 0.0f))
             {
                 result++;
@@ -538,6 +555,9 @@ std::vector<uint> NetworkMatrix::get_degree_of_vertices() const
     uint vertexDegree = 0;
     for (uint vertexRow = 0; vertexRow < this->rowCount; vertexRow++)
     {
+        if (deleted[vertexRow])
+            continue;
+
         vertexDegree = 0;
 
         for (uint col = 0; col < this->colCount; col++)
@@ -550,6 +570,8 @@ std::vector<uint> NetworkMatrix::get_degree_of_vertices() const
         result.push_back(vertexDegree);
     }
 
+    assert(result.size() == vertex_count());
+
     return result;
 }
 
@@ -560,7 +582,7 @@ uint NetworkMatrix::get_vertex_with_max_degree() const
 
     for (uint vertex = 0; vertex < this->rowCount; vertex++)
     {
-        if (!find(deletedVertices, vertex))
+        if (!deleted[vertex])
         {
             uint vertexDegree = 0;
             for (uint col = 0; col < this->colCount; col++)
@@ -966,11 +988,14 @@ NetworkMatrix NetworkMatrix::get_distance_matrix(const bool forceDijkstra) const
 #pragma omp parallel for
     for (uint row = 0; row < this->rowCount; row++)
     {
-        if (find(deletedVertices, row))
+        if (deleted[row])
             continue;
 
         for (uint col = row + 1; col < this->colCount; col++)
         {
+            if (deleted[col])
+                continue;
+
             float distance = bfs ? bfs_path(distanceMat, row, col) : dijkstra_path(distanceMat, row, col);
             result.at(row, col) = distance;
             result.at(col, row) = distance;
@@ -1355,20 +1380,25 @@ float NetworkMatrix::get_network_average_distance(const NetworkMatrix &distanceM
 {
     assert(this->rowCount == this->colCount);
     float distanceSum = 0;
-    uint count = 0;
     for (uint row = 0; row < this->rowCount; row++)
     {
+        if (deleted[row])
+            continue;
+
         for (uint col = row + 1; col < this->colCount; col++)
         {
+            if (deleted[col])
+                continue;
             if (distanceMatrix.at(row, col) != INFINITY)
             {
-                count++;
                 distanceSum += distanceMatrix.at(row, col);
             }
         }
     }
 
-    float result = distanceSum / (float)((this->rowCount * (this->rowCount - 1)) / 2.0f);
+    uint vertexCount = vertex_count();
+
+    float result = distanceSum / (float)((vertexCount * (vertexCount - 1)) / 2.0f);
     return result;
 }
 std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distanceMatrix) const
@@ -1894,7 +1924,7 @@ void NetworkMatrix::print_network_stats(const char *header) const
 
 void NetworkMatrix::failure_step()
 {
-    if (deletedVertices.size() == this->rowCount)
+    if (count(deleted, true) == this->rowCount)
         return;
 
     std::random_device rd;
@@ -1904,10 +1934,11 @@ void NetworkMatrix::failure_step()
     assert(dist.max() == this->rowCount);
 
     uint toDelete = dist(rd);
-    while (find(deletedVertices, toDelete))
+
+    while (deleted[toDelete])
         toDelete = dist(rd);
 
-    deletedVertices.push_back(toDelete);
+    deleted[toDelete] = true;
     for (uint col = 0; col < this->colCount; col++)
     {
         at(toDelete, col) = 0.0f;
@@ -1920,7 +1951,7 @@ void NetworkMatrix::attack_step()
     uint toDelete = get_vertex_with_max_degree();
     assert(!find(deletedVertices, toDelete));
 
-    deletedVertices.push_back(toDelete);
+    deleted[toDelete] = true;
     for (uint col = 0; col < this->colCount; col++)
     {
         at(toDelete, col) = 0.0f;
