@@ -24,7 +24,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 
     //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
     //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-                 // << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+    // << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
     reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDegree" << std::endl;
     reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
                  << maxComponent.size() << sep << averageDegree << std::endl;
@@ -43,8 +43,8 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
         //averageDistance = network.get_network_average_distance(network.get_distance_matrix());
         averageDegree = network.get_average_degree();
 
-         //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-         //             << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+        //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+        //             << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
         reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
                      << maxComponent.size() << sep << averageDegree << std::endl;
 
@@ -81,42 +81,17 @@ int main(int argc, char **argv)
     analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_fail.csv", false);
     analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_attack.csv", true);
     */
+    /*
     NetworkMatrix airportNetwork = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
     NetworkMatrix airport1(airportNetwork);
     NetworkMatrix airport2(airportNetwork);
     analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_fail.csv", false);
     analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_attack.csv", true);
-
-    // // baNetwork.print_network_stats("====== Barabasi-Albert ======");
-    // // randomNetwork.print_network_stats("====== Random ======");
-
-    // airportNetwork.print_network_stats("====== US Airport ======");
-
-    // printf("Component count: %lu\n", airportNetwork.get_components().size());
-    // for (size_t i = 0; i < 10; i++)
-    // {
-    //     airportNetwork.attack_step();
-    // }
-    // airportNetwork.print_network_stats("====== US Airport after 10 attacks ======");
-
-    // size_t compCount = airportNetwork.get_components().size();
-    // printf("Component count after 10 attacks: %lu\n", compCount);
-
-    // size_t failure = 0;
-    // size_t failureCompCount = airportNetwork2.get_components().size();
-
-    // while (failureCompCount < compCount)
-    // {
-    //     airportNetwork2.failure_step();
-    //     ++failure;
-    //     failureCompCount = airportNetwork2.get_components().size();
-    // }
-    // printf("Failure needed %lu steps to reach %lu components\n", failure, failureCompCount);
-
-    return 0;
-
+    */
     args::ArgumentParser parser("Network analysis. - MOR0146", "Required arguments are in < > optional in [].");
     args::Group methodGroup(parser, "Methods", args::Group::Validators::AtMostOne);
+    args::Group modelGroup(parser, "Network models", args::Group::Validators::AtMostOne);
+
     args::Group networkFromVectorDataMethod(parser, "Network from vector data construction methods", args::Group::Validators::AtMostOne);
     args::HelpFlag _help(methodGroup, "help", "Print help", {'h', "help"});
 
@@ -138,9 +113,11 @@ int main(int argc, char **argv)
     args::ValueFlag<float> _prob(parser, "probability.", "Edge probability.", {'p', "edge-probability"});
     args::ValueFlag<uint> _edgeCountInStep(parser, "m", "Number of edges to add in one step", {'m'});
 
-    args::Flag _baMethod(parser, "BA", "Use Barabasi-Albert model for generating..", {"ba"});
-    args::Flag _holmeKimMethod(parser, "Holme-Kim", "Use Holme-Kim model for generating..", {"holme-kim"});
-    args::Flag _bianconiMethod(parser, "Bianconi", "Use Bianconi model for generating..", {"bianconi"});
+    args::Flag _baMethod(modelGroup, "BA", "Use Barabasi-Albert model for generating..", {"ba"});
+    args::Flag _holmeKimMethod(modelGroup, "Holme-Kim", "Use Holme-Kim model for generating..", {"holme-kim"});
+    args::Flag _bianconiMethod(modelGroup, "Bianconi", "Use Bianconi model for generating..", {"bianconi"});
+    args::Flag _linkSelectionMethod(modelGroup, "LinkSelection", "Use Link Selection model for generating.", {"link-selection"});
+    args::Flag _copyMethod(modelGroup, "CopyModel", "Use Copy model for generating..", {"copy"});
 
     args::Flag _epsConstructionMethod(networkFromVectorDataMethod, "Epsilon radius", "Use epsilon as threshold value.", {"eps"});
     args::Flag _kNNConstructionMethod(networkFromVectorDataMethod, "k-NN", "Find k nearest neighbors.", {"knn"});
@@ -286,6 +263,11 @@ int main(int argc, char **argv)
     if (_generate)
     {
         printf("Chosen to generate network with final vertex count: %u\n", _vertexCount.Get());
+        if (!_vertexCount.Matched())
+        {
+            printf("Vertex count wasn't specified\n");
+            return 1;
+        }
         uint vertexCount = _vertexCount.Get();
         NetworkMatrix nm(vertexCount, vertexCount);
 
@@ -299,6 +281,11 @@ int main(int argc, char **argv)
         }
         else if (_bianconiMethod)
         {
+            if (!_prob.Matched() || !_edgeCountInStep.Matched() || !_file.Matched())
+            {
+                printf("Bianconi model need probability (p), edge count (m) and file (f).\n");
+                return 1;
+            }
             printf("Bianconi method with probability %f edge count: %u\n", _prob.Get(), _edgeCountInStep.Get());
             nm.generate_bianconi(_prob.Get(), _edgeCountInStep.Get());
             nm.export_network(_file.Get().c_str());
@@ -315,6 +302,24 @@ int main(int argc, char **argv)
             printf("Saved network in: %s\n", _file.Get().c_str());
             nm.complete_analysis("Generated using Barabasi-Albert method.", _reportFile.Get().c_str(), true, true);
             printf("Completed analysis in %s\n", _reportFile.Get().c_str());
+            return 0;
+        }
+        else if (_linkSelectionMethod || _copyMethod)
+        {
+
+            if (!_file.Matched())
+            {
+                printf("File (f) is required\n");
+                return 1;
+            }
+            if (_copyMethod.Matched() && !_prob.Matched())
+            {
+                printf("Copy method require probablity (p) and file (f)\n");
+                return 1;
+            }
+
+            nm.generate_select_link_or_copy(_copyMethod.Matched(), _prob.Matched() ? _prob.Get() : 0.0f);
+            nm.export_network(_file.Get().c_str());
             return 0;
         }
         else

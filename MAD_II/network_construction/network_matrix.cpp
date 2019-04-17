@@ -1327,6 +1327,82 @@ void NetworkMatrix::generate_bianconi(float probability, const uint newVertexCon
     printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
 }
 
+std::vector<std::pair<uint, uint>> NetworkMatrix::get_edges() const
+{
+    std::vector<std::pair<uint, uint>> edges;
+
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        if (deleted[row])
+            continue;
+        for (uint col = row + 1; col < this->colCount; col++)
+        {
+            if (deleted[col])
+                continue;
+
+            if (!is_infinity(row, col) && at(row, col) > 0.0f)
+                edges.push_back(std::make_pair(row, col));
+        }
+    }
+
+    return edges;
+}
+
+void NetworkMatrix::generate_select_link_or_copy(bool copy, float copyProbability)
+{
+    uint startingSize = 3;
+    uint resultSize = vertex_count();
+
+    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
+    reinitialize(resultSize, resultSize);
+    insert(initialMat);
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> neighRandom;
+    std::uniform_int_distribution<int> linkEndRandom(0, 1);
+    std::discrete_distribution<int> copyRandom({1 - copyProbability, copyProbability});
+
+    std::vector<std::pair<uint, uint>> edges = get_edges();
+
+    std::pair<uint, uint> edge;
+    uint newVertexIndex;
+    for (uint step = 0; step < (resultSize - startingSize); step++)
+    {
+        newVertexIndex = startingSize + step;
+        std::uniform_int_distribution<int> edgeRandom(0, (int)(edges.size() - 1));
+        edge = edges[edgeRandom(rd)];
+
+        uint partner;
+        if (copy)
+        {
+            // Copy wth probability select edge.first with (1-probability) select edge.first random neigbor.
+            if (copyRandom(rd))
+            {
+                // Select edge.first
+                partner = edge.first;
+            }
+            else
+            {
+                // Select random neighbor of edge.first
+                auto neighbors = get_neighbors(edge.first);
+                neighRandom = std::uniform_int_distribution<int>(0, (int)(neighbors.size() - 1));
+                partner = neighbors[neighRandom(rd)];
+            }
+        }
+        else
+        {
+            // Link selection, select one of vertices on the edge.
+            partner = linkEndRandom(rd) ? edge.first : edge.second;
+        }
+
+        at(newVertexIndex, partner) = 1.0f;
+        at(partner, newVertexIndex) = 1.0f;
+        edges.push_back(std::make_pair(newVertexIndex, partner));
+    }
+    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
+}
+
 void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset)
 {
     uint rowIndex, colIndex;
@@ -1949,7 +2025,7 @@ void NetworkMatrix::failure_step()
 void NetworkMatrix::attack_step()
 {
     uint toDelete = get_vertex_with_max_degree();
-    assert(!find(deletedVertices, toDelete));
+    assert(!deleted[toDelete]);
 
     deleted[toDelete] = true;
     for (uint col = 0; col < this->colCount; col++)

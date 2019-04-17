@@ -71,6 +71,7 @@ private:
 
   //std::vector<uint> deletedVertices;
   std::vector<bool> deleted;
+  std::vector<std::pair<uint, uint>> get_edges() const;
 
 public:
   NetworkMatrix(const NetworkMatrix &copySrc);
@@ -162,6 +163,8 @@ public:
 
   // Generate network based on Bianconi model.
   void generate_bianconi(float probability, const uint newVertexConnections);
+
+  void generate_select_link_or_copy(bool copy, float copyProbability);
 
   // Load matrix from edges.
   void load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset = -1);
