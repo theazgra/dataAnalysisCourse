@@ -22,9 +22,9 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
     //float averageDistance = network.get_network_average_distance(network.get_distance_matrix());
     float averageDegree = network.get_average_degree();
 
-    // reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
-    // reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-    //              << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+    //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
+    //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+                 // << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
     reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDegree" << std::endl;
     reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
                  << maxComponent.size() << sep << averageDegree << std::endl;
@@ -43,8 +43,8 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
         //averageDistance = network.get_network_average_distance(network.get_distance_matrix());
         averageDegree = network.get_average_degree();
 
-        // reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-        //              << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
+         //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
+         //             << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
         reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
                      << maxComponent.size() << sep << averageDegree << std::endl;
 
@@ -64,21 +64,23 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
-    // NetworkMatrix baNetwork = NetworkMatrix(500, 500);
-    // baNetwork.generate_scale_free_network(10, 500, 3);
-    // NetworkMatrix ba1(baNetwork);
-    // NetworkMatrix ba2(baNetwork);
-    // analysis(ba1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_fail.csv", false);
-    // analysis(ba2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_attack.csv", true);
-
-    // NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
-    // float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
-    // randomNetwork.generate_random_network(randProb, false);
-    // NetworkMatrix rand1(randomNetwork);
-    // NetworkMatrix rand2(randomNetwork);
-    // analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_fail.csv", false);
-    // analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_attack.csv", true);
-
+    /*
+    NetworkMatrix baNetwork = NetworkMatrix(500, 500);
+    baNetwork.generate_scale_free_network(10, 500, 3);
+    NetworkMatrix ba1(baNetwork);
+    NetworkMatrix ba2(baNetwork);
+    analysis(ba1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_fail.csv", false);
+    analysis(ba2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/ba_attack.csv", true);
+    */
+    /*
+    NetworkMatrix randomNetwork = NetworkMatrix(500, 500);
+    float randProb = 1480.0f / ((500.0f * 499.0f) / 2.0f);
+    randomNetwork.generate_random_network(randProb, false);
+    NetworkMatrix rand1(randomNetwork);
+    NetworkMatrix rand2(randomNetwork);
+    analysis(rand1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_fail.csv", false);
+    analysis(rand2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/random_attack.csv", true);
+    */
     NetworkMatrix airportNetwork = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv", -1);
     NetworkMatrix airport1(airportNetwork);
     NetworkMatrix airport2(airportNetwork);
