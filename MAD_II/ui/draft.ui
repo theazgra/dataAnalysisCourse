@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkWindow">
+    <property name="can_focus">False</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <object class="GtkMenuBar">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkMenuItem">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">File</property>
+            <child type="submenu">
+              <object class="GtkMenu">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Import network</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_24</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Export network</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_25</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Reload network from file</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_26</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparatorMenuItem">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label">gtk-quit</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="use_underline">True</property>
+                    <property name="use_stock">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuItem">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Generate</property>
+            <property name="use_underline">True</property>
+            <child type="submenu">
+              <object class="GtkMenu">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Scale Free</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_18</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Random</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_19</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Bianconi</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_20</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Link selection</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_21</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImageMenuItem">
+                    <property name="label" translatable="yes">Copy model</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="image">__glade_unnamed_23</property>
+                    <property name="use_stock">False</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuItem">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Analysis</property>
+            <property name="use_underline">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

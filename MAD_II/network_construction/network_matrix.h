@@ -32,9 +32,7 @@ private:
   // Get element at row and col in custom vector.
   inline float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
 
-  // Get neighbours of vertex.
-  std::vector<uint> get_neighbors(const uint vertex) const;
-  // Get neighbours of vertex which aren't in `except`
+    // Get neighbours of vertex which aren't in `except`
   std::vector<uint> get_neighbors_except(const uint vertex, const std::vector<uint> &except) const;
 
   // Get edge count between neighbours.
@@ -102,6 +100,9 @@ public:
   std::vector<uint> get_degree_of_vertices() const;
 
   uint get_vertex_with_max_degree() const;
+
+  // Get neighbours of vertex.
+  std::vector<uint> get_neighbors(const uint vertex) const;
 
   // Get average degree of vertices.
   float get_average_degree() const;

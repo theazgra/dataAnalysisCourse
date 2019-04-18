@@ -2,6 +2,8 @@
 #include "network_matrix.h"
 #include <iomanip>
 #include <ostream>
+#include "epidemic_models.h"
+
 void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 {
     std::string reportFile = folder + "/report.csv";
@@ -99,6 +101,9 @@ int main(int argc, char **argv)
     args::Flag _generate(methodGroup, "generate", "Generate and save network. <vertex-count> <network-file> <report-file> [probability]",
                          {'g', "generate"});
 
+    args::Group epidemicModelGroup(parser, "Epidemic models", args::Group::Validators::AtMostOne);
+    args::Flag _epidemicMethod(methodGroup, "Epidemic", "Simulate chosen epidemic model <epidemic-model> <report-file>", {"epidemic"});
+
     args::Flag _constructFromVectorData(methodGroup, "construct-from-vector-data", "Construct network from vector data. <file> [ConstructionMethod] <report-file>", {"construct-from-vector-data"});
     args::Flag _sampling(methodGroup, "Network sampling", "Do sampling homework.", {"sampling"});
     args::Flag _kernighanLin(methodGroup, "Kernighan-Lin algorithm", "Kernighan-lin clustering. <file>", {"kernighan-lin"});
@@ -123,6 +128,10 @@ int main(int argc, char **argv)
     args::Flag _kNNConstructionMethod(networkFromVectorDataMethod, "k-NN", "Find k nearest neighbors.", {"knn"});
     args::Flag _combinedConstructionMethod(networkFromVectorDataMethod, "Combined", "Combine epsilon radius with k-NN", {"eps-knn"});
 
+    args::Flag _siModel(epidemicModelGroup, "SI model", "SI model", {"SI"});
+    args::Flag _sisModel(epidemicModelGroup, "SIS model", "SIS model", {"SIS"});
+    args::Flag _sirModel(epidemicModelGroup, "SIR model", "SIR model", {"SIR"});
+
     try
     {
         parser.ParseCLI(argc, argv);
@@ -137,6 +146,31 @@ int main(int argc, char **argv)
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
+    }
+
+    if (_epidemicMethod)
+    {
+        NetworkMatrix baNetwork = NetworkMatrix(500, 500);
+        baNetwork.generate_scale_free_network(10, 500, 3);
+        printf("Epidemic simulation on barabasi-albert model\n");
+
+        std::vector<EpidemicIterationInfo> epidemicResult;
+        if (_siModel)
+            epidemicResult = SI_epidemic_model(baNetwork, 5, 0.5f, 10);
+        else if (_sisModel)
+            epidemicResult = SIS_epidemic_model(baNetwork, 5, 0.5f, 2, 10);
+        else if (_sirModel)
+            epidemicResult = SIR_epidemic_model(baNetwork, 5, 0.5f, 3, 10);
+        else
+        {
+            printf("No epidemic model was chosen.\n");
+            return 1;
+        }
+
+        print_epidemic_stats(epidemicResult);
+        if (_reportFile.Matched())
+            save_epidemic_stats(epidemicResult, _reportFile.Get().c_str());
+        return 0;
     }
 
     if (_kCore)
