@@ -32,7 +32,7 @@ private:
   // Get element at row and col in custom vector.
   inline float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
 
-    // Get neighbours of vertex which aren't in `except`
+  // Get neighbours of vertex which aren't in `except`
   std::vector<uint> get_neighbors_except(const uint vertex, const std::vector<uint> &except) const;
 
   // Get edge count between neighbours.

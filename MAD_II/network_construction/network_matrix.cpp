@@ -1065,6 +1065,11 @@ void NetworkMatrix::generate_random_network(const float edgeProbability, bool au
     printf("Random: VC: %u; EC: %u\n", vertex_count(), edge_count());
 }
 
+void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const uint numberOfVerticesToAdd)
+{
+    generate_scale_free_network(3, 3 + numberOfVerticesToAdd, numberOfConnections);
+}
+
 void NetworkMatrix::generate_scale_free_network(const uint initialSize, const uint finalSize, const uint numberOfConnections)
 {
     uint resultSize = finalSize;
@@ -1106,6 +1111,7 @@ void NetworkMatrix::generate_scale_free_network(const uint initialSize, const ui
 
     std::vector<float> weights;
     std::vector<uint> neighbors;
+
     for (uint step = 0; step < (finalSize - initialSize); step++)
     {
         weights.clear();
@@ -1119,7 +1125,15 @@ void NetworkMatrix::generate_scale_free_network(const uint initialSize, const ui
 
         for (uint vertex = 0; vertex < currentSize; vertex++)
         {
-            weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
+            float age = (initialSize + step) - vertex;
+            float occurence = (float)count(vertexList, vertex);
+            float ageDiscrimination = ((float)finalSize / age) / finalSize / 100.0f;
+            float weight = (occurence / vertexListSize);
+            float weightDiscr = (occurence / vertexListSize) - ageDiscrimination;
+
+            //weights.push_back(weight);
+            weights.push_back(weightDiscr);
+            //weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
         }
 
         discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
@@ -1150,11 +1164,6 @@ void NetworkMatrix::generate_scale_free_network(const uint initialSize, const ui
     }
 
     printf("ScaleFree: VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
-void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const uint numberOfVerticesToAdd)
-{
-    generate_scale_free_network(3, numberOfVerticesToAdd, numberOfConnections);
 }
 
 void NetworkMatrix::generate_holme_kim(float probability, const uint newVertexConnectionsCount)

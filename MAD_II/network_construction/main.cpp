@@ -222,7 +222,7 @@ int main(int argc, char **argv)
         uint vertexCount = 1000;
         NetworkMatrix baModel = NetworkMatrix(1000, 1000);
         printf("Generating BA model...\n");
-        baModel.generate_scale_free_network(2, vertexCount - 3);
+        baModel.generate_scale_free_network(3, 2, vertexCount - 3);
         baModel.export_network("output/ba.csv");
         printf("Saved BA model. VC: %5u EC: %5u\n", baModel.vertex_count(), baModel.edge_count());
 
