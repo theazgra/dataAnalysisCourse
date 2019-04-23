@@ -1,66 +1,32 @@
-#include <gtk/gtk.h>
-#include <stdio.h>
-//import_from_edge_pairs(GtkMenuItem *mi, gpointer data)
-void import_from_edge_pairs(GtkWidget *widget, gpointer data)
-{
-    g_print("Import from edge pairs\n");
-    printf("Import data from edge pairs called\n");
-}
+#include <app_global.h>
+#include <app_signals.h>
 
-static void
-print_hello(GtkWidget *widget, gpointer data)
-{
-    g_print("Hello World\n");
-}
+constexpr char UI_File[] = "/home/mor0146/github/dataAnalysisCourse/MAD_II/ui/draft.ui";
 
-int main(int argc,
-         char *argv[])
+int main(int argc, char *argv[])
 {
-    GtkBuilder *builder;
-    GObject *window;
-    GObject *button;
-    GError *error = NULL;
 
+    NetworkWizardApplication networkWizardApp = {};
     gtk_init(&argc, &argv);
 
-    /* Construct a GtkBuilder instance and load our UI description */
-    builder = gtk_builder_new();
-    if (gtk_builder_add_from_file(builder, "../mainWindow.ui", &error) == 0)
+    networkWizardApp.uiBuilder = gtk_builder_new();
+    GError *builderError = NULL;
+    if (gtk_builder_add_from_file(networkWizardApp.uiBuilder, UI_File, &builderError) == 0)
     {
-        printf("ERROR\n");
-        //
-
-        g_printerr("Error loading file: %s\n", error->message);
-        g_clear_error(&error);
+        g_printerr("Error loading file: %s\n", builderError->message);
+        g_clear_error(&builderError);
         return 1;
     }
     else
     {
-        printf("No Error\n");
+        fprintf(stdout, "Correctly parsed ui\n");
     }
 
-    // GObject *miImportFromEdgePairs = gtk_builder_get_object(builder, "miImportFromEdgePairs");
-    // g_signal_connect(miImportFromEdgePairs, "activate", G_CALLBACK(import_from_edge_pairs), NULL);
-    gtk_builder_connect_signals(builder, NULL);
+    attach_signals(networkWizardApp);
+    networkWizardApp.show_app_window("windowMainWindow");
 
-    window = gtk_builder_get_object(builder, "windowMainWindow");
-    gtk_widget_show(GTK_WIDGET(window));
-
-    /*
-    // Connect signal handlers to the constructed widgets.
-    window = gtk_builder_get_object(builder, "window");
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-
-    button = gtk_builder_get_object(builder, "button1");
-    g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-
-    button = gtk_builder_get_object(builder, "button2");
-    g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
-
-    button = gtk_builder_get_object(builder, "quit");
-    g_signal_connect(button, "clicked", G_CALLBACK(gtk_main_quit), NULL);
-    */
     gtk_main();
 
+    fprintf(stdout, "Closed the application\n");
     return 0;
 }
