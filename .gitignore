@@ -69,3 +69,4 @@ results/
 *.out
 *.synctex.gz
 MAD_II/scripts/.rkward_autosave
+MAD_II/ui/#builder.ui#

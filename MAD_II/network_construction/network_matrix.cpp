@@ -1123,17 +1123,17 @@ void NetworkMatrix::generate_scale_free_network(const uint initialSize, const ui
         newVertexIndex = initialSize + step;
         vertexListSize = (float)vertexList.size();
 
+        float ageScaling = 1.0f;
         for (uint vertex = 0; vertex < currentSize; vertex++)
         {
             float age = (initialSize + step) - vertex;
             float occurence = (float)count(vertexList, vertex);
-            float ageDiscrimination = ((float)finalSize / age) / finalSize / 100.0f;
             float weight = (occurence / vertexListSize);
-            float weightDiscr = (occurence / vertexListSize) - ageDiscrimination;
+
+            float agedWeight = weight * pow(age, (-1.0f * ageScaling));
 
             //weights.push_back(weight);
-            weights.push_back(weightDiscr);
-            //weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
+            weights.push_back(agedWeight);
         }
 
         discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
