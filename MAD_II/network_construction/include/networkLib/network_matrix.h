@@ -204,5 +204,3 @@ public:
   void failure_step();
   void attack_step();
 };
-
-#include "network_matrix.cpp"

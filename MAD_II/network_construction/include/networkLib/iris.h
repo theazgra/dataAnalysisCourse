@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-//sepal_length,sepal_width,petal_length,petal_width,species
 struct IrisRecord
 {
     float sepalLen;

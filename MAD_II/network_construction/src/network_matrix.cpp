@@ -1,4 +1,4 @@
-#include "network_matrix.h"
+#include <networkLib/network_matrix.h>
 
 void NetworkMatrix::initialize_deleted()
 {
@@ -644,7 +644,6 @@ std::vector<float> NetworkMatrix::get_clustering_coeff_for_vertices(const std::v
     std::vector<float> result;
     result.reserve(vertices.size());
 
-    uint index = 0;
     std::vector<uint> neighbors;
     float neighboursEdgeCount;
     float nc;
@@ -805,8 +804,6 @@ float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, cons
     bool found = false;
     while (!q.empty())
     {
-        size_t size = q.size();
-        bool empty = q.empty();
         //printf("%lu in queue\n", size);
 
         current = q.front();
@@ -2016,7 +2013,7 @@ void NetworkMatrix::failure_step()
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int> dist(0, this->rowCount);
     assert(dist.min() == 0);
-    assert(dist.max() == this->rowCount);
+    assert(dist.max() == (int)this->rowCount);
 
     uint toDelete = dist(rd);
 

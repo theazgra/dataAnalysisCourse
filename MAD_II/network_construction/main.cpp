@@ -1,10 +1,11 @@
 #include "external/args.hxx"
 // #include "network_matrix.h"
-#include "multilayer_network.h"
+// #include "multilayer_network.h"
+#include <networkLib/network_matrix.h>
 #include <iomanip>
 #include <ostream>
-#include "epidemic_models.h"
-#include "simple_string.h"
+#include <networkLib/epidemic_models.h>
+
 /*
     Florentina
         - Degree centrality
@@ -12,6 +13,7 @@
         - (_added_) connective redundancy
         - (_added_) xneighborhood
 */
+
 void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 {
     std::string reportFile = folder + "/report.csv";
@@ -74,10 +76,6 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
-    {
-        azgra::SimpleString test("Vojta;Tomas;Lukas");
-        auto splitted = test.split(';');
-    }
     /*
     NetworkMatrix baNetwork = NetworkMatrix(500, 500);
     baNetwork.generate_scale_free_network(10, 500, 3);

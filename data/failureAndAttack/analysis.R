@@ -30,7 +30,7 @@ createLineChart <- function(attackDf, failureDf, ylabText, legendPos="bottomleft
     yMinDeg = floor(min(min(attackDf), min(failureDf)));
     yMaxDeg = ceiling(max(max(attackDf), max(failureDf)));
     xMax = max(length(attackDf), length(failureDf));
-    plot(0, 0, xlab = "Iterace", ylab = ylabText,
+    plot(0, 0, xlab = "Odebranıch vrchol?", ylab = ylabText,
     xlim = c(0, xMax),
     ylim = c(yMinDeg, yMaxDeg));
     lines(attackDf, col = "red");

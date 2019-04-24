@@ -1,4 +1,4 @@
-#include "io.h"
+#include <networkLib/io.h>
 
 std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter)
 {

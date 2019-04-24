@@ -1,4 +1,4 @@
-#include "simple_string.h"
+#include <networkLib/simple_string.h>
 
 namespace azgra
 {
@@ -543,7 +543,4 @@ std::vector<std::shared_ptr<SimpleString>> SimpleString::split(const char &separ
     return result;
 }
 
-/*
-static SimpleString SimpleString::empty();
-*/
 } // namespace azgra

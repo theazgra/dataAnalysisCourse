@@ -325,5 +325,3 @@ public:
   static SimpleString replicate(const char *cString, const int replicationCount);
 };
 } // namespace azgra
-
-#include "simple_string.cpp"

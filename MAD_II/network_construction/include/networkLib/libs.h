@@ -11,9 +11,9 @@
 #include <queue>
 #include <algorithm>
 
-#include "custom_types.h"
 #include "utils.h"
-#include "stack.h"
+
+typedef unsigned int uint;
 
 enum LinkageType
 {

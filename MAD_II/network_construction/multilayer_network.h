@@ -1,27 +1,12 @@
-#pragma once
-#include "network_matrix.h"
-#include <string>
+// #pragma once
+// #include "network_layer.h"
 
-class NetworkLayer
-{
-private:
-    std::string _name;
-    NetworkMatrix _network;
+// class MultiLayerNetwork
+// {
+// private:
+//     std::vector<NetworkLayer> layers;
 
-public:
-    NetworkLayer();
-    ~NetworkLayer();
-
-    std::string &name() const;
-    NetworkMatrix &network() const;
-};
-
-class MultiLayerNetwork
-{
-private:
-    std::vector<NetworkLayer> layers;
-
-public:
-    MultiLayerNetwork();
-    ~MultiLayerNetwork();
-};
+// public:
+//     MultiLayerNetwork();
+//     ~MultiLayerNetwork();
+// };

@@ -1,5 +1,5 @@
 #pragma once
-#include "libs.h"
+#include <networkLib/libs.h>
 
 struct Cluster
 {

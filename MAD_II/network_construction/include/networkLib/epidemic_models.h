@@ -1,5 +1,5 @@
 #pragma once
-#include "network_matrix.h"
+#include <networkLib/network_matrix.h>
 #include <string>
 
 struct EpidemicIterationInfo
@@ -232,14 +232,14 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
 } // namespace epidemic_impl
 }; // namespace epidemic_impl
 
-static std::vector<EpidemicIterationInfo> SI_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
+inline std::vector<EpidemicIterationInfo> SI_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
                                                             const float infectionProbability, const uint iterationCount)
 {
     return epidemic_impl::epidemic_model<epidemic_impl::Model_SI>(network, initialInfectedCount,
                                                                   infectionProbability, 0, iterationCount);
 }
 
-static std::vector<EpidemicIterationInfo> SIS_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
+inline std::vector<EpidemicIterationInfo> SIS_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
                                                              const float infectionProbability, const uint recoveryTime,
                                                              const uint iterationCount)
 {
@@ -247,7 +247,7 @@ static std::vector<EpidemicIterationInfo> SIS_epidemic_model(const NetworkMatrix
                                                                    infectionProbability, recoveryTime, iterationCount);
 }
 
-static std::vector<EpidemicIterationInfo> SIR_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
+inline std::vector<EpidemicIterationInfo> SIR_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
                                                              const float infectionProbability, const uint recoveryTime,
                                                              const uint iterationCount)
 {
