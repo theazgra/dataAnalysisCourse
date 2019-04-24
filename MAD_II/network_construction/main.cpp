@@ -1,9 +1,17 @@
 #include "external/args.hxx"
-#include "network_matrix.h"
+// #include "network_matrix.h"
+#include "multilayer_network.h"
 #include <iomanip>
 #include <ostream>
 #include "epidemic_models.h"
-
+#include "simple_string.h"
+/*
+    Florentina
+        - Degree centrality
+        - Neighborhood centrality
+        - (_added_) connective redundancy
+        - (_added_) xneighborhood
+*/
 void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 {
     std::string reportFile = folder + "/report.csv";
@@ -66,6 +74,10 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
+    {
+        azgra::SimpleString test("Vojta;Tomas;Lukas");
+        auto splitted = test.split(';');
+    }
     /*
     NetworkMatrix baNetwork = NetworkMatrix(500, 500);
     baNetwork.generate_scale_free_network(10, 500, 3);
@@ -102,7 +114,7 @@ int main(int argc, char **argv)
                          {'g', "generate"});
 
     args::Group epidemicModelGroup(parser, "Epidemic models", args::Group::Validators::AtMostOne);
-    args::Flag _epidemicMethod(methodGroup, "Epidemic", "Simulate chosen epidemic model <epidemic-model> <report-file>", {"epidemic"});
+    args::Flag _epidemicMethod(methodGroup, "Epidemic", "Simulate chosen epidemic model <epidemic-model> <report-folder>", {"epidemic"});
 
     args::Flag _constructFromVectorData(methodGroup, "construct-from-vector-data", "Construct network from vector data. <file> [ConstructionMethod] <report-file>", {"construct-from-vector-data"});
     args::Flag _sampling(methodGroup, "Network sampling", "Do sampling homework.", {"sampling"});
@@ -150,8 +162,9 @@ int main(int argc, char **argv)
 
     if (_epidemicMethod)
     {
-        NetworkMatrix baNetwork = NetworkMatrix(500, 500);
-        baNetwork.generate_scale_free_network(10, 500, 3);
+        NetworkMatrix baNetwork = NetworkMatrix(200, 200);
+        baNetwork.generate_scale_free_network(10, 200, 3);
+        baNetwork.export_network("epidemic_model.csv");
         printf("Epidemic simulation on barabasi-albert model\n");
 
         std::vector<EpidemicIterationInfo> epidemicResult;

@@ -1,5 +1,6 @@
 #pragma once
 #include "network_matrix.h"
+#include <string>
 
 struct EpidemicIterationInfo
 {
@@ -270,35 +271,45 @@ static void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats
     }
 }
 
-static void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *file)
+static void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *_folder)
 {
-    std::ofstream outStream(file, std::ios::out);
-    if (!outStream.is_open())
-    {
-        printf("Unable to open out stream.\n");
-        return;
-    }
+    std::string folder = _folder;
 
     for (size_t time = 0; time < stats.size(); time++)
     {
         uint itTime = stats[time].time;
+
+        std::string file = folder + "/" + "iteration_" + std::to_string(itTime) + ".csv";
+        std::ofstream outStream(file, std::ios::out);
+        if (!outStream.is_open())
+        {
+            printf("Unable to open out stream to file %s.\n", file.c_str());
+            return;
+        }
+        outStream << "Suspected;Infected;Recovered" << std::endl;
+
         size_t suspectedCount = stats[time].suspected.size();
         size_t infectedCount = stats[time].infected.size();
         size_t recoveredCount = stats[time].recovered.size();
+        size_t max = suspectedCount >= infectedCount ? suspectedCount : infectedCount;
+        max = max > recoveredCount ? max : recoveredCount;
 
-        outStream << "Suspected;";
-        for (const uint &s : stats[time].suspected)
-            outStream << s << ";";
-        outStream << std::endl;
+        for (size_t i = 0; i < max; i++)
+        {
+            if (i < suspectedCount)
+                outStream << stats[time].suspected[i];
 
-        outStream << "Infected;";
-        for (const uint &i : stats[time].infected)
-            outStream << i << ";";
-        outStream << std::endl;
+            outStream << ";";
 
-        outStream << "Recovered;";
-        for (const uint &r : stats[time].recovered)
-            outStream << r << ";";
-        outStream << std::endl;
+            if (i < infectedCount)
+                outStream << stats[time].infected[i];
+
+            outStream << ";";
+
+            if (i < recoveredCount)
+                outStream << stats[time].recovered[i];
+
+            outStream << std::endl;
+        }
     }
 }
