@@ -8,36 +8,40 @@ using System.Threading.Tasks;
 
 namespace NetworkWizardLib.NWNetwork
 {
-    public class NetworkMatrix : IEquatable<NetworkMatrix>
+    public class UndirectedNetworkMatrix : IEquatable<UndirectedNetworkMatrix>
     {
         public float[,] Data { get; private set; }
+
+        public float this[int row, int col] { get { return Data[row, col]; } set { Data[row, col] = value; } }
+
         public bool[] DeletedVertices { get; private set; }
 
         public int Dimension { get; private set; } = 0;
 
-        public NetworkMatrix(int dimension)
+        public UndirectedNetworkMatrix(int dimension)
         {
             Dimension = dimension;
             Data = new float[Dimension, Dimension];
             DeletedVertices = new bool[Dimension];
         }
 
-        public NetworkMatrix(NetworkMatrix other)
+        public UndirectedNetworkMatrix(UndirectedNetworkMatrix other)
         {
             Dimension = other.Dimension;
+            Data = new float[Dimension, Dimension];
             DeletedVertices = new bool[Dimension];
             Insert(other);
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is NetworkMatrix other)
+            if (obj is UndirectedNetworkMatrix other)
                 return Equals(other);
             else
                 return base.Equals(obj);
         }
 
-        public bool Equals(NetworkMatrix other)
+        public bool Equals(UndirectedNetworkMatrix other)
         {
             if (Dimension != other.Dimension)
                 return false;
@@ -53,10 +57,10 @@ namespace NetworkWizardLib.NWNetwork
             return true;
         }
 
-        public static NetworkMatrix operator +(NetworkMatrix a, NetworkMatrix b)
+        public static UndirectedNetworkMatrix operator +(UndirectedNetworkMatrix a, UndirectedNetworkMatrix b)
         {
             Trace.Assert(a.Dimension == b.Dimension);
-            NetworkMatrix result = new NetworkMatrix(a.Dimension);
+            UndirectedNetworkMatrix result = new UndirectedNetworkMatrix(a.Dimension);
 
             for (int row = 0; row < a.Dimension; row++)
             {
@@ -69,10 +73,10 @@ namespace NetworkWizardLib.NWNetwork
             return result;
         }
 
-        public static NetworkMatrix operator -(NetworkMatrix a, NetworkMatrix b)
+        public static UndirectedNetworkMatrix operator -(UndirectedNetworkMatrix a, UndirectedNetworkMatrix b)
         {
             Trace.Assert(a.Dimension == b.Dimension);
-            NetworkMatrix result = new NetworkMatrix(a.Dimension);
+            UndirectedNetworkMatrix result = new UndirectedNetworkMatrix(a.Dimension);
 
             for (int row = 0; row < a.Dimension; row++)
             {
@@ -125,7 +129,7 @@ namespace NetworkWizardLib.NWNetwork
             return HashCode.Combine(Data, Dimension);
         }
 
-        public void Insert(NetworkMatrix other)
+        public void Insert(UndirectedNetworkMatrix other)
         {
             Trace.Assert(other.Dimension <= Dimension);
             for (int row = 0; row < other.Dimension; row++)
@@ -212,7 +216,7 @@ namespace NetworkWizardLib.NWNetwork
             {
                 if (DeletedVertices[row])
                     continue;
-                for (int col = 0; col < Dimension; col++)
+                for (int col = row + 1; col < Dimension; col++)
                 {
                     if (!DeletedVertices[col] && IsEdgeAt(row, col))
                         ++result;
@@ -245,21 +249,20 @@ namespace NetworkWizardLib.NWNetwork
             return result;
         }
 
-       
-
-        internal NetworkMatrix GetDistanceMatrix()
+        public UndirectedNetworkMatrix GetDistanceMatrix()
         {
             bool useBfs = CanUseBfs();
-            NetworkMatrix result = new NetworkMatrix(Dimension);
+            UndirectedNetworkMatrix result = new UndirectedNetworkMatrix(Dimension);
 
-            NetworkMatrix distanceMatrix = new NetworkMatrix(this);
+            UndirectedNetworkMatrix distanceMatrix = new UndirectedNetworkMatrix(this);
             distanceMatrix.SetInfinityWhereIsNoEdge();
 
+            //for (int row = 0; row < Dimension; row++)
             Parallel.ForEach(Enumerable.Range(0, Dimension), row =>
             {
                 if (!DeletedVertices[row])
                 {
-                    for (int col = 0; col < Dimension; col++)
+                    for (int col = row + 1; col < Dimension; col++)
                     {
                         if (DeletedVertices[col])
                             continue;
@@ -270,6 +273,7 @@ namespace NetworkWizardLib.NWNetwork
                     }
                 }
             });
+
 
             return result;
         }

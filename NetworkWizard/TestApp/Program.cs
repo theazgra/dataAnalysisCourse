@@ -9,17 +9,16 @@ namespace TestApp
     {
         static void Main(string[] args)
         {
-            //RangeRandom rangeRandom = new RangeRandom(0, 10);
-            //RandomChoice randomChoice = new RandomChoice(0.17);
-            //WeightedRandom<int> randInd = WeightedRandom<int>.WeightedIndices(new double[] { 0.1, 0.9 });
+            //UndirectedNetworkMatrix random = NetworkGenerator.RandomNetwork(1000,0.005f);
+            Stopwatch s = new Stopwatch();
+            s.Start();
+            UndirectedNetworkMatrix random = NetworkGenerator.LinkSelectionModel(3, 1000);
+            s.Stop();
 
-            //for (int j = 0; j < 100; j++)
-            //{
-            //    Console.WriteLine($"{randInd.Next()}");
-            //}
-
-            NetworkMatrix nm = new NetworkMatrix(10);
-            Console.WriteLine(nm);
+            //545
+            //280
+            //46 000
+            Console.WriteLine(s.ElapsedMilliseconds);
         }
     }
 }

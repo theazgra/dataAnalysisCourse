@@ -19,13 +19,13 @@ namespace NetworkWizardLib.NWRandom
         }
 
         /// <summary>
-        /// Generate random boolean.
+        /// Generate random boolean with probability.
         /// </summary>
         /// <returns>Random bool.</returns>
         public bool NextChoice()
         {
             double rndVal = _random.NextDouble();
-            return (rndVal < _trueProbability); 
+            return (rndVal <= _trueProbability); 
         }
 
         public override string ToString()

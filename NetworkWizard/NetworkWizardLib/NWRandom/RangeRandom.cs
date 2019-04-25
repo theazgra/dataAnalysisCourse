@@ -31,6 +31,6 @@ namespace NetworkWizardLib.NWRandom
         /// Get random int in set range.
         /// </summary>
         /// <returns>Random integer.</returns>
-        public int GetRandom() => _random.Next(min, max + 1);
+        public int Next() => _random.Next(min, max + 1);
     }
 }

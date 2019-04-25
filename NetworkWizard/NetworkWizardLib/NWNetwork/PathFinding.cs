@@ -56,7 +56,7 @@ namespace NetworkWizardLib.NWNetwork
         }
 
 
-        internal static float BfsPath(NetworkMatrix matrix, int fromVertex, int toVertex)
+        internal static float BfsPath(UndirectedNetworkMatrix matrix, int fromVertex, int toVertex)
         {
             Dictionary<int, BfsNodeInfo> bfsNodes = new Dictionary<int, BfsNodeInfo>(matrix.Dimension);
             for (int i = 0; i < matrix.Dimension; i++)
@@ -95,10 +95,10 @@ namespace NetworkWizardLib.NWNetwork
                 float result = 0.0f;
                 BfsNodeInfo currentNode = bfsNodes[toVertex];
                 BfsNodeInfo fromNode = bfsNodes[fromVertex];
-                while (currentNode != fromNode)
+                while (currentNode.Vertex != fromNode.Vertex)
                 {
                     ++result;
-                    currentNode = fromNode.PrevNode;
+                    currentNode = currentNode.PrevNode;
                 }
                 return result;
             }
@@ -119,7 +119,7 @@ namespace NetworkWizardLib.NWNetwork
 
         private static DijkstraNodeInfo GetTopUnvisitedVertex(List<DijkstraNodeInfo> unvisited) => unvisited.Count > 0 ? unvisited.First() : null;
 
-        internal static float DijkstraPath(NetworkMatrix matrix, int fromVertex, int toVertex)
+        internal static float DijkstraPath(UndirectedNetworkMatrix matrix, int fromVertex, int toVertex)
         {
 
             Dictionary<int, DijkstraNodeInfo> nodes = new Dictionary<int, DijkstraNodeInfo>(matrix.Dimension);
@@ -134,7 +134,7 @@ namespace NetworkWizardLib.NWNetwork
 
             foreach (int neighbor in matrix.GetNeighbors(fromVertex))
             {
-                AddNewBestDistance(unvisited, start, new DijkstraNodeInfo() { Vertex = neighbor }, float.PositiveInfinity);
+                AddNewBestDistance(unvisited, start, nodes[neighbor], float.PositiveInfinity);
             }
 
             while (!end.Visited)
@@ -148,7 +148,8 @@ namespace NetworkWizardLib.NWNetwork
                     if (neighborNode.Visited)
                         continue;
 
-                    float distanceToVertex = current.BestPathDistance + matrix.Data[current.Vertex, neighborNode.Vertex];
+
+                    float distanceToVertex = current.BestPathDistance + matrix[current.Vertex, neighborNode.Vertex];
                     if (distanceToVertex < neighborNode.BestPathDistance)
                     {
                         AddNewBestDistance(unvisited, current, neighborNode, distanceToVertex);

@@ -49,12 +49,12 @@ namespace NetworkWizardLib.NWNetwork
             return edges;
         }
 
-        public static NetworkMatrix LoadNetworkFromEdgePairs(string file, char delimiter)
+        public static UndirectedNetworkMatrix LoadNetworkFromEdgePairs(string file, char delimiter)
         {
             var edges = LoadEdgePairs(file, delimiter,  out int offset, out int maxVertexId);
-            int dim = maxVertexId + offset;
+            int dim = (1 + maxVertexId) + offset;
 
-            NetworkMatrix result = new NetworkMatrix(dim);
+            UndirectedNetworkMatrix result = new UndirectedNetworkMatrix(dim);
             int u, v;
             foreach (var edge in edges)
             {
@@ -77,7 +77,7 @@ namespace NetworkWizardLib.NWNetwork
             }
         }
 
-        public static void SaveNetwork(string file, NetworkMatrix network) => SaveEdgePairs(file, network.GetEdges());
+        public static void SaveNetwork(string file, UndirectedNetworkMatrix network) => SaveEdgePairs(file, network.GetEdges());
 
     }
 }

@@ -9,6 +9,7 @@ namespace NetworkWizardLib.NWRandom
     {
         private TRandom _random;
         private IEnumerable<KeyValuePair<double, T>> _items;
+        double _upperBound = 1.0;
 
         /// <summary>
         /// Create generator using probabilities of random items.
@@ -18,6 +19,9 @@ namespace NetworkWizardLib.NWRandom
         public WeightedRandom(IEnumerable<KeyValuePair<double, T>> weightedItems, IGenerator generator =null)
         {
             _items = weightedItems.OrderByDescending(pair => pair.Key);
+            double cummulativeSum = _items.Sum(x => x.Key);
+            if (cummulativeSum < 1.0)
+                _upperBound = cummulativeSum;
 
             _random = new TRandom(generator ?? new MT19937Generator());
         }
@@ -46,13 +50,13 @@ namespace NetworkWizardLib.NWRandom
         /// <returns>Random item.</returns>
         public T Next()
         {
-            double rndVal = _random.NextDouble();
+            double rndVal = _random.NextDouble(_upperBound);
             double cumulative = 0.0;
 
             for (int i = 0; i < _items.Count(); i++)
             {
                 cumulative += _items.ElementAt(i).Key;
-                if (rndVal < cumulative)
+                if (rndVal <= cumulative)
                 {
                     return _items.ElementAt(i).Value;
                 }
