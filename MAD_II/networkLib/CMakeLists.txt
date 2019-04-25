@@ -13,9 +13,7 @@ add_library(NetworkWizard STATIC
         src/graph_component.cpp
     )
 target_include_directories(NetworkWizard PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-#add_library(sub::azgra ALIAS ${PROJECT_NAME})
-#target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+add_library(sub::NetworkWizard ALIAS NetworkWizard)
 
 ##################################################################################
 

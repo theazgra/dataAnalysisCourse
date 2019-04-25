@@ -1,10 +1,14 @@
 #pragma once
 #include <app_global.h>
+#include <network_wizard_app.h>
+
+class NetworkWizardApplication;
 
 // Helper functions
-void attach_menu_item_activate(const NetworkWizardApplication &app, const gchar *uiElementId, void *callback);
+void attach_menu_item_activate(const NetworkWizardApplication *app, const gchar *uiElementId, void *callback);
+gchar *open_file_dialog(const gchar *title, GtkWindow *parent);
 
-void attach_signals(const NetworkWizardApplication &app);
+void attach_signals(const NetworkWizardApplication *app);
 
 // File submenu signals
 void import_network_from_edge_pairs(GtkMenuItem *mi, gpointer data);

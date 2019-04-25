@@ -72,8 +72,9 @@ private:
   std::vector<std::pair<uint, uint>> get_edges() const;
 
 public:
+  NetworkMatrix();
   NetworkMatrix(const NetworkMatrix &copySrc);
-  NetworkMatrix(const char *fName, const int offset);
+  NetworkMatrix(const char *fName);
   NetworkMatrix(const uint &rowCount, const uint &colCount);
   NetworkMatrix(const std::vector<IrisRecord> &vectorData);
   ~NetworkMatrix();

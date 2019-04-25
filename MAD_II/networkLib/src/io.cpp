@@ -1,22 +1,37 @@
 #include <networkLib/io.h>
 
-std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter)
+std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset)
 {
-    std::vector<std::pair<uint, uint>> result;
-    std::ifstream inStream(filename);
+    offset = 0;
+    uint min = 99999999;
 
+    std::vector<std::pair<uint, uint>> result;
+
+    std::ifstream inStream(filename);
     assert(inStream.is_open());
 
     std::string line, token;
     size_t pos;
     std::string v1, v2;
+    uint u, v;
+
     while (std::getline(inStream, line))
     {
         pos = line.find(delimiter);
         v1 = line.substr(0, pos);
         v2 = line.substr(pos + 1);
 
-        result.push_back(std::make_pair((uint)std::stoi(v1), (uint)std::stoi(v2)));
+        u = (uint)std::stoi(v1);
+        v = (uint)std::stoi(v2);
+
+        min = (u < min ? u : (v < min ? v : min));
+
+        result.push_back(std::make_pair(u, v));
+    }
+    if (min != 0)
+    {
+        offset = -min;
+        printf("Offset of %i\n", offset);
     }
     return result;
 }

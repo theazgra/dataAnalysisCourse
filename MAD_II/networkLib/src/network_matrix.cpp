@@ -6,9 +6,17 @@ void NetworkMatrix::initialize_deleted()
     for (size_t i = 0; i < rowCount; i++)
         deleted[i] = false;
 }
-NetworkMatrix::NetworkMatrix(const char *fName, const int offset)
+
+NetworkMatrix::NetworkMatrix()
 {
-    auto loadedEdges = load_edge_pairs(fName, ";");
+    this->rowCount = 0;
+    this->colCount = 0;
+}
+
+NetworkMatrix::NetworkMatrix(const char *fName)
+{
+    int offset;
+    auto loadedEdges = load_edge_pairs(fName, ";", offset);
     uint vc = get_vertex_count_from_edge_pairs(loadedEdges);
     this->rowCount = vc;
     this->colCount = vc;

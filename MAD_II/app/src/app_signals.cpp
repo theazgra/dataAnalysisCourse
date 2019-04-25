@@ -1,12 +1,32 @@
 #include <app_signals.h>
+#include <networkLib/io.h>
 
-void attach_menu_item_activate(const NetworkWizardApplication &app, const gchar *uiElementId, void *callback)
+void attach_menu_item_activate(const NetworkWizardApplication *app, const gchar *uiElementId, void *callback)
 {
-    GObject *uiElement = gtk_builder_get_object(app.uiBuilder, uiElementId);
-    g_signal_connect(uiElement, "activate", G_CALLBACK(callback), (void *)&app);
+    GObject *uiElement = app->get_object_by_id(uiElementId);
+    g_signal_connect(uiElement, "activate", G_CALLBACK(callback), (void *)app);
 }
 
-void attach_signals(const NetworkWizardApplication &app)
+gchar *open_file_dialog(const gchar *title, GtkWindow *parent)
+{
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+    dialog = gtk_file_chooser_dialog_new(title, parent, action, ("_Cancel"), GTK_RESPONSE_CANCEL, ("_Open"), GTK_RESPONSE_ACCEPT, NULL);
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        gchar *result = gtk_file_chooser_get_filename(chooser);
+        gtk_widget_destroy(dialog);
+        return result;
+    }
+    gtk_widget_destroy(dialog);
+    return nullptr;
+}
+
+void attach_signals(const NetworkWizardApplication *app)
 {
     // File menu
     attach_menu_item_activate(app, "miImportFromEdgePairs", (void *)import_network_from_edge_pairs);
@@ -36,12 +56,26 @@ void import_network_from_edge_pairs(GtkMenuItem *mi, gpointer data)
 {
     NetworkWizardApplication *app = (NetworkWizardApplication *)data;
     fprintf(stdout, "CALLED: import_network_from_edge_pairs\n");
+
+    gchar *result = open_file_dialog("Import from edge pairs", app->get_main_window());
+    if (result)
+    {
+        app->state.network = NetworkMatrix(result);
+        app->recalculate_network_stats();
+        fprintf(stdout, "Loaded network with %u vertices\n", app->state.network.vertex_count());
+    }
 }
 
 void import_network_from_vector_data(GtkMenuItem *mi, gpointer data)
 {
     NetworkWizardApplication *app = (NetworkWizardApplication *)data;
     fprintf(stdout, "CALLED: import_network_from_vector_data\n");
+
+    // gchar *file;
+    // if (open_file_dialog("Import from vector data", GTK_WINDOW(app->mainWindow), file))
+    // {
+    //     fprintf(stdout, "Chosen: %s\n", file);
+    // }
 }
 
 void export_network(GtkMenuItem *mi, gpointer data)

@@ -23,7 +23,6 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
         printf("Unable to open report stream\n");
         return;
     }
-    uint numberOfSteps = network.vertex_count();
     reportStream << std::fixed << std::setprecision(5);
     std::string sep = ";";
 
@@ -146,12 +145,12 @@ int main(int argc, char **argv)
     {
         parser.ParseCLI(argc, argv);
     }
-    catch (args::Help)
+    catch (args::Help &he)
     {
         std::cout << parser;
         return 0;
     }
-    catch (args::ParseError e)
+    catch (args::ParseError &e)
     {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
@@ -192,7 +191,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str(), -1);
+        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str());
         karataNet.filter_k_core(_vertexCount.Get());
         karataNet.export_network(_reportFile.Get().c_str());
 
@@ -207,7 +206,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str(), -1);
+        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str());
         karataNet.hierarchical_clustering(_vertexCount.Get(), _reportFile.Get().c_str(), LinkageType_Average);
 
         return 0;
@@ -221,7 +220,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        auto karateNetwork = NetworkMatrix(_file.Get().c_str(), -1);
+        auto karateNetwork = NetworkMatrix(_file.Get().c_str());
         printf("VC: %5u; EC: %5u\n", karateNetwork.vertex_count(), karateNetwork.edge_count());
         karateNetwork.kernighan_lin();
 
@@ -294,8 +293,8 @@ int main(int argc, char **argv)
 
     if (_import)
     {
-
-        auto loadedEdges = load_edge_pairs(_file.Get().c_str(), ";");
+        int offset;
+        auto loadedEdges = load_edge_pairs(_file.Get().c_str(), ";", offset);
         uint vc = get_vertex_count_from_edge_pairs(loadedEdges);
         NetworkMatrix network = NetworkMatrix(vc, vc);
         network.load_from_edges(loadedEdges);
