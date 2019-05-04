@@ -1,12 +1,11 @@
 #pragma once
-#include <thread>
-#include <chrono>
 #include <QDebug>
+#include <networkLib/network_matrix.h>
 
-inline int test_thread_concurrency(int a)
+using namespace azgra::networkLib;
+
+inline azgra::networkLib::NetworkMatrix import_network_from_edges(const QString &fileName)
 {
-    qDebug() << "before thread job with argument: " << a;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    qDebug() << "thread job completed";
-    return 8498;
+    NetworkMatrix result(fileName.toStdString().c_str());
+    return result;
 }

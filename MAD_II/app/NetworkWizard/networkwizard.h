@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QDebug>
 #include <QtConcurrent>
+#include <QFileDialog>
 #include "thread_test.h"
 
 #include <networkLib/network_matrix.h>
@@ -23,12 +24,12 @@ public:
 
 private:
     Ui::NetworkWizard *ui;
-    QFutureWatcher<int> importWatcher;
-    NetworkMatrix nm;
+    azgra::networkLib::NetworkMatrix mainNetwork;
+    QFutureWatcher<azgra::networkLib::NetworkMatrix> importWatcher;
 
 private slots:
     void import_from_edge_pairs();
-    void job_completed();
+    void import_completed();
 };
 
 #endif // NETWORKWIZARD_H
