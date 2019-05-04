@@ -1,6 +1,9 @@
 #pragma once
 #include <networkLib/libs.h>
 
+namespace azgra::networkLib
+{
+
 struct Cluster
 {
     bool isDeleted = false;
@@ -28,3 +31,19 @@ struct Cluster
         return (vertices.data() == b.vertices.data());
     }
 };
+
+struct ClusterCandidate
+{
+    Cluster i;
+    Cluster j;
+    float similarity;
+
+    void set_new(Cluster i, Cluster j, float sim)
+    {
+        this->i = i;
+        this->j = j;
+        similarity = sim;
+    }
+};
+
+}; // namespace azgra::networkLib

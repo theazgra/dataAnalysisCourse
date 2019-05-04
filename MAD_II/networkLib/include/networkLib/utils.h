@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <limits>
+namespace azgra::networkLib
+{
 
 template <typename T>
 void print_vector(const std::vector<T> &vector)
@@ -110,3 +112,4 @@ std::vector<T> first_of(const std::vector<T> &src, const bool decreasing = false
     }
     return result;
 }
+}; // namespace azgra::networkLib

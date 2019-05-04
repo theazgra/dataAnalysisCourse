@@ -2,6 +2,8 @@
 #include <networkLib/network_matrix.h>
 #include <string>
 
+namespace azgra::networkLib
+{
 struct EpidemicIterationInfo
 {
     uint time;
@@ -313,3 +315,4 @@ static void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats,
         }
     }
 }
+};

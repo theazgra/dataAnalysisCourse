@@ -5,7 +5,9 @@
 #include <iomanip>
 #include <ostream>
 #include <networkLib/epidemic_models.h>
+#include <networkLib/network_generator.h>
 
+using namespace azgra::networkLib;
 /*
     Florentina
         - Degree centrality
@@ -75,6 +77,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
+    auto rnm = NetworkGenerator::RandomNetwork(500, 0.5f);
     /*
     NetworkMatrix baNetwork = NetworkMatrix(500, 500);
     baNetwork.generate_scale_free_network(10, 500, 3);
@@ -99,6 +102,7 @@ int main(int argc, char **argv)
     analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_fail.csv", false);
     analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_attack.csv", true);
     */
+
     args::ArgumentParser parser("Network analysis. - MOR0146", "Required arguments are in < > optional in [].");
     args::Group methodGroup(parser, "Methods", args::Group::Validators::AtMostOne);
     args::Group modelGroup(parser, "Network models", args::Group::Validators::AtMostOne);
@@ -156,7 +160,7 @@ int main(int argc, char **argv)
         std::cerr << parser;
         return 1;
     }
-
+    /*
     if (_epidemicMethod)
     {
         NetworkMatrix baNetwork = NetworkMatrix(200, 200);
@@ -401,4 +405,6 @@ int main(int argc, char **argv)
 
     std::cout << parser;
     return 1;
+    */
+    return 0;
 }

@@ -1,5 +1,8 @@
 #include <networkLib/network_matrix.h>
 
+namespace azgra::networkLib
+{
+
 void NetworkMatrix::initialize_deleted()
 {
     deleted.resize(rowCount);
@@ -388,7 +391,7 @@ uint NetworkMatrix::rows() const
     return this->rowCount;
 }
 
-inline float &NetworkMatrix::at(const uint &row, const uint &col)
+float &NetworkMatrix::at(const uint &row, const uint &col)
 {
     return this->data[((row * this->colCount) + col)];
 }
@@ -1028,319 +1031,6 @@ void NetworkMatrix::print_matrix() const
     printf("%s", result.c_str());
 }
 
-float NetworkMatrix::get_probability_for_symmetric_network(const uint vertexCount) const
-{
-    float result = (float)(log(vertexCount) / (double)vertexCount);
-    return result;
-}
-
-void NetworkMatrix::generate_random_network(const float edgeProbability, bool autoProbability)
-{
-    float prob = edgeProbability;
-    if (autoProbability)
-    {
-        prob = get_probability_for_symmetric_network(vertex_count());
-        printf("Used probability: %f\n", prob);
-    }
-
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-
-    float weights[] = {(1.0f - prob), prob};
-    std::discrete_distribution<int> discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-
-    int edge;
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        for (uint col = row; col < this->colCount; col++)
-        {
-            if (row == col)
-            {
-                at(row, col) = 0;
-            }
-            else
-            {
-                edge = discreteDistribution(randomGenerator);
-                at(row, col) = edge;
-                at(col, row) = edge;
-            }
-        }
-    }
-
-    printf("Random: VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
-void NetworkMatrix::generate_scale_free_network(uint numberOfConnections, const uint numberOfVerticesToAdd)
-{
-    generate_scale_free_network(3, 3 + numberOfVerticesToAdd, numberOfConnections);
-}
-
-void NetworkMatrix::generate_scale_free_network(const uint initialSize, const uint finalSize, const uint numberOfConnections)
-{
-    uint resultSize = finalSize;
-    uint currentSize = initialSize;
-    reinitialize(resultSize, resultSize);
-    std::vector<uint> vertexList;
-    if (initialSize == 3)
-    {
-        NetworkMatrix initialMat3 = get_initial_matrix_of_size_3();
-        vertexList = {0, 0, 1, 1, 2, 2};
-        insert(initialMat3);
-    }
-    else
-    {
-        NetworkMatrix initial = NetworkMatrix(initialSize, initialSize);
-        for (uint v = 0; v < initialSize; v++)
-        {
-            if (v != (initialSize - 1))
-            {
-                initial.at(v, v + 1) = 1.0f;
-                initial.at(v + 1, v) = 1.0f;
-            }
-
-            vertexList.push_back(v);
-            if (v != 0 && v != (initialSize - 1))
-            {
-                vertexList.push_back(v);
-            }
-        }
-        insert(initial);
-    }
-
-    uint newVertexIndex, neighbor;
-    float vertexListSize;
-
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-    std::discrete_distribution<int> discreteDistribution;
-
-    std::vector<float> weights;
-    std::vector<uint> neighbors;
-
-    for (uint step = 0; step < (finalSize - initialSize); step++)
-    {
-        weights.clear();
-        neighbors.clear();
-
-        weights.reserve(currentSize);
-        neighbors.reserve(numberOfConnections);
-
-        newVertexIndex = initialSize + step;
-        vertexListSize = (float)vertexList.size();
-
-        float ageScaling = 1.0f;
-        for (uint vertex = 0; vertex < currentSize; vertex++)
-        {
-            float age = (initialSize + step) - vertex;
-            float occurence = (float)count(vertexList, vertex);
-            float weight = (occurence / vertexListSize);
-
-            float agedWeight = weight * pow(age, (-1.0f * ageScaling));
-
-            //weights.push_back(weight);
-            weights.push_back(agedWeight);
-        }
-
-        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-        for (uint neighbourStep = 0; neighbourStep < numberOfConnections; neighbourStep++)
-        {
-
-            neighbor = discreteDistribution(randomGenerator);
-            while (find(neighbors, neighbor))
-            {
-                neighbor = discreteDistribution(randomGenerator);
-            }
-            neighbors.push_back(neighbor);
-        }
-
-        assert(neighbors.size() == numberOfConnections);
-
-        vertexList.push_back(newVertexIndex);
-        vertexList.push_back(newVertexIndex);
-
-        for (const uint &newNeighbour : neighbors)
-        {
-            vertexList.push_back(newNeighbour);
-            at(newVertexIndex, newNeighbour) = 1.0;
-            at(newNeighbour, newVertexIndex) = 1.0;
-        }
-
-        currentSize++;
-    }
-
-    printf("ScaleFree: VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
-void NetworkMatrix::generate_holme_kim(float probability, const uint newVertexConnectionsCount)
-{
-    uint startingSize = 3;
-    uint resultSize = vertex_count();
-    uint currentSize = startingSize;
-
-    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
-
-    std::vector<uint> vertexList = {0, 0, 1, 1, 2, 2};
-
-    reinitialize(resultSize, resultSize);
-    insert(initialMat);
-
-    uint newVertexIndex, neighbor;
-    float vertexListSize;
-
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-    std::discrete_distribution<int> discreteDistribution;
-
-    std::discrete_distribution<int> chooseNeighborOfNeighbor({1 - probability, probability});
-
-    std::vector<float> weights;
-    std::vector<uint> neighbors;
-    for (uint step = 0; step < (resultSize - startingSize); step++)
-    {
-        weights.clear();
-        neighbors.clear();
-
-        weights.reserve(currentSize);
-        neighbors.reserve(newVertexConnectionsCount);
-
-        newVertexIndex = startingSize + step;
-        vertexListSize = (float)vertexList.size();
-
-        for (uint vertex = 0; vertex < currentSize; vertex++)
-        {
-            weights.push_back(((float)count(vertexList, vertex) / vertexListSize));
-        }
-
-        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-        bool doPA = false;
-        uint lastConnectedVertex = 0;
-        for (uint neighbourStep = 0; neighbourStep < newVertexConnectionsCount; neighbourStep++)
-        {
-            if (neighbourStep == 0) // In first step always use PA.
-                doPA = true;
-            else
-            {
-                int pa = chooseNeighborOfNeighbor(randomGenerator);
-                if (pa) // Choose some random neighbot of neighbor
-                    doPA = false;
-                else // Do another pa step.
-                {
-                    doPA = true;
-                }
-            }
-
-            if (doPA)
-            {
-                do
-                {
-                    neighbor = discreteDistribution(randomGenerator);
-                } while (find(neighbors, neighbor));
-                neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
-            }
-            else
-            {
-                auto lastConnectedNeighbors = get_neighbors(lastConnectedVertex);
-                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
-                do
-                {
-                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
-                } while (find(neighbors, neighbor));
-
-                neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
-            }
-        }
-
-        assert(neighbors.size() == newVertexConnectionsCount);
-
-        vertexList.push_back(newVertexIndex);
-        vertexList.push_back(newVertexIndex);
-
-        for (const uint &newNeighbour : neighbors)
-        {
-            vertexList.push_back(newNeighbour);
-            at(newVertexIndex, newNeighbour) = 1.0;
-            at(newNeighbour, newVertexIndex) = 1.0;
-        }
-
-        currentSize++;
-    }
-
-    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
-void NetworkMatrix::generate_bianconi(float probability, const uint newVertexConnectionsCount)
-{
-    uint startingSize = 3;
-    uint resultSize = vertex_count();
-    uint currentSize = startingSize;
-
-    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
-
-    reinitialize(resultSize, resultSize);
-    insert(initialMat);
-
-    uint newVertexIndex, neighbor;
-
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-
-    std::discrete_distribution<int> chooseNeighborOfNeighbor({1 - probability, probability});
-    std::vector<uint> neighbors;
-    std::uniform_int_distribution<> randomVertexGenerator;
-    for (uint step = 0; step < (resultSize - startingSize); step++)
-    {
-        neighbors.clear();
-        neighbors.reserve(newVertexConnectionsCount);
-
-        newVertexIndex = startingSize + step;
-        randomVertexGenerator = std::uniform_int_distribution<>(0, newVertexIndex - 1);
-        uint newRandomNeigh = randomVertexGenerator(randomGenerator);
-
-        neighbors.push_back(newRandomNeigh);
-        uint lastConnectedVertex = newRandomNeigh;
-
-        for (uint neighbourStep = 0; neighbourStep < newVertexConnectionsCount - 1; neighbourStep++)
-        {
-            if (chooseNeighborOfNeighbor(randomGenerator)) // Choose some random neighbor of neighbor
-            {
-                auto lastConnectedNeighbors = get_neighbors(lastConnectedVertex);
-                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
-                do
-                {
-                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
-                } while (find(neighbors, neighbor));
-
-                neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
-            }
-            else
-            {
-                do
-                {
-                    neighbor = randomVertexGenerator(randomGenerator);
-                } while (find(neighbors, neighbor));
-
-                neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
-            }
-        }
-
-        assert(neighbors.size() == newVertexConnectionsCount);
-
-        for (const uint &newNeighbour : neighbors)
-        {
-            at(newVertexIndex, newNeighbour) = 1.0;
-            at(newNeighbour, newVertexIndex) = 1.0;
-        }
-
-        currentSize++;
-    }
-
-    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
 std::vector<std::pair<uint, uint>> NetworkMatrix::get_edges() const
 {
     std::vector<std::pair<uint, uint>> edges;
@@ -1362,61 +1052,6 @@ std::vector<std::pair<uint, uint>> NetworkMatrix::get_edges() const
     return edges;
 }
 
-void NetworkMatrix::generate_select_link_or_copy(bool copy, float copyProbability)
-{
-    uint startingSize = 3;
-    uint resultSize = vertex_count();
-
-    NetworkMatrix initialMat = get_initial_matrix_of_size_3();
-    reinitialize(resultSize, resultSize);
-    insert(initialMat);
-
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> neighRandom;
-    std::uniform_int_distribution<int> linkEndRandom(0, 1);
-    std::discrete_distribution<int> copyRandom({1 - copyProbability, copyProbability});
-
-    std::vector<std::pair<uint, uint>> edges = get_edges();
-
-    std::pair<uint, uint> edge;
-    uint newVertexIndex;
-    for (uint step = 0; step < (resultSize - startingSize); step++)
-    {
-        newVertexIndex = startingSize + step;
-        std::uniform_int_distribution<int> edgeRandom(0, (int)(edges.size() - 1));
-        edge = edges[edgeRandom(rd)];
-
-        uint partner;
-        if (copy)
-        {
-            // Copy wth probability select edge.first with (1-probability) select edge.first random neigbor.
-            if (copyRandom(rd))
-            {
-                // Select edge.first
-                partner = edge.first;
-            }
-            else
-            {
-                // Select random neighbor of edge.first
-                auto neighbors = get_neighbors(edge.first);
-                neighRandom = std::uniform_int_distribution<int>(0, (int)(neighbors.size() - 1));
-                partner = neighbors[neighRandom(rd)];
-            }
-        }
-        else
-        {
-            // Link selection, select one of vertices on the edge.
-            partner = linkEndRandom(rd) ? edge.first : edge.second;
-        }
-
-        at(newVertexIndex, partner) = 1.0f;
-        at(partner, newVertexIndex) = 1.0f;
-        edges.push_back(std::make_pair(newVertexIndex, partner));
-    }
-    printf("VC: %u; EC: %u\n", vertex_count(), edge_count());
-}
-
 void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset)
 {
     uint rowIndex, colIndex;
@@ -1424,10 +1059,7 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
     {
         rowIndex = edge.first + offset;
         colIndex = edge.second + offset;
-        // if (rowIndex >= rowCount || colIndex >= colCount)
-        // {
-        //     printf("wha th  fucnk\n");
-        // }
+
         at(rowIndex, colIndex) = 1.0f;
         at(colIndex, rowIndex) = 1.0f;
     }
@@ -2048,3 +1680,4 @@ void NetworkMatrix::attack_step()
         at(col, toDelete) = 0.0f;
     }
 }
+}; // namespace azgra::networkLib

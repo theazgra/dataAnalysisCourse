@@ -1,4 +1,6 @@
-// #pragma once
+#pragma once
+namespace azgra::networkLib
+{
 // #include "network_layer.h"
 
 // class MultiLayerNetwork
@@ -10,3 +12,4 @@
 //     MultiLayerNetwork();
 //     ~MultiLayerNetwork();
 // };
+};

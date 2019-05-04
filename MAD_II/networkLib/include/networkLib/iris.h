@@ -1,5 +1,8 @@
 #pragma once
 #include <vector>
+
+namespace azgra::networkLib
+{
 struct IrisRecord
 {
     float sepalLen;
@@ -33,4 +36,5 @@ struct IrisRecord
         float result = exp((-euclid / 2.0f));
         return result;
     }
+};
 };

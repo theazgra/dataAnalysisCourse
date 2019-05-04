@@ -77,3 +77,9 @@ MAD_II/ui/#builder.ui#
 /NetworkWizard/NetworkWizardUI/xlf
 /NetworkWizard/TestApp/bin
 /NetworkWizard/TestApp/obj
+
+build-Debug/
+build-debug/
+build-Release/
+build-release/
+*.swp

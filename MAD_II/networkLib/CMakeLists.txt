@@ -2,21 +2,6 @@ cmake_minimum_required(VERSION 3.0.0)
 project(DataAnalysis VERSION 0.1.0)
 set(CMAKE_CXX_FLAGS "-Wall")
 
-######################## LIBRARY #######################################
-
-
-
-add_library(NetworkWizard STATIC 
-        src/network_matrix.cpp
-        src/simple_string.cpp
-        src/io.cpp
-        src/graph_component.cpp
-    )
-target_include_directories(NetworkWizard PUBLIC ${PROJECT_SOURCE_DIR}/include)
-add_library(sub::NetworkWizard ALIAS NetworkWizard)
-
-##################################################################################
-
 find_package(OpenMP)
 if (OPENMP_FOUND)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -26,12 +11,26 @@ endif()
 
 include_directories( ./ include)
 
+######################## LIBRARY #######################################
+
+add_library(NetworkWizard STATIC 
+        src/network_matrix.cpp
+        src/simple_string.cpp
+        src/io.cpp
+        src/graph_component.cpp
+        src/network_generator.cpp
+    )
+target_include_directories(NetworkWizard PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# add_library(sub::NetworkWizard ALIAS NetworkWizard)
+
+##################################################################################
+
+
+
 add_executable(DataAnalysis main.cpp
     src/network_matrix.cpp
     src/simple_string.cpp
     src/io.cpp
-    src/graph_component.cpp)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+    src/graph_component.cpp
+    src/network_generator.cpp
+    )

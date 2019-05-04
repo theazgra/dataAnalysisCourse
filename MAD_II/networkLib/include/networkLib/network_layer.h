@@ -1,4 +1,6 @@
-// #pragma once
+#pragma once
+namespace azgra::networkLib
+{
 // #include "network_matrix.h"
 // #include <string>
 
@@ -15,5 +17,4 @@
 //     std::string &name() const;
 //     NetworkMatrix &network() const;
 // };
-
-// #include "network_layer.cpp"
+}; // namespace azgra::networkLib

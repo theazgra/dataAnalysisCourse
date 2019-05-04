@@ -13,6 +13,8 @@
 
 #include "utils.h"
 
+namespace azgra::networkLib
+{
 typedef unsigned int uint;
 
 enum LinkageType
@@ -20,4 +22,6 @@ enum LinkageType
     LinkageType_Complete,
     LinkageType_Single,
     LinkageType_Average
+};
+
 };

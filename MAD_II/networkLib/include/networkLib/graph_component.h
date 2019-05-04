@@ -1,6 +1,8 @@
 #pragma once
 #include <networkLib/libs.h>
 
+namespace azgra::networkLib
+{
 struct GraphComponent
 {
     uint id;
@@ -19,3 +21,4 @@ struct GraphComponent
 };
 
 GraphComponent get_biggest_component(const std::vector<GraphComponent> &components);
+};

@@ -1,5 +1,6 @@
 #include <networkLib/io.h>
-
+namespace azgra::networkLib
+{
 std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset)
 {
     offset = 0;
@@ -102,3 +103,4 @@ std::vector<IrisRecord> read_iris_file(const char *filename)
 
     return result;
 }
+};

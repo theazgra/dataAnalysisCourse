@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -29,10 +29,18 @@ SOURCES += \
         networkwizard.cpp
 
 HEADERS += \
-        networkwizard.h
+        networkwizard.h \
+        thread_test.h
 
 FORMS += \
         networkwizard.ui
+
+QMAKE_CXXFLAGS  += -fopenmp
+QMAKE_LFLAGS    += -fopenmp
+
+LIBS            += -L $$PWD/../../networkLib/build -l NetworkWizard
+INCLUDEPATH     += $$PWD/../../networkLib/include
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
