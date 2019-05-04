@@ -50,25 +50,6 @@ NetworkMatrix::NetworkMatrix(const uint &rowCount, const uint &colCount)
     initialize_deleted();
 }
 
-NetworkMatrix NetworkMatrix::get_initial_matrix_of_size_3() const
-{
-    NetworkMatrix initialMat(3, 3);
-    {
-        initialMat.at(0, 0) = 0.0f;
-        initialMat.at(0, 1) = 1.0f;
-        initialMat.at(0, 2) = 1.0f;
-
-        initialMat.at(1, 0) = 1.0f;
-        initialMat.at(1, 1) = 0.0f;
-        initialMat.at(1, 2) = 1.0f;
-
-        initialMat.at(2, 0) = 1.0f;
-        initialMat.at(2, 1) = 1.0f;
-        initialMat.at(2, 2) = 0.0f;
-    }
-    return initialMat;
-}
-
 uint NetworkMatrix::get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const
 {
     uint count = 0;
@@ -396,17 +377,32 @@ float &NetworkMatrix::at(const uint &row, const uint &col)
     return this->data[((row * this->colCount) + col)];
 }
 
-inline float &NetworkMatrix::at_vec(const std::vector<float> &vec, const uint &row, const uint &col)
+float &NetworkMatrix::at_vec(const std::vector<float> &vec, const uint &row, const uint &col)
 {
     return data[((row * this->colCount) + col)];
 }
 
-inline const float &NetworkMatrix::at(const uint &row, const uint &col) const
+float &NetworkMatrix::at(const uint &index)
+{
+    return this->data[index];
+}
+
+const float &NetworkMatrix::at(const uint &row, const uint &col) const
 {
     return this->data[((row * this->colCount) + col)];
 }
 
-inline bool NetworkMatrix::is_infinity(const uint &row, const uint &col) const
+const float &NetworkMatrix::at(const uint &index) const
+{
+    return this->data[index];
+}
+
+bool NetworkMatrix::is_edge_at(const uint &row, const uint &col) const
+{
+    return (!is_infinity(row, col) && at(row, col) > 0.0f);
+}
+
+bool NetworkMatrix::is_infinity(const uint &row, const uint &col) const
 {
     bool result = at(row, col) == INFINITY;
     return result;
@@ -416,7 +412,6 @@ uint NetworkMatrix::vertex_count() const
 {
     assert(this->rowCount == this->colCount);
     return count(deleted, false);
-    //return (this->rowCount - this->deletedVertices.size());
 }
 
 uint NetworkMatrix::edge_count() const
@@ -1145,264 +1140,6 @@ std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distan
     return result;
 }
 
-void NetworkMatrix::complete_analysis(const char *networkName, const char *filename, const bool verbose, const bool complete) const
-{
-    using namespace std;
-
-    std::ofstream outStream(filename);
-    assert(outStream.is_open() && "Failed to open report file.");
-
-    outStream << "=====================Analysis for network: " << networkName << "=====================" << endl;
-
-    uint vertexCount = vertex_count();
-
-    if (verbose)
-        printf("Vertex count: %i\n", vertexCount);
-    outStream << "Vertex count: " << vertexCount << endl;
-
-    uint edgeCount = edge_count();
-    if (verbose)
-        printf("Edge count: %i\n", edgeCount);
-    outStream << "Edge count: " << edgeCount << endl;
-
-    // Vertex degree distribution
-    std::vector<uint> degrees = get_degree_of_vertices();
-    outStream << "Degree distribution:" << endl;
-
-    for (size_t i = 0; i < degrees.size(); i++)
-        outStream << degrees[i] << ";";
-    outStream << endl
-              << endl;
-
-    // Average vertex degree.
-    float averageDegree = get_average_degree();
-    if (verbose)
-        printf("Average degree: %f\n", averageDegree);
-    outStream << "Average degree: " << averageDegree << endl;
-
-    // Clustering coefficient for vertices.
-    std::vector<float> clusteringCofficients = get_clustering_coeff_for_all_vertices();
-    outStream << "Clustering coefficients:" << endl;
-
-    for (size_t i = 0; i < clusteringCofficients.size(); i++)
-        outStream << clusteringCofficients[i] << ";";
-    outStream << endl
-              << endl;
-
-    // Average clustering coefficient.
-    float averageClusteringCoefficient = get_average_clustering_coefficient();
-    if (verbose)
-        printf("Average clustering coefficient: %f\n", averageClusteringCoefficient);
-    outStream << "Average clustering coefficient: " << averageClusteringCoefficient << endl;
-
-    if (complete)
-    {
-        // Closeness centrality.
-        NetworkMatrix distanceMatrix = get_distance_matrix();
-        std::vector<float> closenessCentrality = get_closeness_centrality_for_vertices(distanceMatrix);
-        outStream << "Closeness centralities:" << endl;
-
-        for (size_t i = 0; i < closenessCentrality.size(); i++)
-        {
-            outStream << closenessCentrality[i] << ";";
-            if (verbose)
-                printf("%f;", closenessCentrality[i]);
-        }
-        outStream << endl
-                  << endl;
-        if (verbose)
-            printf("\n");
-
-        // Network average. Longest distance.
-        float networkAverage = get_network_longest_distance(distanceMatrix);
-        if (verbose)
-            printf("Network average: %f\n", networkAverage);
-        outStream << "Network average: " << networkAverage << endl;
-
-        // Network average distance.
-        float averageDistance = get_network_average_distance(distanceMatrix);
-        if (verbose)
-            printf("Average distance: %f\n", averageDistance);
-        outStream << "Average distance: " << averageDistance << endl;
-
-        // Vertices eccentricity.
-        std::vector<float> eccentricities = get_eccentricities(distanceMatrix);
-        outStream << "Eccentricities:" << endl;
-
-        for (size_t i = 0; i < eccentricities.size(); i++)
-            outStream << eccentricities[i] << ";";
-        outStream << endl
-                  << endl;
-    }
-
-    outStream << "======================================END==================================" << endl;
-    outStream.flush();
-    outStream.close();
-}
-
-void NetworkMatrix::filter_e_radius(const float radius)
-{
-    for (size_t i = 0; i < this->data.size(); i++)
-    {
-        if (data[i] >= radius)
-        {
-            data[i] = 1.0f;
-        }
-        else
-        {
-            data[i] = 0.0f;
-        }
-    }
-}
-
-void NetworkMatrix::filter_kNN(const uint k)
-{
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        //filter_knn_row(row, k);
-        auto kNeighbors = find_k_neighbors(row, k);
-
-        for (uint col = 0; col < this->colCount; col++)
-        {
-            at(row, col) = 0.0f;
-        }
-        for (const uint &neigh : kNeighbors)
-            at(row, neigh) = 1.0f;
-    }
-}
-
-void NetworkMatrix::filter_combinataion_e_knn(const float radius, const uint k)
-{
-    uint inRadiusCount = 0;
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        inRadiusCount = count_in_e_radius(row, radius);
-        if (inRadiusCount > k)
-        {
-            //Take in radius.
-            for (uint col = 0; col < this->colCount; col++)
-            {
-                if (at(row, col) >= radius)
-                    at(row, col) = 1.0f;
-                else
-                    at(row, col) = 0.0f;
-            }
-        }
-        else
-        {
-            // Take K neighbors.
-            filter_knn_row(row, k);
-        }
-    }
-}
-
-NetworkMatrix NetworkMatrix::filter_random_node_sampling(const float targetPercentSize) const
-{
-    printf("Random based sampling\n");
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-
-    float weights[] = {(1.0f - targetPercentSize), targetPercentSize};
-    std::discrete_distribution<int> discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-
-    bool isInSample;
-    std::vector<uint> sample;
-    sample.reserve(this->rowCount);
-
-    uint threshold = (uint)((float)rowCount * targetPercentSize);
-
-    for (size_t i = 0; i < this->rowCount; i++)
-    {
-        isInSample = discreteDistribution(randomGenerator) == 1;
-        if (isInSample)
-        {
-            sample.push_back(i);
-            for (const uint n : get_neighbors(i))
-            {
-                if (!find(sample, n))
-                    sample.push_back(n);
-            }
-        }
-        if (sample.size() > threshold)
-            break;
-    }
-    size_t sampleSize = sample.size();
-    NetworkMatrix sampleNetwork = NetworkMatrix(sampleSize, sampleSize);
-
-    uint u, v;
-    for (uint sampleRow = 0; sampleRow < sampleSize; sampleRow++)
-    {
-        u = sample[sampleRow];
-        for (uint sampleCol = sampleRow + 1; sampleCol < sampleSize; sampleCol++)
-        {
-            v = sample[sampleCol];
-            if (!is_infinity(u, v) && at(u, v) > 0.0f)
-            {
-                sampleNetwork.at(sampleRow, sampleCol) = 1.0f;
-            }
-        }
-    }
-
-    printf("Random Node sampling results: VC: %5u EC: %5u\n", sampleNetwork.vertex_count(), sampleNetwork.edge_count());
-    return sampleNetwork;
-}
-
-NetworkMatrix NetworkMatrix::filter_random_edge_sampling(const float targetPercentSize) const
-{
-    printf("Degree based sampling\n");
-    std::random_device randomDevice;
-    std::mt19937 randomGenerator(randomDevice());
-    std::discrete_distribution<int> discreteDistribution;
-
-    std::vector<uint> sample;
-    sample.reserve(rowCount);
-
-    auto degrees = get_degree_of_vertices();
-
-    uint threshold = (uint)((float)rowCount * targetPercentSize);
-    float weights[2];
-    float prob;
-    for (size_t row = 0; row < rowCount; row++)
-    {
-        prob = targetPercentSize / (float)degrees[row];
-        weights[0] = 1.0f - prob;
-        weights[1] = prob;
-        discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-        if (discreteDistribution(randomGenerator) == 1)
-        {
-            //sample.push_back(row);
-            sample.push_back(row);
-            for (const uint n : get_neighbors(row))
-            {
-                if (!find(sample, n))
-                    sample.push_back(n);
-            }
-
-            if (sample.size() > threshold)
-                break;
-        }
-    }
-    size_t sampleSize = sample.size();
-    NetworkMatrix sampleNetwork(sampleSize, sampleSize);
-
-    uint u, v;
-    for (uint sampleRow = 0; sampleRow < sampleSize; sampleRow++)
-    {
-        u = sample[sampleRow];
-        for (uint sampleCol = sampleRow + 1; sampleCol < sampleSize; sampleCol++)
-        {
-            v = sample[sampleCol];
-            if (!is_infinity(u, v) && at(u, v) > 0.0f)
-            {
-                sampleNetwork.at(sampleRow, sampleCol) = 1.0f;
-            }
-        }
-    }
-
-    printf("Random Edge Sampling results: VC: %5u EC: %5u\n", sampleNetwork.vertex_count(), sampleNetwork.edge_count());
-    return sampleNetwork;
-}
-
 uint NetworkMatrix::get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const
 {
     uint result = 0;
@@ -1418,109 +1155,6 @@ uint NetworkMatrix::get_edge_count_between_groups(const std::vector<uint> &gA, c
     return result;
 }
 
-struct SwapInfo
-{
-    uint aIndex;
-    uint bIndex;
-    uint cut;
-
-    SwapInfo(uint _a, uint _b, uint _cut) : aIndex(_a), bIndex(_b), cut(_cut)
-    {
-    }
-
-    bool operator>(const SwapInfo &other) { return this->cut > other.cut; }
-    bool operator>=(const SwapInfo &other) { return this->cut >= other.cut; }
-    bool operator<(const SwapInfo &other) { return this->cut < other.cut; }
-    bool operator<=(const SwapInfo &other) { return this->cut <= other.cut; }
-};
-
-void NetworkMatrix::kernighan_lin() const
-{
-    const size_t groupCount = 2;
-    int groupSize = (this->rowCount + groupCount - 1) / 2;
-    std::vector<uint> alreadySwapped;
-    alreadySwapped.reserve(this->rowCount);
-
-    std::vector<uint> groupA;
-    std::vector<uint> groupB;
-    groupA.reserve(groupSize);
-    groupB.reserve(groupSize);
-
-    std::vector<uint> indices;
-    indices.resize(rowCount);
-    for (size_t i = 0; i < this->rowCount; i++)
-        indices[i] = i;
-
-    std::random_shuffle(indices.begin(), indices.end());
-
-    for (uint i = 0; i < this->rowCount; i++)
-    {
-        if (i % 2 == 0)
-            groupA.push_back(indices[i]);
-        else
-            groupB.push_back(indices[i]);
-    }
-
-    uint lastCut = get_edge_count_between_groups(groupA, groupB);
-    uint cut = lastCut;
-    int iter = 0;
-
-    do
-    {
-        // one step.
-        std::vector<SwapInfo> stepSwaps;
-        for (size_t a = 0; a < groupA.size(); a++)
-        {
-            for (size_t b = 0; b < groupB.size(); b++)
-            {
-                uint vA = groupA[a];
-                uint vB = groupB[b];
-
-                if (find(alreadySwapped, vA) || find(alreadySwapped, vB))
-                    continue;
-
-                groupA[a] = vB;
-                groupB[b] = vA;
-
-                uint cut = get_edge_count_between_groups(groupA, groupB);
-                stepSwaps.push_back(SwapInfo(a, b, cut));
-
-                groupA[a] = vA;
-                groupB[b] = vB;
-            }
-        }
-
-        std::sort(stepSwaps.begin(), stepSwaps.end());
-        SwapInfo bestSwap = stepSwaps[0];
-        // Swap them.
-        uint vA = groupA[bestSwap.aIndex];
-        uint vB = groupB[bestSwap.bIndex];
-        groupA[bestSwap.aIndex] = vB;
-        groupB[bestSwap.bIndex] = vA;
-        alreadySwapped.push_back(vA);
-        alreadySwapped.push_back(vB);
-
-        lastCut = cut;
-        cut = get_edge_count_between_groups(groupA, groupB);
-
-        if (cut > lastCut)
-        {
-            groupA[bestSwap.aIndex] = vA;
-            groupB[bestSwap.bIndex] = vB;
-            cut = get_edge_count_between_groups(groupA, groupB);
-            printf("Correcting result. Swapping pair back. Final cut: %4u\n", cut);
-            break;
-        }
-
-        printf("Finished iterataion %i; Went from %4u to %4u.\n", ++iter, lastCut, cut);
-    } while (cut < lastCut);
-
-    printf("First group: ");
-    print_vector(groupA);
-    printf("Second group: ");
-    print_vector(groupB);
-}
-
 void NetworkMatrix::delete_edges_for(const uint vertex)
 {
     for (uint col = 0; col < this->colCount; col++)
@@ -1528,46 +1162,6 @@ void NetworkMatrix::delete_edges_for(const uint vertex)
         at(vertex, col) = 0.0f;
         at(col, vertex) = 0.0f;
     }
-}
-
-void NetworkMatrix::filter_k_core(const uint k)
-{
-    //NetworkMatrix editMat = NetworkMatrix(*this);
-
-    /*
-    Postup – odstraníme všechny vrcholy se stupněm < k (nemohou být součástí k-core), 
-        toto opakujeme tak dlouho, dokud se v grafu vyskytují vrcholy se stupněm <k. 
-        Nakonec zůstane množina všech k-core
-    */
-
-    std::vector<uint> kCoreVertices;
-    kCoreVertices.resize(rowCount);
-    for (size_t i = 0; i < rowCount; i++)
-        kCoreVertices[i] = i;
-
-    bool reduce = true;
-    while (reduce)
-    {
-        reduce = false;
-        std::vector<uint> tmpKCoreVertices;
-        std::vector<uint> degrees = get_degree_of_vertices();
-
-        for (const uint &v : kCoreVertices)
-        {
-            if (degrees[v] >= k)
-            {
-                tmpKCoreVertices.push_back(v);
-            }
-            else
-            {
-                delete_edges_for(v);
-                reduce = true;
-            }
-        }
-
-        kCoreVertices.swap(tmpKCoreVertices);
-    }
-    printf("Final vertex count %lu\n", kCoreVertices.size());
 }
 
 std::vector<GraphComponent> NetworkMatrix::get_components() const

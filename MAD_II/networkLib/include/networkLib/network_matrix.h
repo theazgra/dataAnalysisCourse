@@ -5,58 +5,67 @@
 
 namespace azgra::networkLib
 {
+struct SwapInfo
+{
+    uint aIndex;
+    uint bIndex;
+    uint cut;
+
+    SwapInfo(uint _a, uint _b, uint _cut) : aIndex(_a), bIndex(_b), cut(_cut)
+    {
+    }
+
+    bool operator>(const SwapInfo &other) { return this->cut > other.cut; }
+    bool operator>=(const SwapInfo &other) { return this->cut >= other.cut; }
+    bool operator<(const SwapInfo &other) { return this->cut < other.cut; }
+    bool operator<=(const SwapInfo &other) { return this->cut <= other.cut; }
+};
+
 class NetworkMatrix
 {
 private:
+    // Matrix data.
     std::vector<float> data;
+    // Flags for deleted vertices.
+    std::vector<bool> deleted;
+    // Row count in matrix.
     uint rowCount;
+    // Col count in matrix.
     uint colCount;
 
+    // Check if other network is equal to this one.
     bool equals(const NetworkMatrix &other);
 
     // Reinitialize this matrix to new dimenstions and fill it with zeros.
     void reinitialize(const uint &rowCount, const uint &colCount);
 
     // Get element at row and col in custom vector.
-    inline float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
+    float &at_vec(const std::vector<float> &vec, const uint &row, const uint &col);
 
-    // Get neighbours of vertex which aren't in `except`
+    // Get neighbours of vertex which aren't in `except` vector
     std::vector<uint> get_neighbors_except(const uint vertex, const std::vector<uint> &except) const;
 
     // Get edge count between neighbours.
     uint get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const;
 
-    // Find shortest path between source and dest vertex using dijkstra.
-    float dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
-
     // Check if we can use BFS instead of dijkstra.
     bool can_use_bfs() const;
 
-    // Find shortest path between source and dest vertex using breadth first search.
+    // Find shortest path between source and dest vertex using dijkstra algorithm.
+    float dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
+
+    // Find shortest path between source and dest vertex using breadth first algorithm.
     float bfs_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
-    std::vector<uint> find_k_neighbors(const uint row, const uint k) const;
-    uint count_in_e_radius(const uint row, const float e) const;
-    void filter_knn_row(const uint row, const uint k);
-
-    // Get number of edges between two groups.
-    uint get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
-
-    void delete_edges_for(const uint vertex);
-
-    // Get symmetrical network of size 3.
-    NetworkMatrix get_initial_matrix_of_size_3() const;
 
     NetworkMatrix get_cosine_similarity_matrix() const;
 
+    // Get number of shared neighbors.
     uint get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const;
 
     std::vector<Cluster> find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const;
     void remove_edges_outside_clusters(const std::vector<Cluster> &clusters);
 
     void initialize_deleted();
-
-    //std::vector<uint> deletedVertices;
-    std::vector<bool> deleted;
 
 public:
     NetworkMatrix();
@@ -122,13 +131,21 @@ public:
     void copy_data(const NetworkMatrix &source);
 
     // Get element reference at row and col.
-    inline float &at(const uint &row, const uint &col);
+    float &at(const uint &row, const uint &col);
+
+    // Get element reference at index.
+    float &at(const uint &index);
 
     // Get constant element reference at row and col.
-    inline const float &at(const uint &row, const uint &col) const;
+    const float &at(const uint &row, const uint &col) const;
+
+    // Get constant element reference at index.
+    const float &at(const uint &index) const;
+
+    bool is_edge_at(const uint &row, const uint &col) const;
 
     // Check if value at row and col is INFINITY.
-    inline bool is_infinity(const uint &row, const uint &col) const;
+    bool is_infinity(const uint &row, const uint &col) const;
 
     NetworkMatrix operator+(const NetworkMatrix &other);
     NetworkMatrix &operator+=(const NetworkMatrix &other);
@@ -137,6 +154,14 @@ public:
     NetworkMatrix &operator-=(const NetworkMatrix &other);
     bool operator==(const NetworkMatrix &other);
     bool operator!=(const NetworkMatrix &other);
+
+    uint count_in_e_radius(const uint row, const float e) const;
+    std::vector<uint> find_k_neighbors(const uint row, const uint k) const;
+    void filter_knn_row(const uint row, const uint k);
+    // Delete all edges from and to this vertex.
+    void delete_edges_for(const uint vertex);
+    // Get number of edges between two groups.
+    uint get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
 
     // Load matrix from edges.
     void load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset = -1);
@@ -147,26 +172,9 @@ public:
     // Export network to file.
     void export_network(const char *filename, bool allSelfEdge = false) const;
 
-    void complete_analysis(const char *networkName, const char *filename, const bool verbose = false, const bool complete = true) const;
-
     float get_network_longest_distance(const NetworkMatrix &distanceMatrix) const;
     float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
     std::vector<float> get_eccentricities(const NetworkMatrix &distanceMatrix) const;
-
-    // For network created from vector dataset. Filter edges based on epsilon radius.
-    void filter_e_radius(const float radius);
-    // For network created from vector dataset. Filter edges based on KNN.
-    void filter_kNN(const uint k);
-    // For network created from vector dataset. Filter edges based on combination of epilon radius and KNN.
-    void filter_combinataion_e_knn(const float radius, const uint k);
-    // Create sample from this network, with random node sampling method. Sample vertex count is equal to vertex_count() * `targetPercentSize`, which is < 1.0f.
-    NetworkMatrix filter_random_node_sampling(const float targetPercentSize) const;
-    // Create sample from this network, with random edge sampling method. Sample vertex count is equal to vertex_count() * `targetPercentSize`, which is < 1.0f.
-    NetworkMatrix filter_random_edge_sampling(const float targetPercentSize) const;
-
-    void filter_k_core(const uint k);
-
-    void kernighan_lin() const;
 
     void hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType);
     std::vector<GraphComponent> get_components() const;

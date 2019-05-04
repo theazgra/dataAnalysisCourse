@@ -19,6 +19,9 @@ add_library(NetworkWizard STATIC
         src/io.cpp
         src/graph_component.cpp
         src/network_generator.cpp
+        src/network_layer.cpp
+        src/multilayer_network.cpp
+        src/network_filtering.cpp
     )
 target_include_directories(NetworkWizard PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # add_library(sub::NetworkWizard ALIAS NetworkWizard)
@@ -33,4 +36,7 @@ add_executable(DataAnalysis main.cpp
     src/io.cpp
     src/graph_component.cpp
     src/network_generator.cpp
+    src/network_layer.cpp
+    src/multilayer_network.cpp
+    src/network_filtering.cpp
     )
