@@ -12,10 +12,10 @@
 #include <algorithm>
 
 #include "utils.h"
+#include <networkLib/types.h>
 
 namespace azgra::networkLib
 {
-typedef unsigned int uint;
 
 enum LinkageType
 {

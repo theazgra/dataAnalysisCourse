@@ -257,7 +257,7 @@ inline std::vector<EpidemicIterationInfo> SIR_epidemic_model(const NetworkMatrix
                                                                    infectionProbability, recoveryTime, iterationCount);
 }
 
-static void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats)
+inline void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats)
 {
     for (size_t time = 0; time < stats.size(); time++)
     {
@@ -273,7 +273,7 @@ static void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats
     }
 }
 
-static void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *_folder)
+inline void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *_folder)
 {
     std::string folder = _folder;
 

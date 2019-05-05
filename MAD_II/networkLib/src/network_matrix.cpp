@@ -166,7 +166,7 @@ void recalculate_similarity_matrix(const NetworkMatrix &cosineMat, NetworkMatrix
         if (c.first == newCluster.representative)
             continue;
 
-        float similarity;
+        float similarity = 0.0f;
 
         switch (linkage)
         {
@@ -1079,7 +1079,7 @@ void NetworkMatrix::export_network(const char *filename, bool allSelfEdge) const
     save_network(filename, edges);
 }
 
-float NetworkMatrix::get_network_longest_distance(const NetworkMatrix &distanceMatrix) const
+float NetworkMatrix::get_network_diameter(const NetworkMatrix &distanceMatrix) const
 {
     float max = 0;
     for (uint row = 0; row < this->rowCount; row++)
@@ -1093,7 +1093,7 @@ float NetworkMatrix::get_network_longest_distance(const NetworkMatrix &distanceM
     return max;
 }
 
-float NetworkMatrix::get_network_average_distance(const NetworkMatrix &distanceMatrix) const
+float NetworkMatrix::get_average_distance(const NetworkMatrix &distanceMatrix) const
 {
     assert(this->rowCount == this->colCount);
     float distanceSum = 0;
@@ -1226,7 +1226,7 @@ void NetworkMatrix::print_network_stats(const char *header) const
 {
     auto components = get_components();
     auto maxComponent = get_biggest_component(components);
-    float avgDistance = get_network_average_distance(get_distance_matrix());
+    float avgDistance = get_average_distance(get_distance_matrix());
     float avgDegree = get_average_degree();
 
     printf("%s\n", header);
@@ -1274,4 +1274,33 @@ void NetworkMatrix::attack_step()
         at(col, toDelete) = 0.0f;
     }
 }
+
+NetworkReport NetworkMatrix::get_network_report(const ReportRequest &request) const
+{
+    NetworkReport report = {};
+    report.vertexCount = vertex_count();
+    report.edgeCount = edge_count();
+    report.averageDegree = get_average_degree();
+    report.averageClusteringCoefficient = get_average_clustering_coefficient();
+
+    auto distanceMatrix = get_distance_matrix();
+    report.averageDistance = get_average_distance(distanceMatrix);
+    report.networkDiameter = get_network_diameter(distanceMatrix);
+
+    auto components = get_components();
+    auto maxComponent = get_biggest_component(components);
+    report.componentCount = components.size();
+    report.maxComponentSize = maxComponent.size();
+
+    if (request.includeVertexStats)
+    {
+        report.vertexDegrees = get_degree_of_vertices();
+        report.vertexEccentricities = get_eccentricities(distanceMatrix);
+        report.vertexClusteringCoefficients = get_clustering_coeff_for_all_vertices();
+        report.vertexClosenessCentralities = get_closeness_centrality_for_vertices(distanceMatrix);
+    }
+
+    return report;
+}
+
 }; // namespace azgra::networkLib

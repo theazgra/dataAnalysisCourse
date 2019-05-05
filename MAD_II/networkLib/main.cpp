@@ -32,7 +32,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
     uint edgeCount = network.edge_count();
     std::vector<GraphComponent> components = network.get_components();
     GraphComponent maxComponent = get_biggest_component(components);
-    //float averageDistance = network.get_network_average_distance(network.get_distance_matrix());
+    //float averageDistance = network.get_average_distance(network.get_distance_matrix());
     float averageDegree = network.get_average_degree();
 
     //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
@@ -53,7 +53,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
         edgeCount = network.edge_count();
         components = network.get_components();
         maxComponent = get_biggest_component(components);
-        //averageDistance = network.get_network_average_distance(network.get_distance_matrix());
+        //averageDistance = network.get_average_distance(network.get_distance_matrix());
         averageDegree = network.get_average_degree();
 
         //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep

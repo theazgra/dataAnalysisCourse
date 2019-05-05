@@ -524,7 +524,7 @@ std::vector<std::shared_ptr<SimpleString>> SimpleString::split(const char &separ
         return result;
 
     size_t from = 0;
-    size_t match = index_of(separator, from);
+    int match = index_of(separator, from);
 
     while (match != -1)
     {

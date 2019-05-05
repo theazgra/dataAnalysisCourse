@@ -1,7 +1,8 @@
 #pragma once
-#include "cluster.h"
-#include "graph_component.h"
-#include "io.h"
+#include <networkLib/cluster.h>
+#include <networkLib/graph_component.h>
+#include <networkLib/network_report.h>
+#include <networkLib/io.h>
 
 namespace azgra::networkLib
 {
@@ -172,8 +173,8 @@ public:
     // Export network to file.
     void export_network(const char *filename, bool allSelfEdge = false) const;
 
-    float get_network_longest_distance(const NetworkMatrix &distanceMatrix) const;
-    float get_network_average_distance(const NetworkMatrix &distanceMatrix) const;
+    float get_network_diameter(const NetworkMatrix &distanceMatrix) const;
+    float get_average_distance(const NetworkMatrix &distanceMatrix) const;
     std::vector<float> get_eccentricities(const NetworkMatrix &distanceMatrix) const;
 
     void hierarchical_clustering(const uint clusterCount, const char *reportFile, LinkageType linkType);
@@ -182,5 +183,6 @@ public:
 
     void failure_step();
     void attack_step();
+    NetworkReport get_network_report(const ReportRequest &request) const;
 };
 }; // namespace azgra::networkLib

@@ -26,14 +26,20 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        networkwizard.cpp
+        network_wizard.cpp \
+        vertex_info_form.cpp \
+        vertex_info_model.cpp
 
 HEADERS += \
-        networkwizard.h \
-        thread_test.h
+        network_wizard.h \
+        thread_jobs.h \
+        vertex_info_form.h \
+        vertex_info_model.h \
+        wizard_state.h
 
 FORMS += \
-        networkwizard.ui
+        network_wizard.ui \
+        vertex_info_form.ui
 
 QMAKE_CXXFLAGS  += -fopenmp
 QMAKE_LFLAGS    += -fopenmp
@@ -46,3 +52,6 @@ INCLUDEPATH     += $$PWD/../../networkLib/include
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    res.qrc
