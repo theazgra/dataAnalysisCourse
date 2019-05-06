@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>416</height>
+    <height>439</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -193,6 +193,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>rbRandom</tabstop>
+  <tabstop>rbBA</tabstop>
+  <tabstop>rbHolmeKim</tabstop>
+  <tabstop>rbBianconi</tabstop>
+  <tabstop>rbLink</tabstop>
+  <tabstop>rbCopying</tabstop>
+  <tabstop>tbInitialSize</tabstop>
+  <tabstop>tbFinalSize</tabstop>
+  <tabstop>tbNewEdges</tabstop>
+  <tabstop>tbProb</tabstop>
+  <tabstop>chbAging</tabstop>
+  <tabstop>chbSymmetric</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

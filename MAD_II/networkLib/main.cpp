@@ -6,6 +6,8 @@
 #include <ostream>
 #include <networkLib/epidemic_models.h>
 #include <networkLib/network_generator.h>
+#include <networkLib/Stopwatch.h>
+#include <exception>
 
 using namespace azgra::networkLib;
 /*
@@ -77,7 +79,31 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
-    //auto rnm = NetworkGenerator::RandomNetwork(500, 0.5f);
+    GeneratorParameters params = {};
+    params.isSet = true;
+    params.model = NetworkModel_BarabasiAlbert,
+    params.initialSize = 10;
+    params.finalSize = 1000;
+    params.newEdgesInStep = 3;
+    auto network = NetworkGenerator::generate_network(params);
+    //auto network = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv");
+    printf("BaModel\nVC: %u\nEC: %u\n", network.vertex_count(), network.edge_count());
+    network.export_network("/home/mor0146/Desktop/dptest.csv");
+
+    azgra::Stopwatch stopwatch;
+    stopwatch.start();
+    auto dist = network.get_distance_matrix();
+    stopwatch.stop();
+    printf("Distance matrix calculation took: %8.5f ms\n", stopwatch.elapsed_milliseconds());
+
+    float avgDist = network.get_average_distance(dist);
+    float rounded = round(avgDist * 1000.0) / 1000.0;
+
+    printf("Average distance: %.3f\n", rounded);
+
+    // if (rounded != 2.991f)
+    //     throw new std::logic_error("Broke the calculation");
+
     /*
     NetworkMatrix baNetwork = NetworkMatrix(500, 500);
     baNetwork.generate_scale_free_network(10, 500, 3);

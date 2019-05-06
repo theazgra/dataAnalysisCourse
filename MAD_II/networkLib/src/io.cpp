@@ -48,7 +48,7 @@ uint get_vertex_count_from_edge_pairs(const std::vector<std::pair<uint, uint>> &
         if (edge.second > max)
             max = edge.second;
     }
-    return max;
+    return (max + 1);
 }
 
 void save_network(const char *filename, const std::vector<std::pair<uint, uint>> &data)

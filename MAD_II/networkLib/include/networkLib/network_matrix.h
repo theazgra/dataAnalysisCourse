@@ -49,14 +49,7 @@ private:
     // Get edge count between neighbours.
     uint get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const;
 
-    // Check if we can use BFS instead of dijkstra.
-    bool can_use_bfs() const;
-
-    // Find shortest path between source and dest vertex using dijkstra algorithm.
-    float dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
-
-    // Find shortest path between source and dest vertex using breadth first algorithm.
-    float bfs_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const;
+    void dijkstra_path2(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const;
 
     NetworkMatrix get_cosine_similarity_matrix() const;
 
@@ -111,7 +104,7 @@ public:
     void set_inf_where_no_edge();
 
     // Get matrix of distances from vertex to every other one.
-    NetworkMatrix get_distance_matrix(const bool forceDijkstra = false) const;
+    NetworkMatrix get_distance_matrix() const;
 
     // Get average clustering coefficient.
     float get_average_clustering_coefficient() const;

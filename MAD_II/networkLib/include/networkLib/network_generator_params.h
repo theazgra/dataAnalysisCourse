@@ -15,7 +15,7 @@ enum NetworkModel
     NetworkModel_LinkSelection
 };
 
-static azgra::SimpleString get_network_model_name(const NetworkModel &model)
+inline azgra::SimpleString get_network_model_name(const NetworkModel &model)
 {
     switch (model)
     {

@@ -20,7 +20,7 @@ NetworkMatrix::NetworkMatrix(const char *fName)
 {
     int offset;
     auto loadedEdges = load_edge_pairs(fName, ";", offset);
-    uint vc = get_vertex_count_from_edge_pairs(loadedEdges);
+    uint vc = get_vertex_count_from_edge_pairs(loadedEdges) + offset;
     this->rowCount = vc;
     this->colCount = vc;
 
@@ -750,102 +750,6 @@ std::map<uint, std::vector<uint>> NetworkMatrix::get_vertices_grouped_by_degree(
 
     return result;
 }
-/************************************************************************************************************/
-inline uint get_best_unvisited(const std::vector<uint> &unvisited, const std::vector<float> &distances)
-{
-    uint best = 0;
-    float min = INFINITY;
-    for (const uint &vertex : unvisited)
-    {
-        if (distances[vertex] < min)
-        {
-            min = distances[vertex];
-            best = vertex;
-        }
-    }
-    return best;
-}
-
-inline void new_best_distance(const uint &currentVertex, std::vector<uint> &unvisited, std::vector<float> &distances, const float distance)
-{
-    distances.at(currentVertex) = distance;
-    if (!find(unvisited, currentVertex))
-    {
-        unvisited.push_back(currentVertex);
-    }
-}
-
-bool NetworkMatrix::can_use_bfs() const
-{
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        for (uint col = 0; col < this->colCount; col++)
-        {
-            if (at(row, col) > 1.0f)
-                return false;
-        }
-    }
-    return true;
-}
-
-float NetworkMatrix::bfs_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
-{
-    std::vector<bool> visited;
-    std::vector<int> previous;
-    visited.reserve(this->colCount);
-    previous.reserve(this->colCount);
-
-    for (uint i = 0; i < this->colCount; i++)
-    {
-        previous.push_back(-1);
-        visited.push_back(false);
-    }
-
-    uint current;
-    std::queue<uint> q;
-    q.push(source);
-    previous[source] = -1;
-
-    std::vector<uint> neighbors;
-    bool found = false;
-    while (!q.empty())
-    {
-        //printf("%lu in queue\n", size);
-
-        current = q.front();
-        q.pop();
-
-        if (current == dest)
-        {
-            found = true;
-            break;
-        }
-
-        neighbors = get_neighbors(current);
-        for (const uint &neighbor : neighbors)
-        {
-            if (!visited[neighbor])
-            {
-                q.push(neighbor);
-                visited[neighbor] = true;
-                previous[neighbor] = current;
-            }
-        }
-    }
-    if (!found)
-    {
-        return INFINITY;
-    }
-
-    float result = 0;
-    current = dest;
-    while (current != source)
-    {
-        result++;
-        current = previous[current];
-    }
-    return result;
-}
 
 std::vector<uint> NetworkMatrix::find_k_neighbors(const uint row, const uint k) const
 {
@@ -898,56 +802,6 @@ void NetworkMatrix::filter_knn_row(const uint row, const uint k)
         at(row, neigh) = 1.0f;
 }
 
-float NetworkMatrix::dijkstra_path(const NetworkMatrix &mat, const uint &source, const uint &dest) const
-{
-    uint vc = vertex_count();
-    std::vector<uint> unvisited;
-    std::vector<float> distances;
-    std::vector<bool> visited;
-    unvisited.reserve(vc);
-    distances.reserve(vc);
-    visited.reserve(vc);
-
-    for (uint v = 0; v < vc; v++)
-    {
-        distances.push_back(INFINITY);
-        visited.push_back(false);
-    }
-    uint current = source;
-    new_best_distance(current, unvisited, distances, 0);
-    auto neis = get_neighbors(current);
-    assert(neis.size() > 0);
-    for (const uint &neighbor : neis)
-    {
-        new_best_distance(neighbor, unvisited, distances, INFINITY);
-    }
-
-    while (!visited[dest])
-    {
-        current = get_best_unvisited(unvisited, distances);
-        auto neighbors = get_neighbors(current);
-        if (neighbors.size() > 0)
-        {
-            for (const uint &neighbor : neighbors)
-            {
-                if (visited[neighbor])
-                    continue;
-                float distanceToNeighbour = distances[current] + mat.at(current, neighbor);
-                if (distanceToNeighbour < distances[neighbor])
-                {
-                    new_best_distance(neighbor, unvisited, distances, distanceToNeighbour);
-                }
-            }
-        }
-
-        visited[current] = true;
-        unvisited.erase(std::remove(std::begin(unvisited), std::end(unvisited), current));
-    }
-
-    float result = distances[dest];
-    return result;
-}
-
 std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const NetworkMatrix &distanceMatrix) const
 {
     assert(this->rowCount == this->colCount);
@@ -970,40 +824,6 @@ std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const Ne
         result.push_back(cc);
     }
 
-    return result;
-}
-// for rId in range(0, self.rowCount):
-//             result.append(round(1 / (sum([self.values[rId][cId] for cId in range(0, self.colCount) if cId != rId]) / vertexCount), 7))
-
-NetworkMatrix NetworkMatrix::get_distance_matrix(const bool forceDijkstra) const
-{
-    assert(this->rowCount == this->colCount);
-    bool bfs = !forceDijkstra && can_use_bfs();
-    //printf("Will use %s alg.\n", bfs ? "BreadthFirstSearch" : "Dijkstra");
-
-    NetworkMatrix distanceMat(this->rowCount, this->colCount);
-    NetworkMatrix result(this->rowCount, this->colCount);
-
-    distanceMat.copy_data(*this);
-    result.copy_data(*this);
-    distanceMat.set_inf_where_no_edge();
-
-#pragma omp parallel for
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        if (deleted[row])
-            continue;
-
-        for (uint col = row + 1; col < this->colCount; col++)
-        {
-            if (deleted[col])
-                continue;
-
-            float distance = bfs ? bfs_path(distanceMat, row, col) : dijkstra_path(distanceMat, row, col);
-            result.at(row, col) = distance;
-            result.at(col, row) = distance;
-        }
-    }
     return result;
 }
 
@@ -1301,6 +1121,86 @@ NetworkReport NetworkMatrix::get_network_report(const ReportRequest &request) co
     }
 
     return report;
+}
+
+inline uint dp2_pick_best_unvisited(const std::vector<bool> &visited, const std::vector<float> &dist)
+{
+    uint result = 0;
+    float min = INFINITY;
+
+    for (size_t i = 0; i < visited.size(); i++)
+    {
+        if (!visited[i] && dist[i] < min)
+        {
+            min = dist[i];
+            result = i;
+        }
+    }
+
+    assert(min != INFINITY);
+    return result;
+}
+
+void NetworkMatrix::dijkstra_path2(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const
+{
+    // Total vertex count.
+    size_t vertexCount = this->rowCount;
+
+    std::vector<float> dist(vertexCount);
+    std::vector<bool> visited(vertexCount);
+
+    for (size_t v = 0; v < vertexCount; v++)
+    {
+        dist[v] = INFINITY;
+        visited[v] = false;
+    }
+    dist[source] = 0;
+
+    for (size_t count = 0; count < vertexCount - 1; count++)
+    {
+        uint u = dp2_pick_best_unvisited(visited, dist);
+        visited[u] = true;
+
+        // Update dist value of the adjacent vertices of the picked vertex.
+        for (size_t v = 0; v < vertexCount; v++)
+        {
+            // Update dist[v] only if is not visited, there is an edge from
+            // u to v, and total weight of path from source to v through u is
+            // smaller than current value of dist[v].
+
+            if (!visited[v] &&                        // v is not visited
+                mat.is_edge_at(u, v) &&               // there is an edge from `u` to `v`
+                ((dist[u] + mat.at(u, v)) < dist[v])) // distance from source to `v` through `u` is better than the one found
+            {
+                dist[v] = dist[u] + mat.at(u, v);
+            }
+        }
+    }
+
+    for (size_t v = source + 1; v < this->colCount; v++)
+    {
+        result.at(source, v) = dist[v];
+        result.at(v, source) = dist[v];
+    }
+}
+
+NetworkMatrix NetworkMatrix::get_distance_matrix() const
+{
+    assert(this->rowCount == this->colCount);
+
+    NetworkMatrix distanceMat(this->rowCount, this->colCount);
+    NetworkMatrix result(this->rowCount, this->colCount);
+
+    distanceMat.copy_data(*this);
+    result.copy_data(*this);
+    distanceMat.set_inf_where_no_edge();
+
+#pragma omp parallel for
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        dijkstra_path2(distanceMat, row, result);
+    }
+    return result;
 }
 
 }; // namespace azgra::networkLib
