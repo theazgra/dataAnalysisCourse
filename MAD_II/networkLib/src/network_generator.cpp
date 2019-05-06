@@ -1,7 +1,29 @@
 #include <networkLib/network_generator.h>
 namespace azgra::networkLib
 {
-void NetworkGenerator::generate_initial_network(const uint initialSize, NetworkMatrix matrix, std::vector<uint> vertexList)
+NetworkMatrix NetworkGenerator::generate_network(GeneratorParameters params)
+{
+    assert(params.isSet);
+    switch (params.model)
+    {
+    case NetworkModel_Random:
+        return params.symmetric ? SymmetricRandomNetwork(params.finalSize) : RandomNetwork(params.finalSize, params.probability);
+    case NetworkModel_BarabasiAlbert:
+        return BarabasiAlbert(params.initialSize, params.finalSize, params.newEdgesInStep, params.aging, params.ageScaling);
+    case NetworkModel_Bianconi:
+        return Bianconi(params.initialSize, params.finalSize, params.newEdgesInStep, params.probability);
+    case NetworkModel_HolmeKim:
+        return HolmeKim(params.initialSize, params.finalSize, params.newEdgesInStep, params.probability);
+    case NetworkModel_Copying:
+        return CopyingModel(params.initialSize, params.finalSize, params.probability);
+    case NetworkModel_LinkSelection:
+        return LinkSelectionModel(params.initialSize, params.finalSize);
+    default:
+        return NetworkMatrix();
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetworkGenerator::generate_initial_network(const uint initialSize, NetworkMatrix matrix, std::vector<uint> &vertexList)
 {
     assert(matrix.rows() >= initialSize && matrix.cols() >= initialSize);
     assert(vertexList.size() == 0);

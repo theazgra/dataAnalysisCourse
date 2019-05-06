@@ -77,7 +77,7 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 */
 int main(int argc, char **argv)
 {
-    auto rnm = NetworkGenerator::RandomNetwork(500, 0.5f);
+    //auto rnm = NetworkGenerator::RandomNetwork(500, 0.5f);
     /*
     NetworkMatrix baNetwork = NetworkMatrix(500, 500);
     baNetwork.generate_scale_free_network(10, 500, 3);

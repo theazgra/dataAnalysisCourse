@@ -5,10 +5,18 @@
 
 using namespace azgra::networkLib;
 
+enum NetworkSource
+{
+    NetworkSource_EdgePairs,
+    NetworkSource_VectorData,
+    NetworkSource_Generated,
+    NetworkSource_NoNetwork
+};
+
 struct WizardState
 {
     bool isNetworkSet = false;
-    bool importedFromVectorData = false;
+    NetworkSource networkSource = NetworkSource_NoNetwork;
     NetworkMatrix network;
     NetworkReport report;
     QString fileName;

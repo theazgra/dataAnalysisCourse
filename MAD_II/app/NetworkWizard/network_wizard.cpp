@@ -12,9 +12,9 @@ NetworkWizard::NetworkWizard(QWidget * parent) :
     connect(ui->miClear, &QAction::triggered, this, &NetworkWizard::clear_network);
     connect(ui->miExport, &QAction::triggered, this, &NetworkWizard::export_network);
     connect(ui->miViewVertexInfo, &QAction::triggered, this, &NetworkWizard::open_vertex_info);
+    connect(ui->miGenerate, &QAction::triggered, this, &NetworkWizard::generate_network);
 
-
-    connect(&importWatcher, SIGNAL(finished()), this, SLOT(import_completed()));
+    connect(&newNetworkWatcher, SIGNAL(finished()), this, SLOT(network_load_completed()));
     connect(&reportWatcher, SIGNAL(finished()), this, SLOT(report_created()));
 
 
@@ -49,30 +49,77 @@ void NetworkWizard::import_from_edge_pairs()
     if (fName.length() > 0)
     {
         this->state.fileName = fileName;
+        this->state.networkSource = NetworkSource_EdgePairs;
+
         show_loader();
         QFuture<azgra::networkLib::NetworkMatrix> importJob = QtConcurrent::run(import_network_from_edges, fName);
-        importWatcher.setFuture(importJob);
+        newNetworkWatcher.setFuture(importJob);
     }
+}
+
+void NetworkWizard::generate_network()
+{
+    GenerateDialog * genDialog = new GenerateDialog();
+
+    int result = genDialog->exec();
+
+    if (result == QDialog::Accepted)
+    {
+
+        auto params = genDialog->get_generator_params();
+
+        azgra::SimpleString modelName = azgra::networkLib::get_network_model_name(params.model);
+
+        setWindowTitle(QString("NetworkWizard - %1").arg(modelName.get_c_string()));
+
+        append_to_log(QString("Generating network using %1 ...").arg(modelName.get_c_string()));
+
+        this->state.fileName.clear();
+        this->state.networkSource = NetworkSource_Generated;
+
+        show_loader();
+        QFuture<azgra::networkLib::NetworkMatrix> generateJob = QtConcurrent::run(generate_network_async, params);
+        newNetworkWatcher.setFuture(generateJob);
+    }
+
+    delete genDialog;
 }
 
 void NetworkWizard::import_from_vector_data()
 {
-    qDebug() << "called: import_from_vector_data;";
 }
 
-void NetworkWizard::import_completed()
+void NetworkWizard::network_load_completed()
 {
-    azgra::networkLib::NetworkMatrix imported = importWatcher.result();
+    azgra::networkLib::NetworkMatrix imported = newNetworkWatcher.result();
 
     this->state.isNetworkSet = true;
     this->state.network = imported;
-    this->state.importedFromVectorData = false;
 
+    switch (this->state.networkSource)
+    {
+        case NetworkSource_EdgePairs:
+        {
+            QString msg = QString("Imported network edge pairs from %1").arg(state.fileName);
+            append_to_log(msg);
+        }
+        break;
+        case NetworkSource_VectorData:
+        {
+            QString msg = QString("Imported network vector data from %1").arg(state.fileName);
+            append_to_log(msg);
+        }
+        break;
+        case NetworkSource_Generated:
+        {
+            append_to_log("Generated network...");
+        }
+        break;
+        case NetworkSource_NoNetwork:
+            break;
+    }
 
-    QString msg = QString("Imported network from %1").arg(state.fileName);
-    append_to_log(msg);
-
-
+    append_to_log("Starting network analysis...");
     QFuture<azgra::networkLib::NetworkReport> reportJob = QtConcurrent::run(get_network_report_async,
                                                                             this->state.network);
     reportWatcher.setFuture(reportJob);
@@ -89,7 +136,7 @@ void NetworkWizard::report_created()
     vertexInfoForm->show();
 
     hide_loader();
-    append_to_log("Created report for imported network");
+    append_to_log("Network report created.");
 }
 
 void NetworkWizard::open_vertex_info()

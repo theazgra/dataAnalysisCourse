@@ -358,6 +358,7 @@
     </property>
     <addaction name="miImportFromEdgePairs"/>
     <addaction name="miImportFromVector"/>
+    <addaction name="miGenerate"/>
     <addaction name="miClear"/>
     <addaction name="miExport"/>
    </widget>
@@ -402,6 +403,11 @@
    </property>
    <property name="text">
     <string>Vertex info</string>
+   </property>
+  </action>
+  <action name="miGenerate">
+   <property name="text">
+    <string>Generate network</string>
    </property>
   </action>
  </widget>

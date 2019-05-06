@@ -25,12 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        generate_dialog.cpp \
         main.cpp \
         network_wizard.cpp \
         vertex_info_form.cpp \
         vertex_info_model.cpp
 
 HEADERS += \
+        generate_dialog.h \
         network_wizard.h \
         thread_jobs.h \
         vertex_info_form.h \
@@ -38,6 +40,7 @@ HEADERS += \
         wizard_state.h
 
 FORMS += \
+        generate_dialog.ui \
         network_wizard.ui \
         vertex_info_form.ui
 

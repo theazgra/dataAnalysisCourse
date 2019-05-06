@@ -11,7 +11,7 @@
 
 #include <wizard_state.h>
 #include <vertex_info_form.h>
-
+#include <generate_dialog.h>
 
 namespace Ui {
 class NetworkWizard;
@@ -27,7 +27,7 @@ public:
 
 private:
     Ui::NetworkWizard * ui;
-    QFutureWatcher<azgra::networkLib::NetworkMatrix> importWatcher;
+    QFutureWatcher<azgra::networkLib::NetworkMatrix> newNetworkWatcher;
     QFutureWatcher<azgra::networkLib::NetworkReport> reportWatcher;
     WizardState state;
 
@@ -43,11 +43,12 @@ private:
 private slots:
     void import_from_edge_pairs();
     void import_from_vector_data();
-    void import_completed();
+    void network_load_completed();
     void report_created();
     void export_network();
     void clear_network();
     void open_vertex_info();
+    void generate_network();
 };
 
 #endif // NETWORKWIZARD_H
