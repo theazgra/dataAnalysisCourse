@@ -7,7 +7,9 @@ namespace azgra
 char *SimpleString::alloc_string(const size_t &length)
 {
     assert(length > 0);
-    char *memory = static_cast<char *>(::operator new(sizeof(char) * length));
+    // Add one byte for null separator?
+    size_t allocSize = sizeof(char) * length + sizeof(char);
+    char *memory = static_cast<char *>(::operator new(allocSize));
     return memory;
 }
 
@@ -50,7 +52,7 @@ void SimpleString::internal_initalize(const char *string)
     for (size_t i = 0; i < inputStringLen; i++)
         _string[i] = string[i];
 
-    _string[_length] = '\000';
+    _string[_length] = '\0';
 }
 
 SimpleString::SimpleString(char *cString, const size_t length, bool noAlloc)
@@ -104,7 +106,6 @@ SimpleString::SimpleString(const char *cString)
 
 SimpleString::~SimpleString()
 {
-    printf("Free called\n");
     free_string(_string);
     _length = 0;
 }
@@ -471,16 +472,7 @@ void SimpleString::remove(const char *string)
 }
 SimpleString SimpleString::substring(const size_t fromIndex) const
 {
-    assert(fromIndex < _length);
-    size_t len = _length - fromIndex;
-
-    char *subsMemory = alloc_string(len);
-    SimpleString result(subsMemory);
-    for (size_t i = fromIndex; i < _length; i++)
-    {
-        result[i - fromIndex] = _string[i];
-    }
-    return result;
+    return substring(fromIndex, _length - fromIndex);
 }
 
 SimpleString SimpleString::substring(const size_t fromIndex, const size_t length) const
@@ -494,6 +486,7 @@ SimpleString SimpleString::substring(const size_t fromIndex, const size_t length
     {
         result[i - fromIndex] = _string[i];
     }
+    result[length] = '\0';
 
     return result;
 }

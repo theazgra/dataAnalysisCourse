@@ -7,7 +7,7 @@
 #include <networkLib/epidemic_models.h>
 #include <networkLib/network_generator.h>
 #include <networkLib/Stopwatch.h>
-#include <exception>
+#include <networkLib/temporal_converter.h>
 
 using namespace azgra::networkLib;
 /*
@@ -70,36 +70,11 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
     }
 }
 
-/*
-    NetworkMatrix is always indexed from zero!!!
-    - If imported network vertex begin at one instead of zero use offset of -1 in NetworkMatrix::load_from_edges() function.
-
-    Network can be either imported or generated.
-    Two network types can be generated. Random ( generate_random_network() ) or Barabasi-Albert model ( generate_scale_free_network ).
-*/
 int main(int argc, char **argv)
 {
-    GeneratorParameters params = {};
-    params.isSet = true;
-    params.model = NetworkModel_BarabasiAlbert,
-    params.initialSize = 10;
-    params.finalSize = 1000;
-    params.newEdgesInStep = 3;
-    auto network = NetworkGenerator::generate_network(params);
-    //auto network = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/USairport500.csv");
-    printf("BaModel\nVC: %u\nEC: %u\n", network.vertex_count(), network.edge_count());
-    network.export_network("/home/mor0146/Desktop/dptest.csv");
-
-    azgra::Stopwatch stopwatch;
-    stopwatch.start();
-    auto dist = network.get_distance_matrix();
-    stopwatch.stop();
-    printf("Distance matrix calculation took: %8.5f ms\n", stopwatch.elapsed_milliseconds());
-
-    float avgDist = network.get_average_distance(dist);
-    float rounded = round(avgDist * 1000.0) / 1000.0;
-
-    printf("Average distance: %.3f\n", rounded);
+    auto edges = load_temporal_edges("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t');
+    auto layers = TemporalNetworkConverter::transform_temporal_edges_to_temporal_layers(edges, 10000);
+    printf("%lu layers\n", layers.size());
 
     // if (rounded != 2.991f)
     //     throw new std::logic_error("Broke the calculation");

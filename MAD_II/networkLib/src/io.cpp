@@ -103,4 +103,29 @@ std::vector<IrisRecord> read_iris_file(const char *filename)
 
     return result;
 }
-};
+
+std::vector<TemporalEdge> load_temporal_edges(const char *fileName, const char separator)
+{
+    std::ifstream inStream(fileName);
+    assert(inStream.is_open());
+
+    std::string stdLine;
+
+    std::vector<TemporalEdge> result;
+
+    while (std::getline(inStream, stdLine))
+    {
+        SimpleString line(stdLine.c_str());
+        auto tokens = line.split(separator);
+        if (tokens.size() == 3)
+        {
+            TemporalEdge edge = {};
+            edge.time = static_cast<uint>(strtol(tokens[0]->get_c_string(), (char **)nullptr, 10));
+            edge.u = static_cast<uint>(strtol(tokens[1]->get_c_string(), (char **)nullptr, 10));
+            edge.v = static_cast<uint>(strtol(tokens[2]->get_c_string(), (char **)nullptr, 10));
+            result.push_back(edge);
+        }
+    }
+    return result;
+}
+}; // namespace azgra::networkLib
