@@ -7,7 +7,7 @@
 #include <networkLib/epidemic_models.h>
 #include <networkLib/network_generator.h>
 #include <networkLib/Stopwatch.h>
-#include <networkLib/temporal_converter.h>
+#include <networkLib/multilayer_network.h>
 
 using namespace azgra::networkLib;
 /*
@@ -72,10 +72,10 @@ void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
 
 int main(int argc, char **argv)
 {
-    auto edges = load_temporal_edges("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t');
-    auto layers = TemporalNetworkConverter::transform_temporal_edges_to_temporal_layers(edges, 10000);
-    printf("%lu layers\n", layers.size());
-
+    //auto multiLayer1 = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
+    int hour = 3600;
+    auto multiLayer = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 2);
+    return 0;
     // if (rounded != 2.991f)
     //     throw new std::logic_error("Broke the calculation");
 

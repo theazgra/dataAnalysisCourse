@@ -32,6 +32,20 @@ NetworkMatrix::NetworkMatrix(const char *fName)
     initialize_deleted();
 }
 
+NetworkMatrix::NetworkMatrix(const std::vector<std::pair<uint, uint>> &edges, int offset)
+{
+    uint vc = get_vertex_count_from_edge_pairs(edges) + offset;
+    this->rowCount = vc;
+    this->colCount = vc;
+
+    this->data.resize(this->rowCount * this->colCount);
+
+    set_matrix_to_one_value(0.0f);
+
+    load_from_edges(edges, offset);
+    initialize_deleted();
+}
+
 NetworkMatrix::NetworkMatrix(const NetworkMatrix &copySrc)
 {
     this->rowCount = copySrc.rows();
@@ -316,36 +330,37 @@ std::vector<Cluster> NetworkMatrix::find_clusters_hierarchical(const uint cluste
     printf("We are done with hierarchical clustering. Final cluster count: %lu\n", result.size());
     return result;
 }
-NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
-{
-    size_t size = vectorData.size();
-    assert(size > 0);
 
-    this->rowCount = size;
-    this->colCount = size;
+// NetworkMatrix::NetworkMatrix(const std::vector<IrisRecord> &vectorData)
+// {
+//     size_t size = vectorData.size();
+//     assert(size > 0);
 
-    this->data.resize(size * size);
-    set_matrix_to_one_value(0.0f);
+//     this->rowCount = size;
+//     this->colCount = size;
 
-    for (uint row = 0; row < this->rowCount; row++)
-    {
-        for (uint col = row; col < this->colCount; col++)
-        {
-            if (row == col)
-            {
-                at(row, col) = 1.0f;
-                at(col, row) = 1.0f;
-            }
-            else
-            {
-                float gaussSimilarity = vectorData[row].gauss_distance(vectorData[col]);
-                at(row, col) = gaussSimilarity;
-                at(col, row) = gaussSimilarity;
-            }
-        }
-    }
-    initialize_deleted();
-}
+//     this->data.resize(size * size);
+//     set_matrix_to_one_value(0.0f);
+
+//     for (uint row = 0; row < this->rowCount; row++)
+//     {
+//         for (uint col = row; col < this->colCount; col++)
+//         {
+//             if (row == col)
+//             {
+//                 at(row, col) = 1.0f;
+//                 at(col, row) = 1.0f;
+//             }
+//             else
+//             {
+//                 float gaussSimilarity = vectorData[row].gauss_distance(vectorData[col]);
+//                 at(row, col) = gaussSimilarity;
+//                 at(col, row) = gaussSimilarity;
+//             }
+//         }
+//     }
+//     initialize_deleted();
+// }
 
 void NetworkMatrix::reinitialize(const uint &rowCount, const uint &colCount)
 {

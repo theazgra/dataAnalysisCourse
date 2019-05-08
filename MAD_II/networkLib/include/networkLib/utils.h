@@ -31,6 +31,26 @@ bool find(const std::vector<T> &vector, const T &element)
 }
 
 template <typename T>
+int find_index(const std::vector<T> &vector, const T &element)
+{
+    for (size_t i = 0; i < vector.size(); i++)
+    {
+        if (vector[i] == element)
+            return i;
+    }
+    return -1;
+}
+
+template <typename T>
+void push_back_if_not_found(std::vector<T> &vector, const T &element)
+{
+    if (!find(vector, element))
+    {
+        vector.push_back(element);
+    }
+}
+
+template <typename T>
 void push_range(std::vector<T> &dst, const std::vector<T> &src)
 {
     for (size_t i = 0; i < src.size(); i++)
@@ -63,7 +83,7 @@ T sum(const std::vector<T> &vector)
 }
 
 template <typename T>
-uint count(const std::vector<T> &vector, const T element)
+uint count(const std::vector<T> &vector, const T &element)
 {
     uint result = 0;
     for (size_t i = 0; i < vector.size(); i++)
@@ -77,7 +97,7 @@ uint count(const std::vector<T> &vector, const T element)
 }
 
 template <typename TKey, typename TValue>
-bool contains_key(const std::map<TKey, TValue> &dict, TKey key)
+bool contains_key(const std::map<TKey, TValue> &dict, TKey &key)
 {
     return !(dict.find(key) == dict.end());
 }
@@ -112,4 +132,10 @@ std::vector<T> first_of(const std::vector<T> &src, const bool decreasing = false
     }
     return result;
 }
+
+template <typename T>
+inline void max(T &src, const T test) { src = (test > src) ? test : src; }
+template <typename T>
+inline void min(T &src, const T test) { src = (test < src) ? test : src; }
+
 }; // namespace azgra::networkLib

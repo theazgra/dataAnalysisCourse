@@ -7,8 +7,7 @@ namespace azgra
 char *SimpleString::alloc_string(const size_t &length)
 {
     assert(length > 0);
-    // Add one byte for null separator?
-    size_t allocSize = sizeof(char) * length + sizeof(char);
+    size_t allocSize = sizeof(char) * length;
     char *memory = static_cast<char *>(::operator new(allocSize));
     return memory;
 }
@@ -479,14 +478,14 @@ SimpleString SimpleString::substring(const size_t fromIndex, const size_t length
 {
     assert(fromIndex < _length && (fromIndex + length) <= _length);
 
-    char *subsMemory = alloc_string(length);
-    SimpleString result(subsMemory);
+    char *subsMemory = alloc_string(length + 1);
 
     for (size_t i = fromIndex; i < fromIndex + length; i++)
     {
-        result[i - fromIndex] = _string[i];
+        subsMemory[i - fromIndex] = _string[i];
     }
-    result[length] = '\0';
+    subsMemory[length] = '\0';
+    SimpleString result(subsMemory);
 
     return result;
 }
