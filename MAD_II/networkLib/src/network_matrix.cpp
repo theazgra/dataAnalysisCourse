@@ -916,7 +916,7 @@ void NetworkMatrix::export_network(const char *filename, bool allSelfEdge) const
 
 float NetworkMatrix::get_network_diameter(const NetworkMatrix &distanceMatrix) const
 {
-    float max = 0;
+    float max = -1.0f;
     for (uint row = 0; row < this->rowCount; row++)
     {
         for (uint col = row + 1; col < this->colCount; col++)
@@ -953,6 +953,7 @@ float NetworkMatrix::get_average_distance(const NetworkMatrix &distanceMatrix) c
     float result = distanceSum / (float)((vertexCount * (vertexCount - 1)) / 2.0f);
     return result;
 }
+
 std::vector<float> NetworkMatrix::get_eccentricities(const NetworkMatrix &distanceMatrix) const
 {
     assert(this->rowCount == this->colCount);

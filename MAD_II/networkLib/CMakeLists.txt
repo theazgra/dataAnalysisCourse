@@ -23,6 +23,7 @@ add_library(NetworkWizard STATIC
         src/multilayer_network.cpp
         src/network_filtering.cpp
         src/Stopwatch.cpp
+        src/community.cpp
     )
 target_include_directories(NetworkWizard PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # add_library(sub::NetworkWizard ALIAS NetworkWizard)
@@ -39,4 +40,5 @@ add_executable(DataAnalysis main.cpp
     src/multilayer_network.cpp
     src/network_filtering.cpp
     src/Stopwatch.cpp
+    src/community.cpp
     )
