@@ -53,9 +53,6 @@ private:
 
     NetworkMatrix get_cosine_similarity_matrix() const;
 
-    // Get number of shared neighbors.
-    uint get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const;
-
     std::vector<Cluster> find_clusters_hierarchical(const uint clusterCount, LinkageType linkType) const;
     void remove_edges_outside_clusters(const std::vector<Cluster> &clusters);
 
@@ -178,5 +175,10 @@ public:
     void failure_step();
     void attack_step();
     NetworkReport get_network_report(const ReportRequest &request) const;
+
+    // Get number of shared neighbors.
+    uint get_count_of_shared_neighbors(const uint u, const uint v) const;
+    // Get number of shared neighbors.
+    uint get_count_of_same_neighbors(const std::vector<uint> &aNeighbors, const std::vector<uint> &bNeighbors) const;
 };
 }; // namespace azgra::networkLib

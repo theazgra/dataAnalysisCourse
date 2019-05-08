@@ -835,6 +835,7 @@ std::vector<float> NetworkMatrix::get_closeness_centrality_for_vertices(const Ne
         {
             distanceSum += distanceMatrix.at(vertex, col);
         }
+
         cc = (1.0f / distanceSum) * ((float)vc - 1.0f);
         result.push_back(cc);
     }
@@ -1217,6 +1218,11 @@ NetworkMatrix NetworkMatrix::get_distance_matrix() const
         dijkstra_path2(distanceMat, row, result);
     }
     return result;
+}
+
+uint NetworkMatrix::get_count_of_shared_neighbors(const uint u, const uint v) const
+{
+    return get_count_of_same_neighbors(get_neighbors(u), get_neighbors(v));
 }
 
 }; // namespace azgra::networkLib

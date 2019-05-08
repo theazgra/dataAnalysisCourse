@@ -151,5 +151,7 @@ template <typename T>
 inline void max(T &src, const T test) { src = (test > src) ? test : src; }
 template <typename T>
 inline void min(T &src, const T test) { src = (test < src) ? test : src; }
+template <typename T>
+inline T min_from(const T &a, const T &b) { return a < b ? a : b; }
 
 }; // namespace azgra::networkLib
