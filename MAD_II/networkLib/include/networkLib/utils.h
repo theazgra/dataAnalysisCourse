@@ -51,6 +51,20 @@ void push_back_if_not_found(std::vector<T> &vector, const T &element)
 }
 
 template <typename T>
+std::vector<T> except(const std::vector<T> &copySrc, const std::vector<T> &except)
+{
+    std::vector<T> result;
+    for (size_t i = 0; i < copySrc.size(); i++)
+    {
+        if (!find(except, copySrc[i]))
+        {
+            result.push_back(copySrc[i]);
+        }
+    }
+    return result;
+}
+
+template <typename T>
 void push_range(std::vector<T> &dst, const std::vector<T> &src)
 {
     for (size_t i = 0; i < src.size(); i++)

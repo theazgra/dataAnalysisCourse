@@ -1,10 +1,6 @@
-#include "external/args.hxx"
+// #include "external/args.hxx"
 // #include "network_matrix.h"
 // #include "multilayer_network.h"
-#include <networkLib/network_matrix.h>
-#include <iomanip>
-#include <ostream>
-#include <networkLib/epidemic_models.h>
 #include <networkLib/network_generator.h>
 #include <networkLib/Stopwatch.h>
 #include <networkLib/multilayer_network.h>
@@ -12,69 +8,29 @@
 using namespace azgra::networkLib;
 /*
     Florentina
-        - Degree centrality
-        - Neighborhood centrality
-        - (_added_) connective redundancy
-        - (_added_) xneighborhood
+        - OK        Degree centrality
+        - OK        Neighborhood centrality
+        - OK        (_added_) connective redundancy
+        - OK        (_added_) xneighborhood
 */
-
-void analysis(NetworkMatrix &network, const std::string &folder, bool attack)
-{
-    std::string reportFile = folder + "/report.csv";
-    std::ofstream reportStream(folder, std::ios::out);
-    if (!reportStream.is_open())
-    {
-        printf("Unable to open report stream\n");
-        return;
-    }
-    reportStream << std::fixed << std::setprecision(5);
-    std::string sep = ";";
-
-    uint vertexCount = network.vertex_count();
-    uint edgeCount = network.edge_count();
-    std::vector<GraphComponent> components = network.get_components();
-    GraphComponent maxComponent = get_biggest_component(components);
-    //float averageDistance = network.get_average_distance(network.get_distance_matrix());
-    float averageDegree = network.get_average_degree();
-
-    //reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDistance;AverageDegree" << std::endl;
-    //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-    // << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
-    reportStream << "VertexCount;EdgeCount;ComponentCount;MaxComponentSize;AverageDegree" << std::endl;
-    reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-                 << maxComponent.size() << sep << averageDegree << std::endl;
-
-    for (size_t step = 0; step < 300; step++)
-    {
-        if (attack)
-            network.attack_step();
-        else
-            network.failure_step();
-
-        vertexCount = network.vertex_count();
-        edgeCount = network.edge_count();
-        components = network.get_components();
-        maxComponent = get_biggest_component(components);
-        //averageDistance = network.get_average_distance(network.get_distance_matrix());
-        averageDegree = network.get_average_degree();
-
-        //reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-        //             << maxComponent.size() << sep << averageDistance << sep << averageDegree << std::endl;
-        reportStream << vertexCount << sep << edgeCount << sep << components.size() << sep
-                     << maxComponent.size() << sep << averageDegree << std::endl;
-
-        std::string exportFName = folder + "/removed_" + std::to_string(step + 1) + ".csv";
-        //network.export_network(exportFName.c_str());
-
-        printf("Finished iteration %lu\n", step + 1);
-    }
-}
 
 int main(int argc, char **argv)
 {
-    //auto multiLayer1 = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
     int hour = 3600;
-    auto multiLayer = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 2);
+    //auto ml = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
+    auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 10);
+
+    std::vector<uint> layers = {0, 2, 4}; //ml.get_all_layers_ids();
+    auto neighCent = ml.get_actors_neighborhood_centrality(layers);
+    auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
+    auto actorDeg = ml.get_actors_degree_centrality(layers);
+    auto red = ml.get_actors_connective_redundancy(layers);
+    for (auto &&actorCent : neighCent)
+    {
+        fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
+                actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
+    }
+
     return 0;
     // if (rounded != 2.991f)
     //     throw new std::logic_error("Broke the calculation");
@@ -103,7 +59,7 @@ int main(int argc, char **argv)
     analysis(airport1, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_fail.csv", false);
     analysis(airport2, "/home/mor0146/github/dataAnalysisCourse/data/failureAndAttack/usairport_attack.csv", true);
     */
-
+    /*
     args::ArgumentParser parser("Network analysis. - MOR0146", "Required arguments are in < > optional in [].");
     args::Group methodGroup(parser, "Methods", args::Group::Validators::AtMostOne);
     args::Group modelGroup(parser, "Network models", args::Group::Validators::AtMostOne);
@@ -145,7 +101,6 @@ int main(int argc, char **argv)
     args::Flag _siModel(epidemicModelGroup, "SI model", "SI model", {"SI"});
     args::Flag _sisModel(epidemicModelGroup, "SIS model", "SIS model", {"SIS"});
     args::Flag _sirModel(epidemicModelGroup, "SIR model", "SIR model", {"SIR"});
-
     try
     {
         parser.ParseCLI(argc, argv);
@@ -161,6 +116,7 @@ int main(int argc, char **argv)
         std::cerr << parser;
         return 1;
     }
+*/
     /*
     if (_epidemicMethod)
     {
@@ -184,7 +140,7 @@ int main(int argc, char **argv)
 
         print_epidemic_stats(epidemicResult);
         if (_reportFile.Matched())
-            save_epidemic_stats(epidemicResult, _reportFile.Get().c_str());
+            save_epidemic_stats(epidemicResult, _reportFile.get_actors().c_str());
         return 0;
     }
 
@@ -196,9 +152,9 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str());
-        karataNet.filter_k_core(_vertexCount.Get());
-        karataNet.export_network(_reportFile.Get().c_str());
+        NetworkMatrix karataNet = NetworkMatrix(_file.get_actors().c_str());
+        karataNet.filter_k_core(_vertexCount.get_actors());
+        karataNet.export_network(_reportFile.get_actors().c_str());
 
         return 0;
     }
@@ -211,8 +167,8 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        NetworkMatrix karataNet = NetworkMatrix(_file.Get().c_str());
-        karataNet.hierarchical_clustering(_vertexCount.Get(), _reportFile.Get().c_str(), LinkageType_Average);
+        NetworkMatrix karataNet = NetworkMatrix(_file.get_actors().c_str());
+        karataNet.hierarchical_clustering(_vertexCount.get_actors(), _reportFile.get_actors().c_str(), Linkaget_actorsype_Average);
 
         return 0;
     }
@@ -225,7 +181,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        auto karateNetwork = NetworkMatrix(_file.Get().c_str());
+        auto karateNetwork = NetworkMatrix(_file.get_actors().c_str());
         printf("VC: %5u; EC: %5u\n", karateNetwork.vertex_count(), karateNetwork.edge_count());
         karateNetwork.kernighan_lin();
 
@@ -265,7 +221,7 @@ int main(int argc, char **argv)
 
     if (_constructFromVectorData)
     {
-        auto irisDataset = read_iris_file(_file.Get().c_str());
+        auto irisDataset = read_iris_file(_file.get_actors().c_str());
         NetworkMatrix irisMat = NetworkMatrix(irisDataset);
 
         if (_epsConstructionMethod)
@@ -289,7 +245,7 @@ int main(int argc, char **argv)
             return 0;
         }
 
-        const char *fName = (bool)_reportFile ? _reportFile.Get().c_str() : "unnamed-report.csv";
+        const char *fName = (bool)_reportFile ? _reportFile.get_actors().c_str() : "unnamed-report.csv";
 
         irisMat.export_network(fName);
         printf("Finished.\n");
@@ -299,33 +255,33 @@ int main(int argc, char **argv)
     if (_import)
     {
         int offset;
-        auto loadedEdges = load_edge_pairs(_file.Get().c_str(), ";", offset);
-        uint vc = get_vertex_count_from_edge_pairs(loadedEdges);
+        auto loadedEdges = load_edge_pairs(_file.get_actors().c_str(), ";", offset);
+        uint vc = get_actors_vertex_count_from_edge_pairs(loadedEdges);
         NetworkMatrix network = NetworkMatrix(vc, vc);
         network.load_from_edges(loadedEdges);
-        printf("Loaded network from %s.\n", _file.Get().c_str());
-        network.complete_analysis("Imported", _reportFile.Get().c_str());
-        printf("Completed analysis in %s\n", _reportFile.Get().c_str());
+        printf("Loaded network from %s.\n", _file.get_actors().c_str());
+        network.complete_analysis("Imported", _reportFile.get_actors().c_str());
+        printf("Completed analysis in %s\n", _reportFile.get_actors().c_str());
         return 0;
     }
 
     if (_generate)
     {
-        printf("Chosen to generate network with final vertex count: %u\n", _vertexCount.Get());
+        printf("Chosen to generate network with final vertex count: %u\n", _vertexCount.get_actors());
         if (!_vertexCount.Matched())
         {
             printf("Vertex count wasn't specified\n");
             return 1;
         }
-        uint vertexCount = _vertexCount.Get();
+        uint vertexCount = _vertexCount.get_actors();
         NetworkMatrix nm(vertexCount, vertexCount);
 
         if (_holmeKimMethod)
         {
-            printf("Holme-Kim method with probability %f edge count: %u\n", _prob.Get(), _edgeCountInStep.Get());
-            nm.generate_holme_kim(_prob.Get(), _edgeCountInStep.Get());
-            nm.export_network(_file.Get().c_str());
-            printf("Generated and saved in %s\n", _file.Get().c_str());
+            printf("Holme-Kim method with probability %f edge count: %u\n", _prob.get_actors(), _edgeCountInStep.get_actors());
+            nm.generate_holme_kim(_prob.get_actors(), _edgeCountInStep.get_actors());
+            nm.export_network(_file.get_actors().c_str());
+            printf("Generated and saved in %s\n", _file.get_actors().c_str());
             return 0;
         }
         else if (_bianconiMethod)
@@ -335,22 +291,22 @@ int main(int argc, char **argv)
                 printf("Bianconi model need probability (p), edge count (m) and file (f).\n");
                 return 1;
             }
-            printf("Bianconi method with probability %f edge count: %u\n", _prob.Get(), _edgeCountInStep.Get());
-            nm.generate_bianconi(_prob.Get(), _edgeCountInStep.Get());
-            nm.export_network(_file.Get().c_str());
-            printf("Generated and saved in %s\n", _file.Get().c_str());
+            printf("Bianconi method with probability %f edge count: %u\n", _prob.get_actors(), _edgeCountInStep.get_actors());
+            nm.generate_bianconi(_prob.get_actors(), _edgeCountInStep.get_actors());
+            nm.export_network(_file.get_actors().c_str());
+            printf("Generated and saved in %s\n", _file.get_actors().c_str());
             return 0;
         }
         else if (_baMethod)
         {
-            printf("M IS %i\n", _edgeCountInStep.Get());
+            printf("M IS %i\n", _edgeCountInStep.get_actors());
 
-            nm.generate_scale_free_network((_edgeCountInStep ? _edgeCountInStep.Get() : 2), vertexCount - 3);
+            nm.generate_scale_free_network((_edgeCountInStep ? _edgeCountInStep.get_actors() : 2), vertexCount - 3);
             printf("Generated network using Barabasi-Albert method.\n");
-            nm.export_network(_file.Get().c_str());
-            printf("Saved network in: %s\n", _file.Get().c_str());
-            nm.complete_analysis("Generated using Barabasi-Albert method.", _reportFile.Get().c_str(), true, true);
-            printf("Completed analysis in %s\n", _reportFile.Get().c_str());
+            nm.export_network(_file.get_actors().c_str());
+            printf("Saved network in: %s\n", _file.get_actors().c_str());
+            nm.complete_analysis("Generated using Barabasi-Albert method.", _reportFile.get_actors().c_str(), true, true);
+            printf("Completed analysis in %s\n", _reportFile.get_actors().c_str());
             return 0;
         }
         else if (_linkSelectionMethod || _copyMethod)
@@ -367,19 +323,19 @@ int main(int argc, char **argv)
                 return 1;
             }
 
-            nm.generate_select_link_or_copy(_copyMethod.Matched(), _prob.Matched() ? _prob.Get() : 0.0f);
-            nm.export_network(_file.Get().c_str());
+            nm.generate_select_link_or_copy(_copyMethod.Matched(), _prob.Matched() ? _prob.get_actors() : 0.0f);
+            nm.export_network(_file.get_actors().c_str());
             return 0;
         }
         else
         {
-            nm.generate_random_network(_prob ? _prob.Get() : 0, !((bool)_prob));
-            printf("Generated network using random method, edge probability=%f.\n", _prob.Get());
-            nm.export_network(_file.Get().c_str());
-            printf("Saved network in: %s\n", _file.Get().c_str());
+            nm.generate_random_network(_prob ? _prob.get_actors() : 0, !((bool)_prob));
+            printf("Generated network using random method, edge probability=%f.\n", _prob.get_actors());
+            nm.export_network(_file.get_actors().c_str());
+            printf("Saved network in: %s\n", _file.get_actors().c_str());
             printf("Random network doesn't support full analysis because the network may not be symmetric.\n");
-            nm.complete_analysis("Generated using Barabasi-Albert method.", _reportFile.Get().c_str(), true, false);
-            printf("Completed analysis in %s\n", _reportFile.Get().c_str());
+            nm.complete_analysis("Generated using Barabasi-Albert method.", _reportFile.get_actors().c_str(), true, false);
+            printf("Completed analysis in %s\n", _reportFile.get_actors().c_str());
             return 0;
         }
     }

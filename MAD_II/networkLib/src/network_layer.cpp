@@ -5,7 +5,7 @@ namespace azgra::networkLib
 NetworkLayer::NetworkLayer() {}
 NetworkLayer::NetworkLayer(const std::string &name, const std::vector<TemporalEdge> &edges)
 {
-    _name = name;
+    this->name = name;
     actorIds = get_distinct_ids_from_edges(edges);
 
     std::vector<std::pair<uint, uint>> stdEdges;
@@ -25,7 +25,7 @@ NetworkLayer::NetworkLayer(const std::string &name, const std::vector<TemporalEd
         }
     }
 
-    _network = NetworkMatrix(stdEdges, 0);
+    network = NetworkMatrix(stdEdges, 0);
 }
 
 NetworkLayer::~NetworkLayer()
@@ -45,14 +45,37 @@ std::vector<uint> NetworkLayer::get_distinct_ids_from_edges(const std::vector<Te
     return result;
 }
 
-std::string &NetworkLayer::name()
+std::string &NetworkLayer::get_name()
 {
-    return _name;
+    return name;
 }
 
-NetworkMatrix &NetworkLayer::network()
+NetworkMatrix &NetworkLayer::get_network()
 {
-    return _network;
+    return network;
+}
+
+bool NetworkLayer::contains_actor(const uint &actor)
+{
+    return find(actorIds, actor);
+}
+
+std::vector<uint> NetworkLayer::get_actor_neighbors(const uint &actor)
+{
+    int actorVertex = find_index(actorIds, actor);
+    std::vector<uint> result;
+
+    if (actorVertex == -1)
+        return result;
+
+    auto neighbors = network.get_neighbors(actorVertex);
+    result.resize(neighbors.size());
+
+    for (size_t nId = 0; nId < neighbors.size(); nId++)
+    {
+        result[nId] = actorIds[neighbors[nId]];
+    }
+    return result;
 }
 
 }; // namespace azgra::networkLib
