@@ -13,15 +13,18 @@ NetworkWizard::NetworkWizard(QWidget * parent) :
     connect(ui->miExport, &QAction::triggered, this, &NetworkWizard::export_network);
     connect(ui->miViewVertexInfo, &QAction::triggered, this, &NetworkWizard::open_vertex_info);
     connect(ui->miGenerate, &QAction::triggered, this, &NetworkWizard::generate_network);
+    connect(ui->miGirvanNewman, &QAction::triggered, this, &NetworkWizard::alg_community_girvan_newman);
 
     connect(&newNetworkWatcher, SIGNAL(finished()), this, SLOT(network_load_completed()));
     connect(&reportWatcher, SIGNAL(finished()), this, SLOT(report_created()));
+    connect(&algorithmWatcher, SIGNAL(finished()), this, SLOT(algorithm_completed()));
 
 
     QMovie * loaderGif = new QMovie(":/images/loader.gif");
     ui->loader->setMovie(loaderGif);
 
     ui->loader->hide();
+    invalidate_loaded_network();
 
 
     #ifndef QT_DEBUG
@@ -65,7 +68,6 @@ void NetworkWizard::generate_network()
 
     if (result == QDialog::Accepted)
     {
-
         auto params = genDialog->get_generator_params();
 
         azgra::SimpleString modelName = azgra::networkLib::get_network_model_name(params.model);
@@ -83,6 +85,35 @@ void NetworkWizard::generate_network()
     }
 
     delete genDialog;
+}
+
+
+void NetworkWizard::alg_community_girvan_newman()
+{
+    GirvanNewmanDialog * algDialog = new GirvanNewmanDialog();
+    int result = algDialog->exec();
+
+    if (result == QDialog::Accepted)
+    {
+        GirvanNewmanSettings settings = algDialog->get_settings();
+        append_to_log_html(QString("<p><b>Selected Girvan-Newman clustering algorithm to find communities</b></p>"
+                                   "<p>  Settings:</p>"
+                                   "<p>    Max iteration count: %1</p>"
+                                   "<p>    Target modularity: %2</p>")
+                           .arg(settings.maxIterationCount)
+                           .arg(static_cast<double>(settings.targetModularity)));
+
+
+        QFuture<AlgorithmResult> algorithmJob = QtConcurrent::run(girvan_newman_async,
+                                                                  this->state.network,
+                                                                  settings.maxIterationCount,
+                                                                  settings.targetModularity);
+
+        algorithmWatcher.setFuture(algorithmJob);
+        show_loader();
+
+    }
+    delete algDialog;
 }
 
 void NetworkWizard::import_from_vector_data()
@@ -164,6 +195,7 @@ void NetworkWizard::invalidate_loaded_network()
 
     this->ui->tbComponentCount->setText(QString::number(this->state.report.componentCount));
     this->ui->tbMaxComponentSize->setText(QString::number(this->state.report.maxComponentSize));
+    this->ui->menuAlgorithms->setEnabled(enable);
 }
 
 void NetworkWizard::show_loader()
@@ -188,14 +220,9 @@ void NetworkWizard::append_to_log(const QString&string)
     this->ui->logText->appendPlainText(string);
 }
 
-void NetworkWizard::append_to_log(const std::string&string)
+void NetworkWizard::append_to_log_html(const QString &string)
 {
-    append_to_log(QString::fromStdString(string));
-}
-
-void NetworkWizard::append_to_log(const char * string)
-{
-    append_to_log(QString(string));
+    this->ui->logText->appendHtml(string);
 }
 
 void NetworkWizard::export_network()
@@ -229,4 +256,32 @@ void NetworkWizard::clear_network()
 
     invalidate_loaded_network();
     append_to_log("Cleared loaded network.");
+}
+
+void NetworkWizard::algorithm_completed()
+{
+    hide_loader();
+    AlgorithmResult result = algorithmWatcher.result();
+
+    append_to_log(result.log);
+
+    switch (result.alg)
+    {
+        case Alg_GirvanNewman:
+        {
+            append_to_log(QString("Found communities after %1 ms").arg(result.elapsedMilliseconds));
+            auto lastIterResult = result.communityEvolveResult[result.communityEvolveResult.size() - 1];
+
+            std::vector<uint> communityIds = azgra::networkLib::CommunityFinder::get_vertex_community_ids(this->state.network.rows(), lastIterResult);
+            VertexInfoTable * vertexInfoForm = new VertexInfoTable(this->state.report,
+                                                                   QString("Vertex info - Communities"),
+                                                                   communityIds);
+
+            // TODO: Display community info window with table like this
+            // Community Id | Vertex count | Modularity | Inner edge count
+            vertexInfoForm->show();
+
+        }
+        break;
+    }
 }

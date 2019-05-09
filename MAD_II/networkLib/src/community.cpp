@@ -54,9 +54,11 @@ constexpr int HeavysideDelta(const float input) { return input > 0 ? 1 : 0; }
 //     // Repeat Steps 2 and 3 until all nodes form a single community.
 // }
 
-CommunityEvolveArray CommunityFinder::girvan_newman_divisive_clustering(const NetworkMatrix &src, const uint maxStepCount,
-                                                                        const float targetModularity)
+CommunityEvolveArray CommunityFinder::girvan_newman_divisive_clustering(const NetworkMatrix &src, std::stringstream &messageBuffer,
+                                                                        const uint maxStepCount, const float targetModularity)
 {
+    messageBuffer << "Invoked: CommunityFinder::girvan_newman_divisive_clustering ..." << std::endl;
+
     NetworkMatrix workCopy(src);
     std::random_device rd;
     std::mt19937 mt(rd());
@@ -93,6 +95,7 @@ CommunityEvolveArray CommunityFinder::girvan_newman_divisive_clustering(const Ne
 
         if (edgesToRemove.size() == 0)
         {
+            messageBuffer << "No more edges to remove" << std::endl;
             fprintf(stdout, "No more edges to remove\n");
             break;
         }
@@ -129,12 +132,35 @@ CommunityEvolveArray CommunityFinder::girvan_newman_divisive_clustering(const Ne
 
         result.push_back(communities);
         fprintf(stdout, "Finished iteration %u, # of communities: %lu, EC: %u, Network modularity: %.4f\n",
-                static_cast<uint>(step + 1), communities.size(), workCopy.edge_count(), networkModularity);
+                static_cast<uint>(step + 1), communities.size(), totalEdgeCount, networkModularity);
+
+        messageBuffer << std::setprecision(4);
+        messageBuffer << "Finished iteration " << static_cast<uint>(step + 1)
+                      << ", # of communities: " << communities.size()
+                      << ", EC: " << totalEdgeCount
+                      << ", Network modularity: " << networkModularity
+                      << std::endl;
 
         if (networkModularity >= targetModularity)
         {
+            messageBuffer << "Target modularity was reached." << std::endl;
             fprintf(stdout, "Target modularity was reached.\n");
             break;
+        }
+    }
+    messageBuffer << "Finished Girvan-Newman clustering." << std::endl;
+    return result;
+}
+
+std::vector<uint> CommunityFinder::get_vertex_community_ids(const uint vertexCount, const CommunityArray &communities)
+{
+    std::vector<uint> result(vertexCount);
+
+    for (const GraphComponent &community : communities)
+    {
+        for (const uint &communityVertex : community.vertices)
+        {
+            result[communityVertex] = community.id;
         }
     }
 

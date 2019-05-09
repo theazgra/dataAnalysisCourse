@@ -1,7 +1,7 @@
 #include <vertex_info_model.h>
 
 VertexInfoModel::VertexInfoModel(const azgra::networkLib::NetworkReport& report,
-                                 QObject * parent) :
+    QObject * parent) :
     QAbstractTableModel(parent)
 {
     this->report = report;
@@ -23,8 +23,42 @@ int VertexInfoModel::rowCount(const QModelIndex& parent) const
 int VertexInfoModel::columnCount(const QModelIndex& parent) const
 {
     Q_UNUSED(parent);
-
+    if (communityIds.size() == report.vertexCount)
+    {
+        return 6;
+    }
     return 5;
+}
+
+QVariant VertexInfoModel::headerData(int section,
+                                     Qt::Orientation orientation,
+                                     int role) const
+{
+    if ((role == Qt::DisplayRole) && (orientation == Qt::Horizontal))
+    {
+        switch (section)
+        {
+
+            case 0: return QString("Vertex Id");
+
+            case 1: return QString("Degree");
+
+            case 2: return QString("Eccentricity");
+
+            case 3: return QString("Clustering coefficient");
+
+            case 4: return QString("Closeness centrality");
+
+            case 5: return QString("Community Id");
+
+            default:
+                return QVariant();
+        }
+    }
+    else
+    {
+        return QVariant();
+    }
 }
 
 QVariant VertexInfoModel::data(const QModelIndex& index, int role) const
@@ -53,36 +87,14 @@ QVariant VertexInfoModel::data(const QModelIndex& index, int role) const
 
         case 4: return report.vertexClosenessCentralities[vId];
 
+        case 5: return communityIds[vId];
+
         default:
             return QVariant();
     }
 }
 
-QVariant VertexInfoModel::headerData(int section,
-                                     Qt::Orientation orientation,
-                                     int role) const
+void VertexInfoModel::add_community_ids(const std::vector<uint> &communityIds)
 {
-    if ((role == Qt::DisplayRole) && (orientation == Qt::Horizontal))
-    {
-        switch (section)
-        {
-
-            case 0: return QString("Vertex Id");
-
-            case 1: return QString("Degree");
-
-            case 2: return QString("Eccentricity");
-
-            case 3: return QString("Clustering coefficient");
-
-            case 4: return QString("Closeness centrality");
-
-            default:
-                return QVariant();
-        }
-    }
-    else
-    {
-        return QVariant();
-    }
+    this->communityIds = communityIds;
 }

@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     fprintf(stdout, "generated\n");
     //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
     //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");
-    auto communityEvolve = CommunityFinder::girvan_newman_divisive_clustering(network, 200);
+    //auto communityEvolve = CommunityFinder::girvan_newman_divisive_clustering(network, 200);
 
     // int hour = 3600;
     // //auto ml = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");

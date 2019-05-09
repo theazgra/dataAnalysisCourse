@@ -7,11 +7,14 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QMovie>
+
 #include "thread_jobs.h"
 
 #include <wizard_state.h>
 #include <vertex_info_form.h>
+#include <girvan_newman_dialog.h>
 #include <generate_dialog.h>
+
 
 namespace Ui {
 class NetworkWizard;
@@ -29,6 +32,8 @@ private:
     Ui::NetworkWizard * ui;
     QFutureWatcher<azgra::networkLib::NetworkMatrix> newNetworkWatcher;
     QFutureWatcher<azgra::networkLib::NetworkReport> reportWatcher;
+    QFutureWatcher<AlgorithmResult> algorithmWatcher;
+
     WizardState state;
 
     void invalidate_loaded_network();
@@ -36,9 +41,8 @@ private:
     void hide_loader();
 
     void clear_log();
+    void append_to_log_html(const QString &string);
     void append_to_log(const QString &string);
-    void append_to_log(const std::string &string);
-    void append_to_log(const char * string);
 
 private slots:
     void import_from_edge_pairs();
@@ -49,6 +53,8 @@ private slots:
     void clear_network();
     void open_vertex_info();
     void generate_network();
+    void alg_community_girvan_newman();
+    void algorithm_completed();
 };
 
 #endif // NETWORKWIZARD_H
