@@ -7,6 +7,7 @@ struct GraphComponent
 {
     uint id;
     std::vector<uint> vertices;
+    float modularity = 0.0f;
 
     GraphComponent() {}
     GraphComponent(const uint _id, const uint initialVertex) : id(_id)

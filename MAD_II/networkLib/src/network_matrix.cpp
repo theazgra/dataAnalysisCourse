@@ -596,6 +596,23 @@ std::vector<uint> NetworkMatrix::get_degree_of_vertices() const
     return result;
 }
 
+uint NetworkMatrix::get_total_degree_of_community(const std::vector<uint> &c)
+{
+    uint result = 0;
+
+    for (const uint &u : c)
+    {
+        for (uint col = 0; col < this->colCount; col++)
+        {
+            if (is_edge_at(u, col))
+            {
+                ++result;
+            }
+        }
+    }
+    return result;
+}
+
 uint NetworkMatrix::get_vertex_with_max_degree() const
 {
     size_t maxDegree = 0;
@@ -915,6 +932,23 @@ void NetworkMatrix::export_network(const char *filename, bool allSelfEdge) const
     save_network(filename, edges);
 }
 
+void NetworkMatrix::export_edge_betweenness(const char *fileName) const
+{
+    std::vector<UndirectedEdge> edges;
+    edges.reserve((rowCount * rowCount) / 2);
+
+    for (uint row = 0; row < rowCount; row++)
+    {
+        for (uint col = row + 1; col < colCount; col++)
+        {
+            UndirectedEdge edge = {row, col, at(row, col)};
+            edges.push_back(edge);
+        }
+    }
+
+    save_edge_betweenness(fileName, edges);
+}
+
 float NetworkMatrix::get_network_diameter(const NetworkMatrix &distanceMatrix) const
 {
     float max = -1.0f;
@@ -989,6 +1023,25 @@ uint NetworkMatrix::get_edge_count_between_groups(const std::vector<uint> &gA, c
             result += at(a, b);
         }
     }
+    return result;
+}
+
+uint NetworkMatrix::get_edge_count_in_component(const std::vector<uint> &c)
+{
+    uint result = 0;
+
+    for (const uint &u : c)
+    {
+        for (const uint &v : c)
+        {
+            if (u == v)
+                continue;
+
+            if (is_edge_at(u, v))
+                ++result;
+        }
+    }
+
     return result;
 }
 
@@ -1147,18 +1200,18 @@ inline uint dp2_pick_best_unvisited(const std::vector<bool> &visited, const std:
 
     for (size_t i = 0; i < visited.size(); i++)
     {
-        if (!visited[i] && dist[i] < min)
+        if (!visited[i] && dist[i] <= min)
         {
             min = dist[i];
             result = i;
         }
     }
 
-    assert(min != INFINITY);
+    //assert(min != INFINITY);
     return result;
 }
 
-void NetworkMatrix::dijkstra_path2(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const
+void NetworkMatrix::dijkstra_distance(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const
 {
     // Total vertex count.
     size_t vertexCount = this->rowCount;
@@ -1201,6 +1254,134 @@ void NetworkMatrix::dijkstra_path2(const NetworkMatrix &mat, const uint &source,
     }
 }
 
+void NetworkMatrix::dijkstra_distance_with_path(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result,
+                                                std::vector<std::vector<UndirectedEdge>> &paths) const
+{
+    // Total vertex count.
+    size_t vertexCount = this->rowCount;
+
+    std::vector<float> dist(vertexCount);
+    std::vector<bool> visited(vertexCount);
+    std::vector<int> parents(vertexCount);
+
+    for (size_t v = 0; v < vertexCount; v++)
+    {
+        dist[v] = INFINITY;
+        visited[v] = false;
+        parents[v] = -1;
+    }
+    dist[source] = 0;
+
+    for (size_t count = 0; count < vertexCount - 1; count++)
+    {
+        uint u = dp2_pick_best_unvisited(visited, dist);
+        visited[u] = true;
+
+        // Update dist value of the adjacent vertices of the picked vertex.
+        for (size_t v = 0; v < vertexCount; v++)
+        {
+            // Update dist[v] only if is not visited, there is an edge from
+            // u to v, and total weight of path from source to v through u is
+            // smaller than current value of dist[v].
+
+            if (!visited[v] &&                        // v is not visited
+                mat.is_edge_at(u, v) &&               // there is an edge from `u` to `v`
+                ((dist[u] + mat.at(u, v)) < dist[v])) // distance from source to `v` through `u` is better than the one found
+            {
+                parents[v] = u;
+                dist[v] = dist[u] + mat.at(u, v);
+            }
+        }
+    }
+
+    for (size_t v = source + 1; v < this->colCount; v++)
+    {
+        result.at(source, v) = dist[v];
+        result.at(v, source) = dist[v];
+
+        std::vector<uint> vPath;
+        int current = v;
+        do
+        {
+            vPath.push_back(current);
+            current = parents[current];
+        } while (current != -1);
+        std::vector<UndirectedEdge> vEdgePath(vPath.size() - 1);
+
+        for (size_t i = 0; i < vPath.size() - 1; i++)
+        {
+            UndirectedEdge edge(vPath[i], vPath[i + 1]);
+            vEdgePath[i] = edge;
+        }
+
+        paths[v] = vEdgePath;
+        // fprintf(stdout, "Shortest path [%u->%u]: %.0f CORRECT: %i | ", source, static_cast<uint>(v), dist[v], dist[v] == (vPath.size() - 1));
+        // print_vector(vPath, "%u-");
+    }
+}
+
+NetworkMatrix NetworkMatrix::get_edge_betweenness_matrix() const
+{
+    assert(this->rowCount == this->colCount);
+
+    NetworkMatrix distanceMat(this->rowCount, this->colCount);
+    NetworkMatrix calculatedDistanceMatrix(this->rowCount, this->colCount);
+
+    distanceMat.copy_data(*this);
+    calculatedDistanceMatrix.copy_data(*this);
+    distanceMat.set_inf_where_no_edge();
+
+    std::vector<std::vector<std::vector<UndirectedEdge>>> networkPaths;
+    networkPaths.resize(this->rowCount);
+#pragma omp parallel for
+    for (uint row = 0; row < this->rowCount; row++)
+    {
+        std::vector<std::vector<UndirectedEdge>> rowPaths;
+        rowPaths.resize(rowCount);
+        dijkstra_distance_with_path(distanceMat, row, calculatedDistanceMatrix, rowPaths);
+#pragma omp critical
+        {
+            networkPaths[row] = rowPaths;
+        }
+    }
+    NetworkMatrix ccMatrix(this->rowCount, this->rowCount);
+#pragma omp parallel for
+    for (uint ebRow = 0; ebRow < this->rowCount; ebRow++)
+    {
+        for (uint ebCol = ebRow + 1; ebCol < this->rowCount; ebCol++)
+        {
+            // For edge (ebRow , ebCol), if there is
+            if (is_edge_at(ebRow, ebCol))
+            {
+                UndirectedEdge testedEdge(ebRow, ebCol);
+                uint throughEdge = 0;
+                uint totalPathCount = 0;
+
+                for (uint u = 0; u < this->rowCount; u++)
+                {
+                    for (uint v = u + 1; v < this->rowCount; v++)
+                    {
+                        ++totalPathCount;
+
+                        // Get shortest path from u to v
+                        std::vector<UndirectedEdge> uvPath = networkPaths[u][v];
+                        if (find(uvPath, testedEdge))
+                        {
+                            ++throughEdge;
+                        }
+                    }
+                }
+
+                float EBC = static_cast<float>(throughEdge) / static_cast<float>(totalPathCount);
+                ccMatrix.at(ebRow, ebCol) = EBC;
+                ccMatrix.at(ebCol, ebRow) = EBC;
+            }
+        }
+    }
+
+    return ccMatrix;
+} // namespace azgra::networkLib
+
 NetworkMatrix NetworkMatrix::get_distance_matrix() const
 {
     assert(this->rowCount == this->colCount);
@@ -1215,7 +1396,7 @@ NetworkMatrix NetworkMatrix::get_distance_matrix() const
 #pragma omp parallel for
     for (uint row = 0; row < this->rowCount; row++)
     {
-        dijkstra_path2(distanceMat, row, result);
+        dijkstra_distance(distanceMat, row, result);
     }
     return result;
 }
@@ -1224,5 +1405,4 @@ uint NetworkMatrix::get_count_of_shared_neighbors(const uint u, const uint v) co
 {
     return get_count_of_same_neighbors(get_neighbors(u), get_neighbors(v));
 }
-
 }; // namespace azgra::networkLib

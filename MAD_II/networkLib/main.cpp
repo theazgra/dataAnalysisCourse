@@ -4,6 +4,7 @@
 #include <networkLib/network_generator.h>
 #include <networkLib/Stopwatch.h>
 #include <networkLib/multilayer_network.h>
+#include <networkLib/community.h>
 
 using namespace azgra::networkLib;
 /*
@@ -16,20 +17,32 @@ using namespace azgra::networkLib;
 
 int main(int argc, char **argv)
 {
-    int hour = 3600;
-    //auto ml = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
-    auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 10);
+    GeneratorParameters params = {};
+    params.isSet = true;
+    params.model = NetworkModel_BarabasiAlbert;
+    params.initialSize = 10;
+    params.finalSize = 300;
+    params.newEdgesInStep = 3;
+    auto network = NetworkGenerator::generate_network(params);
+    fprintf(stdout, "generated\n");
+    //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
+    //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");
+    auto communityEvolve = CommunityFinder::girvan_newman_divisive_clustering(network, 200);
 
-    std::vector<uint> layers = {0, 2, 4}; //ml.get_all_layers_ids();
-    auto neighCent = ml.get_actors_neighborhood_centrality(layers);
-    auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
-    auto actorDeg = ml.get_actors_degree_centrality(layers);
-    auto red = ml.get_actors_connective_redundancy(layers);
-    for (auto &&actorCent : neighCent)
-    {
-        fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
-                actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
-    }
+    // int hour = 3600;
+    // //auto ml = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
+    // auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 10);
+
+    // std::vector<uint> layers = {0, 2, 4}; //ml.get_all_layers_ids();
+    // auto neighCent = ml.get_actors_neighborhood_centrality(layers);
+    // auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
+    // auto actorDeg = ml.get_actors_degree_centrality(layers);
+    // auto red = ml.get_actors_connective_redundancy(layers);
+    // for (auto &&actorCent : neighCent)
+    // {
+    //     fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
+    //             actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
+    // }
 
     return 0;
     // if (rounded != 2.991f)

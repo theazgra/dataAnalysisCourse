@@ -49,7 +49,8 @@ private:
     // Get edge count between neighbours.
     uint get_edge_count_between_neighbours(const std::vector<uint> &neighbours) const;
 
-    void dijkstra_path2(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const;
+    void dijkstra_distance(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result) const;
+    void dijkstra_distance_with_path(const NetworkMatrix &mat, const uint &source, NetworkMatrix &result, std::vector<std::vector<UndirectedEdge>> &paths) const;
 
     NetworkMatrix get_cosine_similarity_matrix() const;
 
@@ -103,6 +104,8 @@ public:
 
     // Get matrix of distances from vertex to every other one.
     NetworkMatrix get_distance_matrix() const;
+    NetworkMatrix get_edge_betweenness_matrix() const;
+    void export_edge_betweenness(const char *fileName) const;
 
     // Get average clustering coefficient.
     float get_average_clustering_coefficient() const;
@@ -154,6 +157,8 @@ public:
     void delete_edges_for(const uint vertex);
     // Get number of edges between two groups.
     uint get_edge_count_between_groups(const std::vector<uint> &gA, const std::vector<uint> &gB) const;
+    uint get_edge_count_in_component(const std::vector<uint> &c);
+    uint get_total_degree_of_community(const std::vector<uint> &c);
 
     // Load matrix from edges.
     void load_from_edges(const std::vector<std::pair<uint, uint>> &edges, int offset = -1);

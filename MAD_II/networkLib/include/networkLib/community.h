@@ -15,14 +15,14 @@ struct Community
     }
 };
 
-typedef std::vector<Community> CommunityArray;
-typedef std::vector<CommunityArray> CommunityEvolveArray;
+//typedef std::vector<GraphComponent> CommunityArray;
+typedef std::vector<std::vector<GraphComponent>> CommunityEvolveArray;
 
 class CommunityFinder
 {
 public:
-    static CommunityArray db_scan(const NetworkMatrix &network, const float epsRadius, const uint minCommunitySize);
-    static CommunityEvolveArray ravasz_hierarchical_clustering(const NetworkMatrix &network, const float initialThreshold = 0.5f);
-    static CommunityEvolveArray girvan_newman_divisive_clustering(const NetworkMatrix &network);
+    // static CommunityArray db_scan(const NetworkMatrix &network, const float epsRadius, const uint minCommunitySize);
+    // static CommunityEvolveArray ravasz_hierarchical_clustering(const NetworkMatrix &network, const float initialThreshold = 0.5f);
+    static CommunityEvolveArray girvan_newman_divisive_clustering(const NetworkMatrix &network, const uint maxStepCount, const float targetModularity = 1.5f);
 };
 }; // namespace azgra::networkLib

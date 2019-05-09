@@ -19,4 +19,6 @@ TemporalImportResult load_temporal_edges(const char *fileName, const char separa
 
 MpxImportResult load_mpx_file(const char *fileName);
 
+void save_edge_betweenness(const char *fileName, std::vector<UndirectedEdge> &edges);
+
 }; // namespace azgra::networkLib

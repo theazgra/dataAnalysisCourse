@@ -20,6 +20,17 @@ void print_vector(const std::vector<T> &vector)
 }
 
 template <typename T>
+void print_vector(const std::vector<T> &vector, const char *itemFormat)
+{
+    size_t vs = vector.size();
+    for (size_t i = 0; i < vs; i++)
+    {
+        fprintf(stdout, itemFormat, vector[i]);
+    }
+    fprintf(stdout, "\n");
+}
+
+template <typename T>
 bool find(const std::vector<T> &vector, const T &element)
 {
     for (size_t i = 0; i < vector.size(); i++)

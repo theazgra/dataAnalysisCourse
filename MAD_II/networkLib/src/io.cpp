@@ -265,4 +265,15 @@ MpxImportResult load_mpx_file(const char *fileName)
     result.success = true;
     return result;
 }
+
+void save_edge_betweenness(const char *fileName, std::vector<UndirectedEdge> &edges)
+{
+    std::ofstream outStream(fileName);
+
+    for (const UndirectedEdge &edge : edges)
+    {
+        outStream << std::to_string(edge.u) << ";" << std::to_string(edge.v) << ";" << edge.betweenness << std::endl;
+    }
+    outStream.flush();
+}
 }; // namespace azgra::networkLib
