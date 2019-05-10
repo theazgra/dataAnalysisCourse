@@ -38,4 +38,8 @@ add_executable(DataAnalysis main.cpp ${OBJECTS_TO_BUILD})
 
 add_custom_command(TARGET NetworkWizardS POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_CURRENT_BINARY_DIR}/libNetworkWizardS.so ../../app/build-release ../../app/build-debug)
+                    ${CMAKE_CURRENT_BINARY_DIR}/libNetworkWizardS.so ../../app/build-release)
+
+add_custom_command(TARGET NetworkWizardS POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                     ${CMAKE_CURRENT_BINARY_DIR}/libNetworkWizardS.so ../../app/build-debug)

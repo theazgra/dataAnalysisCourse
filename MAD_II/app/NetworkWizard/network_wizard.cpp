@@ -74,7 +74,8 @@ void NetworkWizard::generate_network()
 
         setWindowTitle(QString("NetworkWizard - %1").arg(modelName.get_c_string()));
 
-        append_to_log(QString("Generating network using %1 ...").arg(modelName.get_c_string()));
+
+        log_generate_params(params);
 
         this->state.fileName.clear();
         this->state.networkSource = NetworkSource_Generated;
@@ -85,6 +86,88 @@ void NetworkWizard::generate_network()
     }
 
     delete genDialog;
+}
+
+void NetworkWizard::log_generate_params(const azgra::networkLib::GeneratorParameters &params)
+{
+    // append_to_log(QString("Generating network using %1 ...").arg(modelName.get_c_string()));
+    switch (params.model)
+    {
+        case azgra::networkLib::NetworkModel_Random:
+        {
+            append_to_log_html(QString("<p><b>Generate random network</b></p>"
+                                       "<p>  Final size: %1</p>"
+                                       "<p>  Edge Probablity: %2</p>"
+                                       "<p>  Symmetric: %3</p>")
+                               .arg(params.finalSize)
+                               .arg(static_cast<double>(params.probability))
+                               .arg(params.symmetric));
+        }
+        break;
+        case azgra::networkLib::NetworkModel_BarabasiAlbert:
+        {
+            append_to_log_html(QString("<p><b>Generate Barabasi-Albert model</b></p>"
+                                       "<p>  Initial size: %1</p>"
+                                       "<p>  Final size: %2</p>"
+                                       "<p>  New edges in step: %3</p>"
+                                       "<p>  Apply aging: %4</p>"
+                                       "<p>  Age scaling: %5</p>")
+                               .arg(params.initialSize)
+                               .arg(params.finalSize)
+                               .arg(params.newEdgesInStep)
+                               .arg(params.aging)
+                               .arg(static_cast<double>(params.ageScaling)));
+        }
+        break;
+        case azgra::networkLib::NetworkModel_Bianconi:
+        {
+            append_to_log_html(QString("<p><b>Generate Bianconi model</b></p>"
+                                       "<p>  Initial size: %1</p>"
+                                       "<p>  Final size: %2</p>"
+                                       "<p>  New edges in step: %3</p>"
+                                       "<p>  Choose random neigbor of neighbor probablity: %4</p>")
+                               .arg(params.initialSize)
+                               .arg(params.finalSize)
+                               .arg(params.newEdgesInStep)
+                               .arg(static_cast<double>(params.probability)));
+        }
+        break;
+        case azgra::networkLib::NetworkModel_HolmeKim:
+        {
+            append_to_log_html(QString("<p><b>Generate Holme-Kim model</b></p>"
+                                       "<p>  Initial size: %1</p>"
+                                       "<p>  Final size: %2</p>"
+                                       "<p>  New edges in step: %3</p>"
+                                       "<p>  Choose random neigbor of neighbor probablity: %4</p>")
+                               .arg(params.initialSize)
+                               .arg(params.finalSize)
+                               .arg(params.newEdgesInStep)
+                               .arg(static_cast<double>(params.probability)));
+        }
+        break;
+        case azgra::networkLib::NetworkModel_Copying:
+        {
+            append_to_log_html(QString("<p><b>Generate Copying model</b></p>"
+                                       "<p>  Initial size: %1</p>"
+                                       "<p>  Final size: %2</p>"
+                                       "<p>  Copy probability: %3</p>")
+                               .arg(params.initialSize)
+                               .arg(params.finalSize)
+                               .arg(static_cast<double>(params.probability)));
+        }
+        break;
+        case azgra::networkLib::NetworkModel_LinkSelection:
+        {
+            append_to_log_html(QString("<p><b>Generate Link selection model</b></p>"
+                                       "<p>  Initial size: %1</p>"
+                                       "<p>  Final size: %2</p>")
+                               .arg(params.initialSize)
+                               .arg(params.finalSize));
+        }
+        break;
+        default:
+            break;
+    }
 }
 
 
@@ -99,15 +182,18 @@ void NetworkWizard::alg_community_girvan_newman()
         append_to_log_html(QString("<p><b>Selected Girvan-Newman clustering algorithm to find communities</b></p>"
                                    "<p>  Settings:</p>"
                                    "<p>    Max iteration count: %1</p>"
-                                   "<p>    Target modularity: %2</p>")
+                                   "<p>    Target modularity: %2</p>"
+                                   "<p>    Save result to: %3</p>")
                            .arg(settings.maxIterationCount)
-                           .arg(static_cast<double>(settings.targetModularity)));
+                           .arg(static_cast<double>(settings.targetModularity))
+                           .arg(settings.resultFileName));
 
 
         QFuture<AlgorithmResult> algorithmJob = QtConcurrent::run(girvan_newman_async,
                                                                   this->state.network,
                                                                   settings.maxIterationCount,
-                                                                  settings.targetModularity);
+                                                                  settings.targetModularity,
+                                                                  settings.resultFileName);
 
         algorithmWatcher.setFuture(algorithmJob);
         show_loader();

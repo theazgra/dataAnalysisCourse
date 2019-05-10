@@ -19,6 +19,7 @@ GirvanNewmanSettings GirvanNewmanDialog::get_settings() const
 
     settings.maxIterationCount = this->ui->tbIterations->value();
     settings.targetModularity = static_cast<float>(this->ui->tbModularity->value());
+    settings.resultFileName = this->ui->tbFileName->text();
 
     return settings;
 }

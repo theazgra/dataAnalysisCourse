@@ -62,6 +62,18 @@ void save_network(const char *filename, const std::vector<std::pair<uint, uint>>
     outStream.flush();
 }
 
+void save_vertex_community_ids(const char *filename, const std::vector<uint> &communityIds)
+{
+    std::ofstream outStream(filename);
+
+    for (size_t i = 0; i < communityIds.size(); i++)
+    {
+        outStream << i << ";" << communityIds[i] << std::endl;
+    }
+
+    outStream.flush();
+}
+
 std::vector<IrisRecord> read_iris_file(const char *filename)
 {
     std::vector<IrisRecord> result;

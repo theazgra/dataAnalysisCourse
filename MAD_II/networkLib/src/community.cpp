@@ -163,7 +163,6 @@ std::vector<uint> CommunityFinder::get_vertex_community_ids(const uint vertexCou
             result[communityVertex] = community.id;
         }
     }
-
     return result;
 }
 

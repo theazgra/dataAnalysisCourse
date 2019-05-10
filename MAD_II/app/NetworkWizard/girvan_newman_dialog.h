@@ -10,6 +10,7 @@ struct GirvanNewmanSettings
 {
     int maxIterationCount = 1;
     float targetModularity = 0.0f;
+    QString resultFileName;
 };
 
 class GirvanNewmanDialog : public QDialog

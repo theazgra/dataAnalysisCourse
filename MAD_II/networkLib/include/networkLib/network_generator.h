@@ -9,7 +9,7 @@ namespace azgra::networkLib
 class NetworkGenerator
 {
 private:
-    static void generate_initial_network(const uint initialSize, NetworkMatrix matrix, std::vector<uint> &vertexList);
+    static void generate_initial_network(const uint initialSize, NetworkMatrix &matrix, std::vector<uint> &vertexList);
 
     static NetworkMatrix GenerateCopyingModelOrLink(const uint initialSize, const uint vertexCount, const bool copy, const float copyProbability);
 

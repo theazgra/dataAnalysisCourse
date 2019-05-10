@@ -19,10 +19,11 @@ int main(int argc, char **argv)
 {
     GeneratorParameters params = {};
     params.isSet = true;
-    params.model = NetworkModel_BarabasiAlbert;
-    params.initialSize = 10;
-    params.finalSize = 300;
-    params.newEdgesInStep = 3;
+    params.model = NetworkModel_HolmeKim;
+    params.initialSize = 15;
+    params.finalSize = 1000;
+    params.newEdgesInStep = 5;
+    params.probability = 0.05;
     auto network = NetworkGenerator::generate_network(params);
     fprintf(stdout, "generated\n");
     //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");

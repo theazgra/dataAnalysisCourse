@@ -63,6 +63,9 @@ void GenerateDialog::invalidate_form_for_selected_model()
     bool aging = false;
     bool symmetric = false;
 
+    ui->tbProb->setMinimum(0.0);
+    ui->tbProb->setMaximum(1.0);
+
     switch (selectedModel)
     {
         case azgra::networkLib::NetworkModel_Random:
@@ -81,6 +84,8 @@ void GenerateDialog::invalidate_form_for_selected_model()
             aging = true;
             prob = true;
             ui->lbProbability->setText("Age scaling");
+            ui->tbProb->setMinimum(-10.0);
+            ui->tbProb->setMaximum(10.0);
         }
         break;
         case azgra::networkLib::NetworkModel_HolmeKim:

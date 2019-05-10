@@ -23,7 +23,7 @@ NetworkMatrix NetworkGenerator::generate_network(GeneratorParameters params)
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetworkGenerator::generate_initial_network(const uint initialSize, NetworkMatrix matrix, std::vector<uint> &vertexList)
+void NetworkGenerator::generate_initial_network(const uint initialSize, NetworkMatrix &matrix, std::vector<uint> &vertexList)
 {
     assert(matrix.rows() >= initialSize && matrix.cols() >= initialSize);
     assert(vertexList.size() == 0);
@@ -199,42 +199,46 @@ NetworkMatrix NetworkGenerator::HolmeKim(const uint initialSize, const uint fina
         }
 
         discreteDistribution = std::discrete_distribution<int>(std::begin(weights), std::end(weights));
-        bool doPA = false;
+        bool triadFormation = false;
         uint lastConnectedVertex = 0;
         for (uint neighbourStep = 0; neighbourStep < newEdgesInStep; neighbourStep++)
         {
             if (neighbourStep == 0) // In first step always use PA.
-                doPA = true;
+                triadFormation = false;
             else
             {
-                int pa = chooseNeighborOfNeighbor(randomGenerator);
-                if (pa) // Choose some random neighbot of neighbor
-                    doPA = false;
+                int triadFormRandom = chooseNeighborOfNeighbor(randomGenerator);
+                if (triadFormRandom) // Choose some random neighbor of last connected vertex
+                    triadFormation = true;
                 else // Do another pa step.
-                {
-                    doPA = true;
-                }
+                    triadFormation = false;
             }
 
-            if (doPA)
+            auto lastConnectedNeighbors = result.get_neighbors(lastConnectedVertex);
+            if (lastConnectedNeighbors.size() == 0)
             {
-                do
-                {
-                    neighbor = discreteDistribution(randomGenerator);
-                } while (find(neighbors, neighbor));
-                neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
+                // If there are no vertices to connect to do PA step.
+                triadFormation = false;
             }
-            else
-            {
-                auto lastConnectedNeighbors = result.get_neighbors(lastConnectedVertex);
 
-                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
+            if (triadFormation)
+            {
+
+                std::uniform_int_distribution<int> randNeigh(0, lastConnectedNeighbors.size() - 1);
                 do
                 {
                     neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
                 } while (find(neighbors, neighbor));
 
+                neighbors.push_back(neighbor);
+                lastConnectedVertex = neighbor;
+            }
+            else
+            {
+                do
+                {
+                    neighbor = discreteDistribution(randomGenerator);
+                } while (find(neighbors, neighbor));
                 neighbors.push_back(neighbor);
                 lastConnectedVertex = neighbor;
             }
@@ -288,23 +292,32 @@ NetworkMatrix NetworkGenerator::Bianconi(const uint initialSize, const uint fina
 
         for (uint neighbourStep = 0; neighbourStep < newEdgesInStep - 1; neighbourStep++)
         {
-            if (chooseNeighborOfNeighbor(randomGenerator)) // Choose some random neighbor of neighbor
+            bool randomNetworkNode = true;
+
+            std::vector<uint> lastConnectedNeighbors;
+            if (chooseNeighborOfNeighbor(randomGenerator))
             {
-                auto lastConnectedNeighbors = result.get_neighbors(lastConnectedVertex);
-                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
+                lastConnectedNeighbors = result.get_neighbors(lastConnectedVertex);
+                randomNetworkNode = !(lastConnectedNeighbors.size() > 0);
+            }
+
+            if (randomNetworkNode)
+            {
                 do
                 {
-                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
+                    neighbor = randomVertexGenerator(randomGenerator);
                 } while (find(neighbors, neighbor));
 
                 neighbors.push_back(neighbor);
                 lastConnectedVertex = neighbor;
             }
-            else
+            else // Choose some random neighbor of neighbor
             {
+
+                std::uniform_int_distribution<> randNeigh(0, lastConnectedNeighbors.size() - 1);
                 do
                 {
-                    neighbor = randomVertexGenerator(randomGenerator);
+                    neighbor = lastConnectedNeighbors[randNeigh(randomGenerator)];
                 } while (find(neighbors, neighbor));
 
                 neighbors.push_back(neighbor);

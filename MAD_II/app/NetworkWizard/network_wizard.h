@@ -43,6 +43,7 @@ private:
     void clear_log();
     void append_to_log_html(const QString &string);
     void append_to_log(const QString &string);
+    void log_generate_params(const azgra::networkLib::GeneratorParameters &params);
 
 private slots:
     void import_from_edge_pairs();

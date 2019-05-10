@@ -51,7 +51,8 @@ inline NetworkMatrix generate_network_async(const GeneratorParameters params)
     return generated;
 }
 
-inline AlgorithmResult girvan_newman_async(const NetworkMatrix &network, const uint maxIterCount, const float targetModularity)
+inline AlgorithmResult girvan_newman_async(const NetworkMatrix &network, const uint maxIterCount, const float targetModularity,
+                                           const QString &exportFileName)
 {
 
     std::stringstream algLog;
@@ -61,6 +62,14 @@ inline AlgorithmResult girvan_newman_async(const NetworkMatrix &network, const u
     stopwatch.start();
     auto girvanNewmanResult = CommunityFinder::girvan_newman_divisive_clustering(network, algLog, maxIterCount, targetModularity);
     stopwatch.stop();
+
+    if (exportFileName.length() > 0)
+    {
+        save_vertex_community_ids(exportFileName.toStdString().c_str(),
+                                  CommunityFinder::get_vertex_community_ids(
+                                      network.rows(),
+                                      girvanNewmanResult[girvanNewmanResult.size() - 1]));
+    }
 
     AlgorithmResult algResult(Alg_GirvanNewman);
     algResult.elapsedMilliseconds = stopwatch.elapsed_milliseconds();

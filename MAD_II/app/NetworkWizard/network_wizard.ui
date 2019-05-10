@@ -393,6 +393,9 @@
    </property>
   </action>
   <action name="miImportFromVector">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Import network from vector dataset</string>
    </property>
