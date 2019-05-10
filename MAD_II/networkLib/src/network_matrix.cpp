@@ -1171,13 +1171,21 @@ void NetworkMatrix::attack_step()
 
 NetworkReport NetworkMatrix::get_network_report(const ReportRequest &request) const
 {
+    Stopwatch stopwatch;
+    int totalReportStopwatch = stopwatch.start_new_stopwatch();
+
     NetworkReport report = {};
     report.vertexCount = vertex_count();
     report.edgeCount = edge_count();
     report.averageDegree = get_average_degree();
     report.averageClusteringCoefficient = get_average_clustering_coefficient();
 
+    int distanceStopwatch = stopwatch.start_new_stopwatch();
     auto distanceMatrix = get_distance_matrix();
+    stopwatch.stop(distanceStopwatch);
+
+    report.distanceMatrixTime = stopwatch.elapsed_milliseconds(distanceStopwatch);
+
     report.averageDistance = get_average_distance(distanceMatrix);
     report.networkDiameter = get_network_diameter(distanceMatrix);
 
@@ -1193,7 +1201,8 @@ NetworkReport NetworkMatrix::get_network_report(const ReportRequest &request) co
         report.vertexClusteringCoefficients = get_clustering_coeff_for_all_vertices();
         report.vertexClosenessCentralities = get_closeness_centrality_for_vertices(distanceMatrix);
     }
-
+    stopwatch.stop(totalReportStopwatch);
+    report.totalReportTime = stopwatch.elapsed_milliseconds(totalReportStopwatch);
     return report;
 }
 

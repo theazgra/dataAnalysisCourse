@@ -27,6 +27,7 @@ CONFIG += c++11
 SOURCES += \
         generate_dialog.cpp \
         girvan_newman_dialog.cpp \
+        import_dialog.cpp \
         main.cpp \
         network_wizard.cpp \
         vertex_info_form.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
 HEADERS += \
         generate_dialog.h \
         girvan_newman_dialog.h \
+        import_dialog.h \
         network_wizard.h \
         thread_jobs.h \
         vertex_info_form.h \
@@ -44,6 +46,7 @@ HEADERS += \
 FORMS += \
         generate_dialog.ui \
         girvan_newman_dialog.ui \
+        import_dialog.ui \
         network_wizard.ui \
         vertex_info_form.ui
 

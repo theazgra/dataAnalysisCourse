@@ -13,7 +13,7 @@ int main(int argc, char **argv)
     // fprintf(stdout, "Imported, VC: %u, EC: %u\n", fbNet.vertex_count(), fbNet.edge_count());
 
     auto collabNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/gr_qc_collab.csv", "\t", true);
-    fprintf(stdout, "Imported, VC: %u, EC: %u\n", collabNet.vertex_count(), collabNet.edge_count());
+    fprintf(stdout, "Imported, VC: %u, ECq: %u\n", collabNet.vertex_count(), collabNet.edge_count());
 
     //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
     //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");

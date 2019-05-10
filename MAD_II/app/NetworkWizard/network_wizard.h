@@ -9,7 +9,7 @@
 #include <QMovie>
 
 #include "thread_jobs.h"
-
+#include <import_dialog.h>
 #include <wizard_state.h>
 #include <vertex_info_form.h>
 #include <girvan_newman_dialog.h>
@@ -46,7 +46,7 @@ private:
     void log_generate_params(const azgra::networkLib::GeneratorParameters &params);
 
 private slots:
-    void import_from_edge_pairs();
+    void import_network();
     void import_from_vector_data();
     void network_load_completed();
     void report_created();

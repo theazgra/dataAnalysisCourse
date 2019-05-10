@@ -28,9 +28,9 @@ struct AlgorithmResult
     }
 };
 
-inline NetworkMatrix import_network_from_edges(const QString &fileName)
+inline NetworkMatrix import_network_from_edges(const QString &fileName, const QString &delimiter, const bool preprocess)
 {
-    NetworkMatrix result(fileName.toStdString().c_str());
+    NetworkMatrix result(fileName.toStdString().c_str(), delimiter.toStdString().c_str(), preprocess);
 
     return result;
 }

@@ -7,7 +7,7 @@ NetworkWizard::NetworkWizard(QWidget * parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->miImportFromEdgePairs, &QAction::triggered, this, &NetworkWizard::import_from_edge_pairs);
+    connect(ui->miImportFromEdgePairs, &QAction::triggered, this, &NetworkWizard::import_network);
     connect(ui->miImportFromVector, &QAction::triggered, this, &NetworkWizard::import_from_vector_data);
     connect(ui->miClear, &QAction::triggered, this, &NetworkWizard::clear_network);
     connect(ui->miExport, &QAction::triggered, this, &NetworkWizard::export_network);
@@ -40,24 +40,40 @@ NetworkWizard::~NetworkWizard()
     delete ui;
 }
 
-void NetworkWizard::import_from_edge_pairs()
+void NetworkWizard::import_network()
 {
-    QString fName = QFileDialog::getOpenFileName(this, "Import from edge pairs");
+    ImportDialog * importDialog = new ImportDialog();
+    int result = importDialog->exec();
 
-    int index = fName.lastIndexOf('/');
-    QString fileName = fName.mid(index + 1);
-
-    setWindowTitle(QString("NetworkWizard - %1").arg(fileName));
-
-    if (fName.length() > 0)
+    if (result == QDialog::Accepted)
     {
-        this->state.fileName = fileName;
-        this->state.networkSource = NetworkSource_EdgePairs;
+        ImportSettings import = importDialog->get_settings();
+        if (import.path.length() > 0)
+        {
+            int index = import.path.lastIndexOf('/');
+            QString fileName = import.path.mid(index + 1);
 
-        show_loader();
-        QFuture<azgra::networkLib::NetworkMatrix> importJob = QtConcurrent::run(import_network_from_edges, fName);
-        newNetworkWatcher.setFuture(importJob);
+            setWindowTitle(QString("NetworkWizard - %1").arg(fileName));
+
+            this->state.fileName = fileName;
+            this->state.networkSource = NetworkSource_EdgePairs;
+
+            show_loader();
+            QFuture<azgra::networkLib::NetworkMatrix> importJob = QtConcurrent::run(import_network_from_edges,
+                                                                                    import.path,
+                                                                                    import.delimiter,
+                                                                                    import.preprocess);
+
+            append_to_log_html(QString("<p>Importing network from file: %1, delimiter: %2</p>"
+                                       "%3")
+                               .arg(import.path)
+                               .arg(import.delimiter)
+                               .arg(import.preprocess ? QString("<p>Normalizing node ids.</p>") : ""));
+
+            newNetworkWatcher.setFuture(importJob);
+        }
     }
+    delete importDialog;
 }
 
 void NetworkWizard::generate_network()
@@ -217,7 +233,12 @@ void NetworkWizard::network_load_completed()
     {
         case NetworkSource_EdgePairs:
         {
-            QString msg = QString("Imported network edge pairs from %1").arg(state.fileName);
+            QString msg = QString("Imported network edge pairs from %1\n"
+                                  "Vertex count: %2\n"
+                                  "Edge count: %3")
+                .arg(state.fileName)
+                .arg(state.network.vertex_count())
+                .arg(state.network.edge_count());
             append_to_log(msg);
         }
         break;
@@ -254,6 +275,8 @@ void NetworkWizard::report_created()
 
     hide_loader();
     append_to_log("Network report created.");
+    append_to_log_html(QString("<p><b>Distance matrix time:</b> %1 ms</p>").arg(report.distanceMatrixTime));
+    append_to_log_html(QString("<p><b>Total report time:</b> %1 ms</p>").arg(report.totalReportTime));
 }
 
 void NetworkWizard::open_vertex_info()

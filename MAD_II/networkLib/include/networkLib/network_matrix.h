@@ -3,6 +3,7 @@
 #include <networkLib/graph_component.h>
 #include <networkLib/network_report.h>
 #include <networkLib/io.h>
+#include <networkLib/Stopwatch.h>
 
 namespace azgra::networkLib
 {

@@ -15,6 +15,8 @@ struct NetworkReport
     uint networkDiameter;
     uint componentCount;
     uint maxComponentSize;
+    double distanceMatrixTime;
+    double totalReportTime;
 
     std::vector<uint> vertexDegrees;
     std::vector<float> vertexEccentricities;
@@ -31,6 +33,8 @@ struct NetworkReport
         networkDiameter = 0;
         componentCount = 0;
         maxComponentSize = 0;
+        distanceMatrixTime = 0.0;
+        totalReportTime = 0.0;
     }
 };
 

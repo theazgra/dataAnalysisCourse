@@ -18,6 +18,7 @@ void preprocess_ids(std::vector<std::pair<uint, uint>> &edges)
 
     for (std::pair<uint, uint> &edge : edges)
     {
+        // We can use binary search because we sorted the vector.
         int fixedUId = binary_search_index(originalIds, edge.first);
         int fixedVId = binary_search_index(originalIds, edge.second);
         edge.first = fixedUId;
