@@ -7,25 +7,14 @@
 #include <networkLib/community.h>
 
 using namespace azgra::networkLib;
-/*
-    Florentina
-        - OK        Degree centrality
-        - OK        Neighborhood centrality
-        - OK        (_added_) connective redundancy
-        - OK        (_added_) xneighborhood
-*/
-
 int main(int argc, char **argv)
 {
-    GeneratorParameters params = {};
-    params.isSet = true;
-    params.model = NetworkModel_HolmeKim;
-    params.initialSize = 15;
-    params.finalSize = 1000;
-    params.newEdgesInStep = 5;
-    params.probability = 0.05;
-    auto network = NetworkGenerator::generate_network(params);
-    fprintf(stdout, "generated\n");
+    // auto fbNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/facebook_combined.csv", " ", true);
+    // fprintf(stdout, "Imported, VC: %u, EC: %u\n", fbNet.vertex_count(), fbNet.edge_count());
+
+    auto collabNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/gr_qc_collab.csv", "\t", true);
+    fprintf(stdout, "Imported, VC: %u, EC: %u\n", collabNet.vertex_count(), collabNet.edge_count());
+
     //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
     //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");
     //auto communityEvolve = CommunityFinder::girvan_newman_divisive_clustering(network, 200);

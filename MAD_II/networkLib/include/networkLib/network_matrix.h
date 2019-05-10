@@ -62,7 +62,7 @@ private:
 public:
     NetworkMatrix();
     NetworkMatrix(const NetworkMatrix &copySrc);
-    NetworkMatrix(const char *fName);
+    NetworkMatrix(const char *fName, const char *separator = ";", const bool preprocessIds = false);
     NetworkMatrix(const std::vector<std::pair<uint, uint>> &edges, int offset);
     NetworkMatrix(const uint &rowCount, const uint &colCount);
     //NetworkMatrix(const std::vector<IrisRecord> &vectorData);

@@ -158,6 +158,32 @@ std::vector<T> first_of(const std::vector<T> &src, const bool decreasing = false
     return result;
 }
 
+namespace bin_search_helper
+{
+template <typename T>
+int binary_search_index_helper(const std::vector<T> &vec, const T &element, const size_t from, const size_t to)
+{
+    if (to >= from)
+    {
+        long mid = from + ((to - from) / 2);
+        if (vec[mid] == element)
+            return mid;
+
+        if (element > vec[mid])
+            return binary_search_index_helper(vec, element, mid + 1, to);
+        else
+            return binary_search_index_helper(vec, element, from, mid - 1);
+    }
+    return -1;
+}
+}; // namespace bin_search_helper
+
+template <typename T>
+int binary_search_index(const std::vector<T> &vector, const T &element)
+{
+    return bin_search_helper::binary_search_index_helper(vector, element, 0, vector.size());
+}
+
 template <typename T>
 inline void max(T &src, const T test) { src = (test > src) ? test : src; }
 template <typename T>

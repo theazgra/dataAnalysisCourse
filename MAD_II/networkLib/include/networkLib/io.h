@@ -6,11 +6,14 @@
 #include <networkLib/temporal_edge.h>
 #include <networkLib/simple_string.h>
 #include <networkLib/mpx_types.h>
+#include <unordered_set>
 
 namespace azgra::networkLib
 {
+void preprocess_ids(std::vector<std::pair<uint, uint>> &edges);
 
-std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset);
+std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset,
+                                                   bool preprocessIds = false);
 uint get_vertex_count_from_edge_pairs(const std::vector<std::pair<uint, uint>> &pairs);
 
 std::vector<IrisRecord> read_iris_file(const char *filename);

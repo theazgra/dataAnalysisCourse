@@ -16,10 +16,10 @@ NetworkMatrix::NetworkMatrix()
     this->colCount = 0;
 }
 
-NetworkMatrix::NetworkMatrix(const char *fName)
+NetworkMatrix::NetworkMatrix(const char *fName, const char *separator, const bool preprocessIds)
 {
     int offset;
-    auto loadedEdges = load_edge_pairs(fName, ";", offset);
+    auto loadedEdges = load_edge_pairs(fName, separator, offset, preprocessIds);
     uint vc = get_vertex_count_from_edge_pairs(loadedEdges) + offset;
     this->rowCount = vc;
     this->colCount = vc;
@@ -907,6 +907,10 @@ void NetworkMatrix::load_from_edges(const std::vector<std::pair<uint, uint>> &ed
     {
         rowIndex = edge.first + offset;
         colIndex = edge.second + offset;
+
+        // We don't allow self edges.
+        if (rowIndex == colIndex)
+            continue;
 
         at(rowIndex, colIndex) = 1.0f;
         at(colIndex, rowIndex) = 1.0f;

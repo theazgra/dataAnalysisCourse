@@ -1,7 +1,31 @@
 #include <networkLib/io.h>
 namespace azgra::networkLib
 {
-std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset)
+void preprocess_ids(std::vector<std::pair<uint, uint>> &edges)
+{
+    std::unordered_set<uint> originalIdsSet;
+    originalIdsSet.reserve(edges.size());
+
+    for (const std::pair<uint, uint> &edge : edges)
+    {
+        originalIdsSet.insert(edge.first);
+        originalIdsSet.insert(edge.second);
+    }
+
+    std::vector<uint> originalIds(originalIdsSet.size()); //(originalIdsSet);
+    std::copy(originalIdsSet.begin(), originalIdsSet.end(), originalIds.begin());
+    std::sort(originalIds.begin(), originalIds.end());
+
+    for (std::pair<uint, uint> &edge : edges)
+    {
+        int fixedUId = binary_search_index(originalIds, edge.first);
+        int fixedVId = binary_search_index(originalIds, edge.second);
+        edge.first = fixedUId;
+        edge.second = fixedVId;
+    }
+}
+
+std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const std::string &delimiter, int &offset, bool preprocessIds)
 {
     offset = 0;
     uint min = 99999999;
@@ -34,6 +58,13 @@ std::vector<std::pair<uint, uint>> load_edge_pairs(const char *filename, const s
         offset = -min;
         printf("Offset of %i\n", offset);
     }
+
+    if (preprocessIds)
+    {
+        offset = 0;
+        preprocess_ids(result);
+    }
+
     return result;
 }
 
