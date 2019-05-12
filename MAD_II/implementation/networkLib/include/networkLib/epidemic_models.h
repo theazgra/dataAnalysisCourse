@@ -228,6 +228,8 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
 
         EpidemicIterationInfo itInfo = get_epidemic_iteration_info(time, states);
         result[time] = itInfo;
+        
+        fprintf(stdout, "Finised iteration %u\n", time);
     }
 
     return result;
@@ -313,6 +315,7 @@ inline void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats,
 
             outStream << std::endl;
         }
+        fprintf(stdout, "Saved iteration %lu to %s\n", time, file.c_str());
     }
 }
 };

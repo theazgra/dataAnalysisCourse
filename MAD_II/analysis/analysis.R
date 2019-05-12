@@ -2,7 +2,6 @@
 
 # install.packages("testit")
 
-
 library(igraph)
 library(ggplot2)
 library(testit)
@@ -18,6 +17,9 @@ g <- simplify(g, remove.loops = F)
 vc <- length(V(g))
 ec <- length(E(g))
 
+gSimp <- simplify(g)
+sir(gSimp, 0.2, 3, 10)
+
 avgDist <- average.path.length(g, directed = F)
 diam <- diameter(g, directed = F)
 
@@ -25,6 +27,10 @@ deg <- degree(g, mode = "all")
 meanDeg <- mean(deg)
 minDeg <- min(deg)
 maxDeg <- max(deg)
+length(deg[deg == minDeg])
+length(deg[deg == maxDeg])
+
+
 
 degNoLoops <- degree(g, mode = "all", loops = F)
 meanDegdegNoLoops <- mean(degNoLoops)
@@ -55,7 +61,9 @@ ggplot(ddDfC, aes(x = d, y = freq)) + geom_point() +
 
 
 ecc = eccentricity(g);
+length(ecc[ecc == 0])
 
+mean(ecc)
 eccDf = data.frame(v = c(0:(length(ecc) - 1)), e = as.numeric(ecc));
 
 ggplot(eccDf, aes(x = v, y = e)) +
@@ -66,6 +74,8 @@ labs(x = "Vrchol", y = "Excentricita", title = "Excentricita vrcholů") +
     axis.text = element_text(size = 18));
 
 cc <- closeness(g)
+max(cc)
+mean(cc)
 ccDf <- data.frame(v = c(0:(length(cc) - 1)), cc = as.numeric(cc))
 
 ggplot(ccDf, aes(x = v, y = cc)) +
@@ -78,6 +88,7 @@ ggplot(ccDf, aes(x = v, y = cc)) +
     axis.text = element_text(size = 18));
 
 bc <- betweenness(g, directed = F)
+mean(bc)
 bcDf <- data.frame(v = c(0:(length(bc) - 1)), bc = as.numeric(bc))
 ggplot(bcDf, aes(x = v, y = bc)) +
     geom_point() +
@@ -100,9 +111,10 @@ ggplot(hsDf, aes(x = v, y = hubScore)) + geom_point() +
     axis.title = element_text(size = 22),
     axis.text = element_text(size = 18));
 
-
+transitivity(g, type = "global", isolates = "zero");
 
 trans <- transitivity(g, type = "local", isolates = "zero");
+mean(trans)
 transDf <- data.frame(v = c(0:(length(trans) - 1)), t = trans)
 trans
 
@@ -115,8 +127,11 @@ ggplot(transDf, aes(x = v, y = t)) +
     axis.title = element_text(size = 22),
     axis.text = element_text(size = 18));
 
-
-
+cmp <- components(g)
+cmp$no
+max(cmp$csize)
+min(cmp$csize)
+mean(cmp$csize)
 # Sireni jevu
 # SiR model musime udelat sami a vysledky tady naimportoval....
 #       gSimple <- simplify(g)
@@ -126,7 +141,68 @@ ggplot(transDf, aes(x = v, y = t)) +
 simulationFailureAndAttack(g, 1000)
 
 # Sampling
-# Possibly not in R, we must create sample in our app and load it here...
+rnsFile <- "../../data/project/rns_sample_25p.csv"
+resFile <- "../../data/project/res_sample_25p.csv"
+
+rnsDf <- as.data.frame(read.csv(rnsFile, header = F, sep = ";"))
+resDf <- as.data.frame(read.csv(resFile, header = F, sep = ";"))
+gRns <- graph_from_data_frame(rnsDf, directed = F)
+gRes <- graph_from_data_frame(resDf, directed = F)
+
+length(V(gRns))
+length(V(gRes))
+length(E(gRns, directed = F))
+length(E(gRes, directed = F))
+
+mean(degree(gRns))
+mean(degree(gRes))
+
+average.path.length(gRns, directed = F)
+average.path.length(gRes, directed = F)
+
+diameter(gRns, directed = F)
+diameter(gRes, directed = F)
+
+transitivity(gRns, type = "global", isolates = "zero")
+transitivity(gRes, type = "global", isolates = "zero")
+
+mean(closeness(gRns))
+mean(closeness(gRes))
+
+mean(eccentricity(gRns))
+mean(eccentricity(gRes))
+
+mean(betweenness(gRns, directed = F, normalized = T))
+mean(betweenness(gRes, directed = F, normalized = T))
+
+
+ddRns <- degree_distribution(gRns)
+ddRes <- degree_distribution(gRes)
+
+ddRnsDf <- data.frame(d = c(0:(length(ddRns) - 1)), freq = ddRns)
+ddResDf <- data.frame(d = c(0:(length(ddRes) - 1)), freq = ddRes)
+
+pom = layout(mat = matrix(1:2, 1, 2, byrow = F));
+layout.show()
+
+plot(ddRnsDf, log = "xy",ylab="Relativní distrubuce stupňů",xlab="Stupeň",main="Random Node Sampling")
+plot(ddResDf, log = "xy", ylab = "Relativní distrubuce stupňů", xlab = "Stupeň", main = "Random Edge Sampling")
+
+ggplot(ddRnsDf, aes(x = d, y = freq)) + geom_point() +
+    scale_x_continuous("Stupeň", trans = "log10") +
+    scale_y_continuous("Frekvence", trans = "log10") +
+    ggtitle("Relativní distribuce stupňů") +
+    theme(plot.title = element_text(hjust = 0.5, size = 30),
+    axis.title = element_text(size = 22),
+    axis.text = element_text(size = 18));
+
+ggplot(ddResDf, aes(x = d, y = freq)) + geom_point() +
+    scale_x_continuous("Stupeň", trans = "log10") +
+    scale_y_continuous("Frekvence", trans = "log10") +
+    ggtitle("Relativní distribuce stupňů") +
+    theme(plot.title = element_text(hjust = 0.5, size = 30),
+    axis.title = element_text(size = 22),
+    axis.text = element_text(size = 18));
 
 # Komunity
 
@@ -134,35 +210,36 @@ simulationFailureAndAttack(g, 1000)
 eb <- cluster_edge_betweenness(g, directed = F)
 length(eb$modularity)
 length(table(eb$membership)) # 433
-barplot(table(eb$membership), xlab="Id komunity",ylab="Velikost komunity",log="y")
+barplot(table(eb$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y", main = "Girvan-Newman")
 modularity(eb) # [1] 0.8491724
-is_hierarchical(eb) 
-    
+is_hierarchical(eb)
+
+mean(table(eb$membership))
 
 save(file = "cluster_edge_betweenness.rbin", eb);
 
-
-# load(file = "cluster_edge_betweenness.rbin")
-getwd()
+pom = layout(mat = matrix(1:4, 2, 2, byrow = F));
+layout.show()
 
 # Tries to find communities in graphs via directly optimizing a modularity score.
 fg <- cluster_fast_greedy(g)
 length(fg)
 modularity(fg)
 fg$algorithm
-barplot(table(fg$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y")
+barplot(table(fg$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y",main="Fast-Greedt")
 is_hierarchical(fg)
 
 louvain <- cluster_louvain(g)
 length(louvain)
 modularity(louvain)
-barplot(table(louvain$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y")
+barplot(table(louvain$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y", main = "Louvain")
 is_hierarchical(louvain)
 
 walkCommunity <- cluster_walktrap(g, steps = 5)
-barplot(table(walkCommunity$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y")
+barplot(table(walkCommunity$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y", main = "Walktrap")
 length(walkCommunity)
 modularity(walkCommunity)
 
 ebDend <- as.dendrogram(eb);
 plot(ebDend, cut(ebDend, h = 20)$upper)
+
