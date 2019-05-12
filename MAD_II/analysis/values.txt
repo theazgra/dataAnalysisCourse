@@ -1,0 +1,28 @@
+# General Relativity and Quantum Cosmology collaboration network
+
+Vertex count:		5242
+Edge count:			14496 (with 12 self-loops)
+Average distance:	6.049
+Diameter:			17
+Degree (with loops):
+	Average degree:		5.531
+	Min degree:			1
+	Max degree:			81
+Degree (without loops)
+	Average degree:		5.526
+	Min degree:			0
+	Max degree:			81
+
+Clustering-Finding communities
+	( Girvan-Newman ) cluster_edge_betweenness 
+		433 komunit - length(table(eb$membership))
+		modularity: 0.849
+	Fast-Greedy
+		414 komunit
+		modularity: 0.820
+	Louvain
+		395 komunit
+		modularity:	0.861
+	Walktrap
+		698 komunit
+		modularity 0.790

@@ -3,7 +3,7 @@
 namespace azgra::networkLib
 {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_e_radius(const NetworkMatrix &src, const float radius)
+NetworkMatrix NetworkFilters::filter_e_radius(const NetworkMatrix &src, const float radius)
 {
     NetworkMatrix result = NetworkMatrix(src);
 
@@ -21,7 +21,7 @@ NetworkMatrix filter_e_radius(const NetworkMatrix &src, const float radius)
     return result;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_kNN(const NetworkMatrix &src, const uint k)
+NetworkMatrix NetworkFilters::filter_kNN(const NetworkMatrix &src, const uint k)
 {
     NetworkMatrix result(src);
     for (uint row = 0; row < src.rows(); row++)
@@ -39,7 +39,7 @@ NetworkMatrix filter_kNN(const NetworkMatrix &src, const uint k)
     return result;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_combinataion_e_knn(const NetworkMatrix &src, const float radius, const uint k)
+NetworkMatrix NetworkFilters::filter_combinataion_e_knn(const NetworkMatrix &src, const float radius, const uint k)
 {
     NetworkMatrix result(src);
     uint inRadiusCount = 0;
@@ -67,7 +67,7 @@ NetworkMatrix filter_combinataion_e_knn(const NetworkMatrix &src, const float ra
     return result;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_random_node_sampling(const NetworkMatrix &src, const float targetPercentSize)
+NetworkMatrix NetworkFilters::filter_random_node_sampling(const NetworkMatrix &src, const float targetPercentSize)
 {
     //printf("Random based sampling\n");
     std::random_device randomDevice;
@@ -118,7 +118,7 @@ NetworkMatrix filter_random_node_sampling(const NetworkMatrix &src, const float 
     return sampleNetwork;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_random_edge_sampling(const NetworkMatrix &src, const float targetPercentSize)
+NetworkMatrix NetworkFilters::filter_random_edge_sampling(const NetworkMatrix &src, const float targetPercentSize)
 {
 
     printf("Degree based sampling\n");
@@ -175,7 +175,7 @@ NetworkMatrix filter_random_edge_sampling(const NetworkMatrix &src, const float 
     return sampleNetwork;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix filter_k_core(const NetworkMatrix &src, const uint k)
+NetworkMatrix NetworkFilters::filter_k_core(const NetworkMatrix &src, const uint k)
 {
     NetworkMatrix result(src);
     assert(src.rows() == result.rows());
@@ -212,7 +212,7 @@ NetworkMatrix filter_k_core(const NetworkMatrix &src, const uint k)
     return result;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void kernighan_lin(const NetworkMatrix &src)
+void NetworkFilters::kernighan_lin(const NetworkMatrix &src)
 {
     uint rowCount = src.rows();
 
@@ -301,7 +301,7 @@ void kernighan_lin(const NetworkMatrix &src)
     print_vector(groupB);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix simulate_failure(const NetworkMatrix &src, const uint stepCount)
+NetworkMatrix NetworkFilters::simulate_failure(const NetworkMatrix &src, const uint stepCount)
 {
     NetworkMatrix result(src);
     for (size_t attackStep = 0; attackStep < stepCount; attackStep++)
@@ -311,7 +311,7 @@ NetworkMatrix simulate_failure(const NetworkMatrix &src, const uint stepCount)
     return result;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetworkMatrix simulate_attack(const NetworkMatrix &src, const uint stepCount)
+NetworkMatrix NetworkFilters::simulate_attack(const NetworkMatrix &src, const uint stepCount)
 {
     NetworkMatrix result(src);
     for (size_t attackStep = 0; attackStep < stepCount; attackStep++)

@@ -5,15 +5,27 @@
 #include <networkLib/Stopwatch.h>
 #include <networkLib/multilayer_network.h>
 #include <networkLib/community.h>
+#include <networkLib/network_filtering.h>
 
 using namespace azgra::networkLib;
 int main(int argc, char **argv)
 {
+    std::string file = argv[1];
+    auto network = NetworkMatrix(file.c_str(), "\t", true);
+
+    fprintf(stdout, "Loaded VC: %u, EC: %u\n", network.vertex_count(), network.edge_count());
+    float p = 0.25f;
+
+    NetworkMatrix rns = NetworkFilters::filter_random_node_sampling(network, p);
+    NetworkMatrix res = NetworkFilters::filter_random_edge_sampling(network, p);
+    fprintf(stdout, "RNS VC: %u, EC: %u\n", rns.vertex_count(), rns.edge_count());
+    fprintf(stdout, "RES VC: %u, EC: %u\n", res.vertex_count(), res.edge_count());
+
+    rns.export_network("rns_sample_25p.csv");
+    res.export_network("res_sample_25p.csv");
+    return 0;
     // auto fbNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/facebook_combined.csv", " ", true);
     // fprintf(stdout, "Imported, VC: %u, EC: %u\n", fbNet.vertex_count(), fbNet.edge_count());
-
-    auto collabNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/gr_qc_collab.csv", "\t", true);
-    fprintf(stdout, "Imported, VC: %u, ECq: %u\n", collabNet.vertex_count(), collabNet.edge_count());
 
     //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
     //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");
