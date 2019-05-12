@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex document"] 1557682500 "document.aux" "document.bbl" "document" 1557684356
+["bibtex document"] 1557682500 "document.aux" "document.bbl" "document" 1557684500
   "citations.bib" 1557673272 255 5ec07f99fad56544947fde060fc0ab79 ""
   "d:/texlive/2018/texmf-dist/bibtex/bst/base/ieeetr.bst" 1538467142 18361 1a00e58565e7f19bf2b3e1bfb82254ae ""
-  "document.aux" 1557684356 5163 c20db534446995cfe2d0e81dfea64fbb ""
+  "document.aux" 1557684500 5163 c20db534446995cfe2d0e81dfea64fbb ""
   (generated)
   "document.bbl"
   "document.blg"
-["pdflatex"] 1557684355 "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.tex" "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.pdf" "document" 1557684356
+["pdflatex"] 1557684499 "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.tex" "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.pdf" "document" 1557684500
   "../grafy/betweenness.pdf" 1557647668 145295 de15c676c51d0808394913e9c3904189 ""
   "../grafy/closeness.pdf" 1557647411 160830 dbbc374c057cd969bcc171b2baf4259a ""
   "../grafy/cumDD.pdf" 1557646866 22168 3f8c42e5414d26b7762203152ef0daca ""
@@ -19,8 +19,8 @@
   "../grafy/sampleDD.pdf" 1557678086 30853 f3673be64e10af0ec5cf5c858f1c1129 ""
   "../grafy/shlukovaci_koef.pdf" 1557648202 142665 b4f46db492d83d77b2e9a0f3e7db3b1a ""
   "../grafy/walkTrapCommunitySize.pdf" 1557665475 21886 c81dea101a942567cbcddba7cf5ed31f ""
-  "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.aux" 1557684356 5163 c20db534446995cfe2d0e81dfea64fbb ""
-  "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.tex" 1557684354 11681 fcdba5401c4746cdbe3721db1b85611a ""
+  "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.aux" 1557684500 5163 c20db534446995cfe2d0e81dfea64fbb ""
+  "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.tex" 1557684498 11726 33188159c4efe96b6d749b7ab2e5890e ""
   "d:/texlive/2018/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1538467430 2971 def0b6c1f0b107b3b936def894055589 ""
   "d:/texlive/2018/texmf-dist/fonts/map/fontname/texfonts.map" 1538468189 3332 103109f5612ad95229751940c61aada0 ""
   "d:/texlive/2018/texmf-dist/fonts/tfm/jknappen/ec/ecbx1440.tfm" 1538467869 3584 13049b61b922a28b158a38aeff75ee9b ""
@@ -117,14 +117,14 @@
   "d:/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1538471447 3001738 d4214502e4232ef1eb4057c20f02d5f8 ""
   "d:/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1538471532 4218685 9ffc1dd1f0f6675d6595a9d78f4cc54e ""
   "d:/texlive/2018/texmf.cnf" 1538471428 673 4ae7b2f49cee444c5343a45b5d0f169c ""
-  "document.aux" 1557684356 5163 c20db534446995cfe2d0e81dfea64fbb ""
+  "document.aux" 1557684500 5163 c20db534446995cfe2d0e81dfea64fbb ""
   "document.bbl" 1557682501 212 6de21e5c8c6a697fe551099a6a6e3ea2 "bibtex document"
-  "document.out" 1557684356 665 c9219c2f3c89c5757d40ba9af3a3b02a ""
-  "document.tex" 1557684354 11681 fcdba5401c4746cdbe3721db1b85611a ""
+  "document.out" 1557684500 665 c9219c2f3c89c5757d40ba9af3a3b02a ""
+  "document.tex" 1557684498 11726 33188159c4efe96b6d749b7ab2e5890e ""
   (generated)
   "document.out"
-  "document.pdf"
-  "document.aux"
   "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.log"
+  "document.aux"
   "d:/gitrepos/dataAnalysisCourse/MAD_II/analysis/tex/document.pdf"
   "document.log"
+  "document.pdf"
