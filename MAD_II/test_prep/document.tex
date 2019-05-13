@@ -1,0 +1,270 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[a4paper,bindingoffset=0.2in,%
+            left=0.5in,right=0.5in,top=1in,bottom=1in,%
+            footskip=.25in]{geometry}
+
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{mathrsfs}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\newcommand{\image}[4]{\begin{figure}[h!] \centering \includegraphics[width=#1\linewidth]{#2} \caption{#4} \label{#3} \end{figure}}
+
+
+\begin{document}
+
+\section{Konstrukce sítí z vektorových dat}
+\label{lab:construction}
+Metody konstrukce sítí pracují se sítěmi, kde vrchol reprezentuje určitá data, které jsou propojeny hranou. Dělí se na:
+\begin{itemize}
+    \item Nezávislé na úloze - nepotřebují označená data
+    \item Závislé na úloze - použivají jak označená tak neoznačená data pro vytváření sítí
+\end{itemize}
+Sítě vytváříme z vektorových dat hlavně kvůli vizualizaci. Je třeba definovat funkci podobnosti, která nám umožní určit jak jsou si data podovná a umíme určit
+matici podobnosti. Tato podobnost řídí to, jestli je mezi daty hrana. Funkce: Gaussův kernel, kosínova podobnost, korelace, euklidovská vzdálenost.
+Gaussův kernel: $K(x,y)=exp\left(-\frac{||x-y||^2}{2\sigma ^2}\right)$.
+
+Pokud v grafu není hrana tak tam není, v sítí si nejsme jistí.
+
+Vlastnosti sítí, realného světa: Small world (proměrná nejkratší cesta je $ <= \log N$), bezškálovost (distribuce stupňů podle mocniného dělení), komunity.
+Metody transformace vektorových dat na sítě (složitost obecně alespoň $ > O(n^2)$):
+\begin{itemize}
+    \item $\epsilon-radius$ - hrana je mezi vrcholy jestliže jejich vzdálenost je $< \epsilon$
+    \item $k-NN$ - každý vrchol má $k$ nejbližších sousedů
+    \item kombinace obou - jestliže je v $\epsilon$ okolí více než $k$ vrcholů vem je, jinak $k-NN$
+    \item $b$-matching - oproti $k-NN$ zaručuje, že každý vrchol má stejný počet hran, vyvážené sítě, nemá vlastnosti realného světa
+    \item NNN - přidává shlukování
+    \item LRNet - vytváří vážené grafy a lokální reprezentativitu (zaleží na počtu sousedů a počtu vrcholů pro které ja daný vrchol nejbližším sousedem)
+\end{itemize}
+
+\section{Vzorkování sítí (sampling)}
+Proces, při kterém se analyzuje část dat, určitý vzorek sítě s cílem získat relevantní informace o celé sítí, důvody:
+\begin{itemize}
+    \item Nemáme přístup k celé sítí
+    \item Síť je moc velká
+    \item Síť se nestále mění
+    \item Menší síť se dá lépe vizualizovat
+\end{itemize}
+Musíme zjístit jaká velikost vzorku je vhodná a reprezentativní. Vzorky se dají brát jako zmenšené sítě, sítě v minulosti (ty co se mění), lokální podragfy.
+Jak získat vzorek:
+\begin{itemize}
+    \item Plný přístup ke grafu - náhodný výběr vrcholů nebo hran
+    \item Omezený přístup ke grafu - umožněno jen procházení vrcholů postupně, nevleze se do paměti, metody založené na procházení
+    \item Stream dat - vhodné pro dynamické sítě
+\end{itemize}
+Sampling obecně generuje 3 vzory:
+\begin{itemize}
+    \item Řídké grafy (náhodný výběr)
+    \item Relativně kompaktní grafy (seed-based sampling)
+    \item Velké grafy s malým stupněm, např. $d=1$
+\end{itemize}
+\subsection{Metody založené na náhodném výběru}
+
+\textbf{Random Node Sampling} - Vyber vrchol a jeho sousedy s pravděpodobností $p$ (sousedy s $p$?), chceme li $n'$ hran: $p=\frac{n'}{n+2m}$
+
+\textbf{Random Edge Sampling} - Vyber hranu s uniformní pravděpodobností $p$, metoda nemění relativní četnost hran
+
+\subsection{Metody založené na náhodném prohledávání grafu}
+\textbf{Snowball Sampling} - Pro počáteční vrchol (seed) a vzdálenost $l$, vyber všechny vrcholy a jejich sousedy ve vzdálenosti $l$ od seedu. Dobře popisuje
+strukturu okolí seedu. Ovlivněno stupněm seedu.
+
+\textbf{Random Walk} - náhodná procházka po vrcholech. V každém krokue je pravděpodobnost návrata do počátku, opakování do požadované velikosti. Výsledný vzorek je souvislý.
+
+\textbf{Random Jump} - jako RW ale s pravděpodobností skočí zcela jinam
+
+\textbf{Forest Fire} - kombinace snowball a RW
+
+\subsection{Zhodnocení samplingu}
+Porovnání vlastností originální sítě  a vzorků. Kolmogorovův-Smirnovův test, testuje zda 2 náhodné veličiny pocházejí ze stejného rozdělení pravděpodobnosti,
+případně zda náhodná proměnná má předpokládané teoretické rozdělení. Nulová hypotéza říká, že dva výběry odpovídají stejnému rozdělení.
+
+\section{Shlukování}
+Používá se matice podobnosti, hodnoty jsou kladné, matice symetrická. Matice stupně, má na diagonále stupeň vrcholů jinak všude 0.
+Normalizovaná matice sousednosti, hodnoty řádku jsou vyděleny stupněm vrcholu řádku. Vlastní číslo matice $A$ je číslo $\lambda$, lteré splňuje
+$|A-\lambda I| = 0$ vlastní vektory $(A-\lambda I)v = 0$, $I$ je identity matice.
+
+\subsection{Dělení grafu}
+"Rozříznutí" grafu, které optimalizuje určitou funkci. Vrcholy ve stejné komponentě, by si měly býti podobné, vrcholy z různých komponent by měli být odlišné.
+Váha řezu je suma váh hran, které vedou mezi komponentami. \emph{Volume} komponenty je suma váh hran, které začínají nebo končí v komponentě.
+
+Ratio Cut se snaží minimalizovat sumu podobnosti komponenty k ostatním vrcholům mimo komponentu. Normalized Cut je podobný Ratio ale dělí váhu komponent jejich objemem.
+
+\textbf{Spektrální shlukovací algoritmus}, používá vlastní čísla a vektory.
+
+\textbf{Kernighan-Lin}
+\begin{itemize}
+    \item Rozdělíme vrcholy do 2 skupin určené velikosti, např. náhodně
+    \item Pro každou dvojicí vrcholů z různých skupin vypočítáme jak moc by se změnilo \emph{cut size}, kdybychom je přehodili (cut size = počet hran mezi skupinami)
+    \item dvojici, která nejvíce zmenší \emph{cut size} přehodíme
+    \item Opakujeme, ale vyměněné vrcholy už nesmíeme prohazovat
+    \item Když už jsme přehodili všechny dvojice, vybereme tu iteraci, kde je nejméně hran mezi skupinami
+\end{itemize}
+
+Velikost obou skupin zůstává stejná, minimalizujeme počet hran mezi nimi. Algortimus je dobré spustit vícekrát.
+
+\section{Detekce komunit}
+Komunita je hustě propojený podgraf v síti. Komunita je skupina, kde každá zná každého. \textbf{Silná komunita} je taková, kde každý vrchol komunity ma více hran s ostatními
+členy komunity než s vnějškem. \textbf{Slabá komunita}, celkový vnitřní stupeň je větší než celkový vnejší stupeň. Komunity se mohou překrývat.
+
+
+Sociální sítě mají přirozenou komunitní struktůru. Chceme zjistit zda síť má komunitní struktůru, velikosti komunit, počet komunit a kam patří daný vrchol.
+Detekce komunit je snadná jen v řídkých grafech. Metody hledání komunit jsou např. spektrální metod, používající kliky (Clique Percolation Method),
+metody založené na heuristikách (modularita). Obecně shora dolů, zdola nahoru, nepřekrývající a překrývající se komunity.
+
+Metody zdola nahoru se zaměřína jednotlivce a zkoumají jak je zakotven v překrávajících se skupinách. Shora dolu hledají slabá místa, např. hrany, které by mohli
+odstranit.
+
+Soudržnost komunity ovlivňuje vzájemné propojení, kompaktnost (malá vzdálenost v komunitě), hustota a oddělení od zbytku sítě.
+
+\textbf{Shlukování na základě podobnosti}:
+\begin{itemize}
+    \item každý vrchol je komunitou
+    \item spoj 2 nejvíce podobné komunity
+    \item přepočítej podobnost (single,complete,average)
+    \item opakuj dokud není 1 komunita
+\end{itemize}
+
+\subsection{Kliky}
+Klika grafu je takový podgraf nějakého (neorient.) grafu, který je úplným grafem. Kliky se mohou překrývat a výskyt kliky v grafu reprezentuje velkou
+soudržnost nějaké skupiny. Maximální klika je klika, kterou nelze rozšířit o další sousední vrchol. Největší klika je klika největší možné velikosti v daném grafu
+Klikovost grafu je velikost největší kliky.
+
+\textbf{N-Klika} - je možno je definovat vrcholy jako členy kliky, pokud jsou připojeny ke každému jinému členu skupiny, ve vzdálenosti větší než jedna, 
+obvykle se používá vzdálenost N=2.
+
+\textbf{K-plex} – je maximální podmnožina množiny $n$ vrcholů taková, že každý její vrchol je incidentní s alespoň $n-k$ vrcholy. 1-plex je klasická klika.
+
+\textbf{K-core} - je maximální podmnožina vrcholů takových, že každý vrchol je incidentní s alespoň $k$ vrcholy této podmnožiny, tj. každý vrchol má stupeň
+alespoň $k$. Nalezení: odstraňujeme všechny vrcholy se stupněm $<k$, toto se opakuje dokud takové vrcholy existují. Nakonec zůstane množina K-core.
+
+Metody detekce komunit
+\begin{itemize}
+    \item \textbf{Clique Percolation Method} - 2 $k$-kliky jsou přilehlé, jestliže sdílejí $k-1$ vrcholů. Komunita je maximální spojení $k$-klik, které jsou propojené přilehlými $k$-klikami
+        \begin{enumerate}
+            \item Odstraní se všechny úplné podgrafy (kliky), které nejsousoučástí větších klik
+            \item vytvoří se matice překryvu klik
+            \item naleznou se $k$-klik komunity
+        \end{enumerate}
+    \item \textbf{Girvan-Newman betweenness clustering}
+        \begin{enumerate}
+            \item Spočítá se edge betweenness všech hran
+            \item Odstraní se hrana s největší edge betweenness
+            \item Opakuje se dokud nedosáhneme určené modularity, nebo nějaká hrana má betweenness větší než určitý threshold
+        \end{enumerate}
+    \item \textbf{Louvain} - Heuristická metoda chamtivé optimalizace
+    \begin{enumerate}
+        \item Každý vrchol je komunita
+        \item Pro každý vrchol vyzkoušej jej přesunout asi do jiné komunity a přepočti modularitu
+        \item Přesuň vrchol tak ať je maximalizovana modularita
+        \item Opakuj dokud se zlepšuje modularita
+        \item Sjednoť vrcholy do komunit, váha hran se sjednotí
+        \item Opakuj dokud nedosáhneme maximální modularitu
+    \end{enumerate}
+    \item Zaine - komunita je určena podle fitness funkce, která určuje ostrost R hranice komunity. Hranice je ostrá pokud má méně spojení hranicí a zbytkem grafu, než je počet spojení z hranice do komunity.
+        \begin{enumerate}
+            \item Algoritmus začíná od jednoho vrcholu, takže na začátku hranice B a komunita D obsahuje pouze první vrchol a plášť S obsahuje všechny jeho sousedy.
+            \item V každém kroku algoritmus spočítá ostrosti R pro každý vrchol v S. 
+            \item Poté se vrchol s nejvyšší hodnotou R (v případě, že nová R je vyšší než současná R) přidá ke komunitě a tři množiny vrcholů (D, B, S) jsou aktualizovány
+            \item Algoritmus opakuje tento proces, dokud se R zvyšuje
+        \end{enumerate}
+\end{itemize}
+
+\textbf{Modularita}
+Míra kvality nalezených komunit, vetší modularita je lepší, M=0, jedna komunita=celá síť. Pozitivní modularita znamená, že komunita má více hran než je očekáváno v rámci 
+sítě, je silně propojená.
+\begin{equation*}
+    M = \sum_{c=1}^{n_c}\left[ \frac{L_c}{L} - \left( \frac{k_c}{2L} \right)^2 \right]
+\end{equation*}
+
+
+\section{Modely sítí}
+
+\subsection{Komunitní modely sítí}
+Triádový uzávěr indikuje preferenční připojování.
+
+\textbf{Holme-Kim model} rozšíření BA modelu. S pravděpodobností $p$ je provedena formace triády namísto PA. Formace triády znamená, že je vytvořena hrana k 
+náhodnému sousedovi naposledny spojeného vrcholu.
+
+\textbf{Bianconi model} rozšíření BA modelu. První hrana nového vrcholu je napojena na náhodný vrchol sítě $u$,(náhoda záleží na stáří vrcholu), druhá hrana
+je s pravděpodobností $p$ napojena na náhodného souseda $u$, jinak k náhodnému vrcholu sítě. Další hrany stejně jako druhá hrana.
+
+Komunitní modely lze rozšířit o fitness, které hraje roli při preferenčním připojování.
+
+\textbf{Link selection model} - v každém kroku přidáme 1 vrchol a vybereme náhodnou hranu sítě, ze které vybereme 1 konec a na ten napojíme nový vrchol.
+Větší stupeň vrcholu, znamená větší šanci, že se na něj někdo napojí.
+
+\textbf{Copying model} nový vrchol $v$ se s pravděpodobností $p$ připojí na náhodný vrchol sítě $u$ a s pravděpodobností $1-p$ se připojí na náhodného souseda $u$,
+kopíruje hranu od $u$ do tohoto souseda.
+
+Barabasi-Albertův model se dá rozšířit o stárnutí vrcholů, vnitří hrany, mazání hran.
+
+\subsection{Temporální sítě}
+Hrany jsou aktivni v nebo od určitého časového okamžiku. Můžeme pracovat s časovými razítky, intervaly, frekvencí.
+Např. tranzitivita v temporálních sítích nemusí platit. Ve statických sítích platí, že pokud vrchol A je sousedem B a B je sousedem C, pak A a C jsou 
+dostupné přes vrchol B. V temporálních sítích, v případě, že hrana (A, B ) je aktivní pouze v pozdější době, než hrana (B, C), potom A a C jsou
+nedostupné. Síťě v různých časových okamžicích se dají považovat za vícevrstvé sítě. Reprezentace nejčastě jako trojice, dvojice hrany a časové razítko.
+
+\begin{itemize}
+    \item Time-respecting (TR) path - cesta s neklesajícím časem
+    \item Oblast vlivu vrcholu $i$ - vrcholy dosažitelné po TR cestách z vrcholu $i$
+    \item Reachability ratio -  průměrný počet vrcholů, které jsou součástí oblastí vlivů všech vrcholů v síti
+    \item Source set $i$ - vrcholy, ze kterých je dostupný vektor $i$ po TR cestách
+    \item Trvání nejkratší cesty - délka TR cesty mezi $i$ měřená čašem
+    \item Latence - nejkratší TR cesta (nejkratší čas) z $i$ do $j$
+    \item Vzdálenost - nejkratší TR cesta (nejmenší počet hran) z $i$ do $j$
+\end{itemize}
+
+\subsection{Vícevrtsvé sítě}
+Skládájí se z více vrstev, kde vrstva je síť. Aktor je jednotlivec, reprezentovaný vrcholem ve vrstvě. Aktor může být ve více vrstvách. Vrchol je teda
+reprezentace aktora. Vrstvy mohou být propojeny mezivrstvovýma hranama. Dalo by se reprezentovat i heterogeníma vazbama.
+Vícevrstvá síť se dá převést na jednovrstvou pomocí projekce, sploštění, zaleží jestli budeme sčítat váhu hran.
+
+Sploštění sjednotí všechny vrcholy aktéra do 1, hrana mezi aktéry je tehdy pokud byla v nějaké vrstvě. Dá se počítat s váhami vrstev a hran.
+
+Degree centralita je počet hran daného aktora v množině vrstev a mezi nimi. Sousedé aktora v množině vrstev je množina aktorů, se kterými je v rámci těchto vrstev 
+náš aktor spojen. Neighborhood centralita je jejich počet. Redundance připojení je 1-poměr neighborhood a degree. p.s.$xN(a,L)=|N(a,L) \smallsetminus N(a,\textbf{L}\smallsetminus L)|$.
+
+Vzdálenost mezi aktéry je velmi složitá záležitost. Cesta se zapisuje do matice $L$ hodnota $L_{ij}$ značí délku cesty z vrstvy $i$ do vrstvy $j$. Můžeme 
+pozorovat více cest, kde se budou lišit délky v různých vrstvách, takže záleží jak jsou jednotlivé vrstvy důležité.
+
+Closenesss a Betweenness centralita je definována přes náhodnou procházku.
+
+Relevance aktéra v množině vrstev $L$ je definována jako poměr neighborhood centrality aktéra v $L$, ku neighborhood centralitě aktéra ve všech vrstvách.
+Jak je aktér relevantní ve zvolených vrstvách.
+
+\section{Procesy v sítích}
+Netwrok resillience – porozumění šíření poruch, chceme pochopit roli sítí, kterou hrají při zajišťování robustnosti složitého systému.
+Ukázat, že struktura sítí hraje zásadní roli ve schopnosti systému přežít náhodná selhání nebo záměrné útoky.
+Zkoumání role sítí při vzniku kaskádových poruch jako zničujících jevů, které se často vyskytují v reálných systémech.
+
+\textbf{Inverze Perkolace} - Náhodné selhání (každý vrchol/hrana odstraněna s pravděpodobností), útok na síť (cílené odebírání nejdůležitějších vrcholů).
+
+\textbf{Náhodné poruchy} - bezškálové sítě se nerozpadají po náhodném odstranění nějaké konečné podmnožiny vrcholů. Náhodně musíme odstranit téměř
+všechny uzly, aby došlo k rozpadu největší komponenty. Tj. k rozpadu dochází velmi pomalu. V bezškálové síti máme mnohem více vrcholů s malým stupněm než hubů (center). 
+Proto náhodné odstranění vrcholu vede k tomu, že se odstraňují převážně vrcholy s malým stupněm.  Vrcholy s malým stupněm přispívají k robustnosti sítě.
+
+Je nepravděpodobné, že odstraněním jediného centra se síť rozpadne, protože ji mohou zbývající centra ještě držet pohromadě. Nicméně po odstranění několika málo 
+center se síť rozpadne do malých shluků.
+
+Modely epidemie, SI, SIS, SIR.
+
+\section{Korelace v sítích}
+Sociální sítě – lidé mají tendenci se sdružovat se sobě podobnými lidmi, citační sítě – citují se články ze stejné oblasti.
+assotrative mixing (homophily) – výběrové slučování (nebo také homofilní (homotypické) vazby). Opakem je disassorative mixing (heterofilní (heterotypické) vazby) – Internet
+
+Diskrétní (kategoriální) atributy (pohlaví, národost, rasa), skalárání (věk, plat).
+
+Síť je assortative (výběrová, nenáhodná), pokud významná část hran spojuje vrcholy stejného typu, tj. např. se stejnou hodnotou atributu, s obdobným stupněm, apod.
+
+Modularita a určuje míru propojenosti podobných vrcholů (vrcholů stejného typu). Už jsme viděli u komunit. Pozotivní hodnoty, jestliže je více hran mezi vrcholy stejného 
+typu.
+
+\end{document}

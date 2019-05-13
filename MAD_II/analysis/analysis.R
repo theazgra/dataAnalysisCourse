@@ -38,7 +38,7 @@ minDegdegNoLoops <- min(degNoLoops)
 maxDegdegNoLoops <- max(degNoLoops)
 
 dd <- degree_distribution(g)
-ddC <- degree_distribution(g, cumulative = T)
+ddC <- degree_distribution(g, cumulative = T, mode="all")
 
 
 ddDf <- data.frame(d = c(0:(length(dd) - 1)), freq = dd)
@@ -50,14 +50,17 @@ ggplot(ddDf, aes(x = d, y = freq)) + geom_point() +
     axis.title = element_text(size = 22),
     axis.text = element_text(size = 18));
 
-ddDfC <- data.frame(d = c(0:(length(ddC) - 1)), freq = ddC)
-ggplot(ddDfC, aes(x = d, y = freq)) + geom_point() +
+ddDfC <- data.frame(d = c(0:max(degree(g,mode="all"))), freq = 1-ddC)
+ggplot(ddDfC, aes(x = d, y = freq)) + geom_line() +
     scale_x_continuous("Stupeň") +
-    scale_y_continuous("Frekvence", trans = "log10") +
+    scale_y_continuous("Kumulativní frekvence") +
     ggtitle("Kumulativní distribuce stupňů") +
     theme(plot.title = element_text(hjust = 0.5, size = 30),
     axis.title = element_text(size = 22),
     axis.text = element_text(size = 18));
+
+#c(0:(length(ddC) - 1))
+#, trans = "log10"
 
 
 ecc = eccentricity(g);
@@ -148,6 +151,7 @@ rnsDf <- as.data.frame(read.csv(rnsFile, header = F, sep = ";"))
 resDf <- as.data.frame(read.csv(resFile, header = F, sep = ";"))
 gRns <- graph_from_data_frame(rnsDf, directed = F)
 gRes <- graph_from_data_frame(resDf, directed = F)
+
 
 length(V(gRns))
 length(V(gRes))
