@@ -10,6 +10,9 @@ struct EpidemicIterationInfo
     std::vector<uint> suspected;
     std::vector<uint> infected;
     std::vector<uint> recovered;
+    uint sCount;
+    uint iCount;
+    uint rCount;
 
     EpidemicIterationInfo() {}
     EpidemicIterationInfo(const uint _time) : time(_time) {}
@@ -89,6 +92,10 @@ static void reset_immune(std::vector<VertexState> &states)
 static EpidemicIterationInfo get_epidemic_iteration_info(const uint time, const std::vector<VertexState> &states)
 {
     EpidemicIterationInfo result(time);
+    result.suspected.clear();
+    result.infected.clear();
+    result.recovered.clear();
+
     for (size_t i = 0; i < states.size(); i++)
     {
         switch (states[i].state)
@@ -104,6 +111,9 @@ static EpidemicIterationInfo get_epidemic_iteration_info(const uint time, const 
             break;
         }
     }
+    result.sCount = result.suspected.size();
+    result.iCount = result.infected.size();
+    result.rCount = result.recovered.size();
     return result;
 }
 
@@ -228,7 +238,7 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
 
         EpidemicIterationInfo itInfo = get_epidemic_iteration_info(time, states);
         result[time] = itInfo;
-        
+
         fprintf(stdout, "Finised iteration %u\n", time);
     }
 
@@ -275,6 +285,21 @@ inline void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats
     }
 }
 
+inline void save_cummulated_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *file)
+{
+    std::ofstream outStream(file, std::ios::out);
+    if (!outStream.is_open())
+    {
+        printf("Unable to open out stream to file %s.\n", file);
+        return;
+    }
+    outStream << "Iteration;Suspected;Infected;Recovered" << std::endl;
+    for (size_t itIndex = 0; itIndex < stats.size(); itIndex++)
+    {
+        outStream << stats[itIndex].time << ";" << stats[itIndex].sCount << ";" << stats[itIndex].iCount << ";" << stats[itIndex].rCount << std::endl;
+    }
+}
+
 inline void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats, const char *_folder)
 {
     std::string folder = _folder;
@@ -318,4 +343,4 @@ inline void save_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats,
         fprintf(stdout, "Saved iteration %lu to %s\n", time, file.c_str());
     }
 }
-};
+}; // namespace azgra::networkLib
