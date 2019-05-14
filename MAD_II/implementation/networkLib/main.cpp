@@ -10,22 +10,15 @@
 using namespace azgra::networkLib;
 int main(int argc, char **argv)
 {
-    GeneratorParameters p;
-    p.isSet = true;
-    p.newEdgesInStep = 3;
-    p.initialSize = 10;
-    p.finalSize = 1000;
-    p.probability = 0.25f;
-    p.model = NetworkModel_Bianconi;
-    auto n = NetworkGenerator::generate_network(p);
-    fprintf(stdout, "Generated, VC: %u, EC: %u\n", n.vertex_count(), n.edge_count());
-
     // std::string file = argv[1];
     // std::string folder = argv[2];
+    
     // auto network = NetworkMatrix(file.c_str(), "\t", true);
     // fprintf(stdout, "Loaded VC: %u, EC: %u\n", network.vertex_count(), network.edge_count());
+    // int initInfected = network.vertex_count() * 0.10f;
+    // fprintf(stdout,"Initial infected: %i\n", initInfected);
 
-    // auto sirResult = SIR_epidemic_model(network, 250, 0.3f, 6, 1000);
+    // auto sirResult = SIR_epidemic_model(network, initInfected, 0.7f, 10, 500);
     // save_cummulated_epidemic_stats(sirResult, folder.c_str());
 
     //save_epidemic_stats(sirResult, folder.c_str());
@@ -36,28 +29,21 @@ int main(int argc, char **argv)
     // fprintf(stdout, "RES VC: %u, EC: %u\n", res.vertex_count(), res.edge_count());
     // rns.export_network("rns_sample_25p.csv");
     // res.export_network("res_sample_25p.csv");
-    return 0;
-    // auto fbNet = NetworkMatrix("/home/mor0146/github/dataAnalysisCourse/data/project/facebook_combined.csv", " ", true);
-    // fprintf(stdout, "Imported, VC: %u, EC: %u\n", fbNet.vertex_count(), fbNet.edge_count());
 
-    //auto network = NetworkMatrix("/home/mor0146/Desktop/ba50.csv");
-    //network.get_edge_betweenness_matrix().export_edge_betweenness("/home/mor0146/Desktop/EB_ba50.csv");
-    //auto communityEvolve = CommunityFinder::girvan_newman_divisive_clustering(network, 200);
+    int hour = 3600;
+    auto ml = MultiLayerNetwork<std::string>::import_from_mpx("../../../../data/florentine.mpx");
+    //auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("../../../../data/ht09_contact_list.dat", '\t', hour * 10);
 
-    // int hour = 3600;
-    // //auto ml = MultiLayerNetwork<std::string>::import_from_mpx("/home/mor0146/github/dataAnalysisCourse/data/florentine.mpx");
-    // auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("/home/mor0146/github/dataAnalysisCourse/data/ht09_contact_list.dat", '\t', hour * 10);
-
-    // std::vector<uint> layers = {0, 2, 4}; //ml.get_all_layers_ids();
-    // auto neighCent = ml.get_actors_neighborhood_centrality(layers);
-    // auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
-    // auto actorDeg = ml.get_actors_degree_centrality(layers);
-    // auto red = ml.get_actors_connective_redundancy(layers);
-    // for (auto &&actorCent : neighCent)
-    // {
-    //     fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
-    //             actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
-    // }
+    std::vector<uint> layers = ml.get_all_layers_ids();// {0, 2, 4}; //ml.get_all_layers_ids();
+    auto neighCent = ml.get_actors_neighborhood_centrality(layers);
+    auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
+    auto actorDeg = ml.get_actors_degree_centrality(layers);
+    auto red = ml.get_actors_connective_redundancy(layers);
+    for (auto &&actorCent : neighCent)
+    {
+        fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
+                actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
+    }
 
     return 0;
     // if (rounded != 2.991f)

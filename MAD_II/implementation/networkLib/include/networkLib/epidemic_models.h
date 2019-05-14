@@ -122,6 +122,9 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
                                                          const uint initialInfectedCount, const float infectionProbability,
                                                          const uint recoveryTime, const uint iterationCount)
 {
+    fprintf(stdout, "Initial infected count: %u\nInfection probability: %.4f\nRecovery time: %u\nIteration count: %u\n",
+            initialInfectedCount, infectionProbability, recoveryTime, iterationCount);
+
     uint vertexCount = network.vertex_count();
     std::vector<VertexState> states;
     states.resize(vertexCount);
@@ -161,8 +164,13 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
                         auto neighbors = network.get_neighbors(vertex);
                         for (const uint &neighbor : neighbors)
                         {
-                            states[neighbor] = State_Infected;
-                            states[neighbor].infectionTime = time;
+                            if (states[neighbor].state == State_Suspected)
+                            {
+                                assert(states[neighbor].state == State_Suspected);
+
+                                states[neighbor].state = State_Infected;
+                                states[neighbor].infectionTime = time;
+                            }
                         }
                     }
                 }
@@ -190,11 +198,11 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
                         auto neighbors = network.get_neighbors(vertex);
                         for (const uint &neighbor : neighbors)
                         {
-                            if (states[neighbor].immune)
-                                continue;
-
-                            states[neighbor] = State_Infected;
-                            states[neighbor].infectionTime = time;
+                            if (states[neighbor].state == State_Suspected && !states[neighbor].immune)
+                            {
+                                states[neighbor].state = State_Infected;
+                                states[neighbor].infectionTime = time;
+                            }
                         }
                     }
                 }
@@ -218,16 +226,18 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
             {
                 if (states[vertex].state == State_Infected && states[vertex].infectionTime != time)
                 {
-                    if (infectionRandom(rd) == 1)
+                    if (infectionRandom(rd))
                     {
                         auto neighbors = network.get_neighbors(vertex);
                         for (const uint &neighbor : neighbors)
                         {
-                            if (states[neighbor].immune)
-                                continue;
+                            if (states[neighbor].state == State_Suspected && !states[neighbor].immune)
+                            {
+                                assert(states[neighbor].state == State_Suspected);
 
-                            states[neighbor] = State_Infected;
-                            states[neighbor].infectionTime = time;
+                                states[neighbor].state = State_Infected;
+                                states[neighbor].infectionTime = time;
+                            }
                         }
                     }
                 }
@@ -239,7 +249,7 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
         EpidemicIterationInfo itInfo = get_epidemic_iteration_info(time, states);
         result[time] = itInfo;
 
-        fprintf(stdout, "Finised iteration %u\n", time);
+        //fprintf(stdout, "Finised iteration %u\n", time);
     }
 
     return result;

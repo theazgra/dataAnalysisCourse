@@ -1,0 +1,2 @@
+auto sirResult = SIR_epidemic_model(network, initInfected, 0.7f, 10, 500);
+sir_result.csv
