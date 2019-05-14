@@ -225,25 +225,30 @@ save(file = "cluster_edge_betweenness.rbin", eb);
 pom = layout(mat = matrix(1:4, 2, 2, byrow = F));
 layout.show()
 
+pom = layout(mat = matrix(1:3, 1, 3, byrow = T));
+layout.show(pom);    
+
 # Tries to find communities in graphs via directly optimizing a modularity score.
 fg <- cluster_fast_greedy(g)
 length(fg)
 modularity(fg)
 fg$algorithm
-barplot(table(fg$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y",main="Fast-Greedt")
+
+barplot(table(eb$membership), xlab = "Id komunity", ylab = "Velikost komunity",ylim=c(1,1000), log = "y", main = "Girvan-Newman")
+# log = "y"
+barplot(table(fg$membership), xlab = "Id komunity", ylab = "Velikost komunity",ylim=c(1,1000),log="y",main="Fast-Greedy")
 is_hierarchical(fg)
 
 louvain <- cluster_louvain(g)
 length(louvain)
 modularity(louvain)
-barplot(table(louvain$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y", main = "Louvain")
+barplot(table(louvain$membership), xlab = "Id komunity", ylab = "Velikost komunity", ylim = c(1, 1000), log = "y", main = "Louvain")
 is_hierarchical(louvain)
 
 walkCommunity <- cluster_walktrap(g, steps = 5)
-barplot(table(walkCommunity$membership), xlab = "Id komunity", ylab = "Velikost komunity", log = "y", main = "Walktrap")
+barplot(table(walkCommunity$membership), xlab = "Id komunity", ylab = "Velikost komunity", ylim=c(1,1000), log="y", main = "Walktrap")
 length(walkCommunity)
 modularity(walkCommunity)
 
-ebDend <- as.dendrogram(eb);
-plot(ebDend, cut(ebDend, h = 20)$upper)
+
 

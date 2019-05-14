@@ -13,7 +13,11 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 
+% \includegraphics[angle=90,origin=c]{file}
+% \newcommand{\image}[4]{\begin{figure}[h!] \centering \includegraphics[width=#1\linewidth]{#2} \caption{#4} \label{#3} \end{figure}}
+
 \newcommand{\image}[4]{\begin{figure}[h!] \centering \includegraphics[width=#1\linewidth]{#2} \caption{#4} \label{#3} \end{figure}}
+\newcommand{\imageRotated}[4]{\begin{figure}[h!] \centering \includegraphics[width=#1\linewidth,angle=90,origin=c]{#2} \caption{#4} \label{#3} \end{figure}}    
 
 \author{Moravec Vojtěch}
 \title{Analýze sítě \emph{Spoluautorství} v Obecné relativitě a Kvantové kosmologii}
@@ -51,10 +55,9 @@ Pokud by jsme ze sítě vyloučili smyčky, minimální stupeň by se změnil na
 \end{table}
 
 V grafu na Obrázků \ref{fig:relDegDist} vidíme relativní distribuci stupňů a na Obrázku \ref{fig:cummDegDist} kumulativní distribuci stupňů.
-Podle relativní distirbuce bychom chtěli rozhodnout, zda distribuce odpovídá mocninnému rozdělení. Konec této relativní distribuce vykazuje mocninné dělení,
-ikdyž celkově tato distribuce není tak čistá jak bychom si přáli.
+Dle relativní distribuce potvrzujeme, že distribuce odpovídá mocninnému rozdělení.
 
-\image{0.7}{../grafy/relDD.pdf}{fig:relDegDist}{Relativní distribuce stupňů}
+\image{0.75}{../grafy/relDD.pdf}{fig:relDegDist}{Relativní distribuce stupňů}
 \image{0.7}{../grafy/cumDD.pdf}{fig:cummDegDist}{Kumulativní distribuce stupňů}
 
 \FloatBarrier
@@ -126,7 +129,7 @@ reprezentativní, tedy jejich charakteristiky jsou velmi podobé celé síti. Pr
 Souhrn charakteristik originální síťě i dvou vzorků vidíme v Tabulce \ref{tab:sampleChars}, relativní distribuce vzorků pak na Obrázku \ref{fig:sampleDD}.
 Obě metody vytvořili vzorky téměř stejné velikosti, ale metodou RES jsme přišli o cca $3 \times$ více hran, což se projevuje na průměrném stupni vrcholu. 
 Průměrné vzdálenosti obou vzorku jsou velmi podobné originálu a taktéž shlukovací koeficient a méně pak i průměrná excentricita. Bohužel podle relativní
-distribuce stupňů němůžeme jistě řící, že by vzorky měli distribuci stupňů podle mocninného zákona.
+distribuce stupňů němůžeme jistě řící, že by vzorky měli distribuci podle mocninného rozdělení, ikdyž náznak tam vidíme.
 
 \image{0.7}{../grafy/sampleDD.pdf}{fig:sampleDD}{Relativní distribuce stupňů ve vzorcích}
 \FloatBarrier
@@ -153,18 +156,19 @@ modularity.
         Louvain         & 395               & $0,861$       \\
         Walktrap        & 698               & $0,790$       \\
     \end{tabular}
-    \caption{}
+    \caption{Zhodnocení detekce komunit dle metody}
     \label{tab:community}
 \end{table}
 
 Podle Tabulky \ref{tab:community} hodnotíme jako nejlepší Louvainův algoritmus, který dosáhl nejvěší modularity s nejmenším počtem komunit. Celkově všechny
 algoritmy dosahují podobných modularit. Nejhůř vychází algoritmus Walktrap s velkým počtem komunit. Velikosti jednotlivých komunit dle algoritmů můžeme vidět
-v Obrázcích \ref{fig:gnc}, \ref{fig:fgc}, \ref{fig:lc}, \ref{fig:wtc}.
+v Obrázcích \ref{fig:gnc}, \ref{fig:communityRest}. % , \ref{fig:lc}, \ref{fig:wtc}.
 
 \image{1}{../grafy/girvanNewmanCommunitySize.pdf}{fig:gnc}{Komunity podle Girvan-Newmanova algoritmu}
-\image{1}{../grafy/fastGreedyCommunitySize.pdf}{fig:fgc}{Komunity podle Fast-Greedy algoritmu}
-\image{1}{../grafy/louvainCommunitySize.pdf}{fig:lc}{Komunity podle Louvainova algoritmu}
-\image{1}{../grafy/walkTrapCommunitySize.pdf}{fig:wtc}{Komunity podle Walktrap algoritmu}
+
+\imageRotated{1.6}{../grafy/community.pdf}{fig:communityRest}{Komunity podle Fast-Greedy algoritmu}
+
+\FloatBarrier
 
 \subsection{Šíření jevů}
 Šíření jevů, např. nákazy v sítí se dá simulovat SIR modelem, kde v každém momentu je vrchol v jednom ze stavu:
@@ -176,7 +180,15 @@ v Obrázcích \ref{fig:gnc}, \ref{fig:fgc}, \ref{fig:lc}, \ref{fig:wtc}.
 
 Na začátku se vybere náhodně určitý počet nakažených vrcholů, ty s určitou pravděpodobností nakazí své sousedy. Nakažený vrchol je uzdraven po určeném počtu kroků.
 Uzdravený vrchol již nemůže být nakažen. Pokud bude na počátku vybrán vrchol s vysokým stupňěm tak se bude epidemie šířit rychle, pokud naopak s nizkým stupněm tak pomaleji.
-Navíc, tím že síť je rozdělena do komponent mohou být určité komponenty zcela imunní pokud nebude nakažen žadný vrchol, který do nich patří.
+Navíc, tím že síť je rozdělena do komponent mohou být určité komponenty zcela imunní pokud nebude nakažen žadný vrchol, který do nich patří. 
+
+
+\image{0.8}{../grafy/sir.pdf}{fig:sir}{Simulace epidemie dle SIR modelu}
+
+V grafu na Obrázku \ref{fig:sir} můžeme vidět simulaci epidemie právě podle SIR modelu. Na začátku bylo nakaženo 10 \% vrcholů, tedy 524, pravděpodobnost nákazy byla 
+nastavena na 70 \% a čas potřebný pro celkové uzdravení 10. V prvních iteracích docházi k rychlému šíření díky 70-ti \% pravděpodobnosti nákazy. Všimneme si, že po 30 iteracích je epidemie zcela vyhlazena. Velká odolnost této sítě vůči epidemii je
+způsobena velkým množstvím komponent, neboť pokud ze začátku není vybrán náhodný vrchol v komponentě tak je tato komponenta zcela immuní vůči epidemi.
+
 
 \bibliography{citations}
 \bibliographystyle{ieeetr}
