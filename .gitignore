@@ -67,6 +67,8 @@ results/
 *.blg
 *.log
 *.out
+*.fls
+*.fdb_latexmk
 *.synctex.gz
 MAD_II/scripts/.rkward_autosave
 MAD_II/ui/#builder.ui#
@@ -83,3 +85,8 @@ build-debug/
 build-Release/
 build-release/
 *.swp
+MAD_II/implementation/app/build-release
+MAD_II/implementation/app/build-debug
+MAD_II/analysis/hist.rbin
+MAD_II/analysis/hist.RData
+MAD_II/analysis/cluster_edge_betweenness.rbin

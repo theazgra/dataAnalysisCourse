@@ -1,0 +1,184 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[section]{placeins}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{mathrsfs}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\newcommand{\image}[4]{\begin{figure}[h!] \centering \includegraphics[width=#1\linewidth]{#2} \caption{#4} \label{#3} \end{figure}}
+
+\author{Moravec Vojtěch}
+\title{Analýze sítě \emph{Spoluautorství} v Obecné relativitě a Kvantové kosmologii}
+\date{Letní semestr 2019}
+
+\begin{document}
+\maketitle
+\newpage
+
+\section{Popis datasetu}
+
+Analyzovaný dataset byl získán ze stránky \emph{snap.stanford.edu} \cite{snapnets}. 
+Dataset obsahuje seznam hran neorientovaného grafu, který prezentuje spolupráci vědců, kteří se zabývají obecnou relativitou a kvantovou kosmologií.
+Hrana $(u,v)$ značí, že vědec $u$ se podílel na článku s vědcem $v$. Tento dataset obsahuje některé hrany vícekrát, ale pro naší analýzu nebereme v potaz
+vážené hrany, kdežto smyčky, které se zde nacházení ponecháváme v sítí. Celkem je v této citační síti 12 smyček.
+
+Data pro vytvoření datasetu byla nasbírána v průběhu let od Ledna roku 1993 do Dubna 2014, jedná se tedy o celkem 124 měsíců, hrany avšak neobsahují
+časová razítka jejich vzniku.
+ 
+\section{Analýza sítě}
+\subsection{Analýza distribuce stupňů vrcholů}
+Citační síť se skládá z $5242$ vrcholů a $14496$ hran, tedy $5242$ autorů a $14496$ zaznamenaných spoluautorství. V tabulce \ref{tab:vertexDeg} vidíme
+shrnutí číselných charakteristik stupňě vrcholu. Maximální stupeň je roven $81$, ten říká, že nejaktivnější autor je spoluautorem 81 článků,
+kdežto $1196$ autorů se podílelo pouze na jednom článku, v rámci obecné relativity a kvantové kosmologie. V průměru se autoři podílejí na 5-ti až 6-ti článcích.
+Pokud by jsme ze sítě vyloučili smyčky, minimální stupeň by se změnil na $0$.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{r | r | r | r | r}
+        Minimum & Četnost       & Maximum   & Četnost       & Průměr \\\hline\hline
+        1       & $1196 \times$ & 81        & $1 \times$    & 5,530  
+    \end{tabular}
+    \caption{Souhrn stupňů vrcholů}
+    \label{tab:vertexDeg}
+\end{table}
+
+V grafu na Obrázků \ref{fig:relDegDist} vidíme relativní distribuci stupňů a na Obrázku \ref{fig:cummDegDist} kumulativní distribuci stupňů.
+Podle relativní distirbuce bychom chtěli rozhodnout, zda distribuce odpovídá mocninnému rozdělení. Konec této relativní distribuce vykazuje mocninné dělení,
+ikdyž celkově tato distribuce není tak čistá jak bychom si přáli.
+
+\image{0.7}{../grafy/relDD.pdf}{fig:relDegDist}{Relativní distribuce stupňů}
+\image{0.7}{../grafy/cumDD.pdf}{fig:cummDegDist}{Kumulativní distribuce stupňů}
+
+\FloatBarrier
+\newpage
+
+\subsection{Analýza cest v síti}
+Průměr sítě neboli, nejdelší z nejkratších cest mezi vrcholy, je v naší sítí roven 17. Průměrná délka nejkratší cesty je rovna $6,049$. Autoři článku jsou 
+tedy průměrně propojeni přes cca $6$ další autorů. V grafu na Obrázku \ref{fig:eccentricity} můžeme vidět excentricitu jednotlivých vrcholů.
+Excentricita je vzdálenost nejkratší cesty k nejvzdálenějšímu vrcholu.
+
+\image{0.7}{../grafy/eccentricity.pdf}{fig:eccentricity}{Excentricita vrcholů}
+
+Cesta v naší síti značí posloupnost autorů, kteří spolupracovani na určitém článku. Nulovou excentricitu má pouze jeden vrchol, tento vrchol můsí mít pouze
+smyčku sám na sebe, neboť minimální stupeň je $1$ viz Tabulka \ref{tab:vertexDeg}, nikdy nespolupracoval s žádným dalším autorem.
+
+\FloatBarrier
+\newpage
+\subsection{Centrality v síti}
+Na Obrázcích \ref{fig:closeness}, resp. \ref{fig:betweenness} můžeme vidět closeness, resp. betweenness centralitu jednotlivých vrcholů.
+Closeness centralita měrí, jak je vrchol centrální v dané síťi, bere v potaz nejkratší cesty ke všem ostatním vrcholům.
+Dle closeness centrality jsou vrcholy rozděleny do dvou skupin, ačkoli ani jedna nedosohuje vysoké hodnoty této centrality. Tyto velmi nízky hodnoty jsou
+způsobeny tím, že daný graf není souvislý a obsahuje 355 komponent, kde největší obsahuje 4158 vrcholů, nejmenší 1 vrchol a průměrné je v jedné komponentě
+$14,767$ vrcholů.
+Betweenness centralita měrí poměr nejkratších cest, všech dvojic vrcholů, které procházeji přes zkoumaný vrchol. Vrcholem s vysokou betweenness centralitou
+prochází mnoho nejkratších cest a pokud jej odstranímě je největší šance, že dojde k rozpadu komponenty.
+
+\image{0.7}{../grafy/closeness.pdf}{fig:closeness}{Closeness centralita vrcholů}
+\image{0.7}{../grafy/betweenness.pdf}{fig:betweenness}{Betweenness centralita vrcholů}
+
+\FloatBarrier
+\newpage
+\subsection{Shlukování}
+V naší sítí je globální shlukovací roven $0,630$. Shlukovací koeficient jednotlivých vrcholů je už 
+velmi různorodý jak můžeme vidět v grafu na Obrázku \ref{fig:cluster}. Vysoká tranzitiva vrcholů znamená, že jeho sousedé jsou s vysokou pravděpodobností taky spojeni
+hranou.
+
+\image{0.7}{../grafy/shlukovaci_koef.pdf}{fig:cluster}{Shlukovací koeficient vrcholů}
+\FloatBarrier
+\newpage
+\subsection{Odolnost síťě}
+V grafu na Obrázku \ref{fig:failAttack} můžeme vidět jak se měnili různé charakteristiky síťě při jejim selhání resp. útoku.
+Při selháni je náhodně odebrán vrchol, kdežto u útoku je cíleně odebrán nejdůležitější vrchol, tedy ten s nejvyšším stupňěm. Grafy popisují změnu
+charakteristik pro $1000$ iterací, bylo tedy odebráno celkem $1000$ vrcholů.
+
+\image{1}{../grafy/failureAttack1000.pdf}{fig:failAttack}{Odolnost síťě vůči selhání a útoku}
+
+Všimneme si, že při útoku rychle roste počet komponent, to způsobuje vznik menších komponent, což se odráží na průměrné vzdálenosti, která začne kolem 700-té iterace
+klesat. Selhání většinou kopíruje vlastnosti útoku, ale mnohem pomaleji. Průměrná vzdálenost při selhání je ale vyjimkou, neboť ta se pořád drží velmi 
+blízko originální hodnoty.
+\FloatBarrier
+\newpage
+\subsection{Vzorkování}
+Jak jsme zmínili naší síť tvoří $5242$ vrcholů, rozhodli jsme se vytvořit dva vzorky, které budou 25\% originální velikosti a zjístit zda jsou tyto vzorky
+reprezentativní, tedy jejich charakteristiky jsou velmi podobé celé síti. První vzorek byl vytvořen metodou Random Node Sampling (RNS) a druhý Random Edge Sampling (RES).
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{l | r | r | r | r | r | r}
+                                & Počet     & Počet & Prům.     & Prům.         & Shlukovací    & Prům. \\
+                                & vrcholů   & hran  & stupeň    & vzdálenost    & koef.         & excentricita \\\hline\hline
+        Originál            & 5242          & 14496 & $5,530$   & $6,049$       & $0,630$       & $9,557$       \\
+        RNS                 & 1313          & 6197  & $9,440$   & $5,608$       & $0,813$       & $8,750$       \\
+        RES                 & 1312          & 2371  & $3,614$   & $6,646$       & $0,679$       & $7,813$       \\
+    \end{tabular}
+    \caption{Charakteristiky vzorků}
+    \label{tab:sampleChars}
+\end{table}
+
+Souhrn charakteristik originální síťě i dvou vzorků vidíme v Tabulce \ref{tab:sampleChars}, relativní distribuce vzorků pak na Obrázku \ref{fig:sampleDD}.
+Obě metody vytvořili vzorky téměř stejné velikosti, ale metodou RES jsme přišli o cca $3 \times$ více hran, což se projevuje na průměrném stupni vrcholu. 
+Průměrné vzdálenosti obou vzorku jsou velmi podobné originálu a taktéž shlukovací koeficient a méně pak i průměrná excentricita. Bohužel podle relativní
+distribuce stupňů němůžeme jistě řící, že by vzorky měli distribuci stupňů podle mocninného zákona.
+
+\image{0.7}{../grafy/sampleDD.pdf}{fig:sampleDD}{Relativní distribuce stupňů ve vzorcích}
+\FloatBarrier
+\newpage
+
+\subsection{Hledání komunit}
+Jak jsme již zmínili naše síť není souvislá a skládá se z 355 komponent, je tedy nemožné aby jsme našli méně než 355 komunit.
+Pro hledání komunit jsme využili 4 různých metod, které jsou dostupné v R balíčku \emph{igraph}. Kvalita nalezených komunit je hodnocena podle jejich 
+modularity.
+
+\begin{itemize}
+    \item Girvan-Newmanova metoda - divizivní metoda, kde při každé iteraci odebíráme hranu s největší betweenness centralitou, je velká šance, že tato hrana spojuje silně propojené komponenty, potencionální komunity.
+    \item Fast-Greedy metoda - optimalizační metoda, maximalizující modularitu výběrem hustých podgrafů.
+    \item Louvainova metoda - optimalizační metoda, hledání nejlepších komunit pomocí přesouvání vrcholů z jedné komunity do druhé. Vrchol bude vložen do komunity tak ať je maximalizována modularita.
+    \item Walktrap metoda - hledá komunity pomocí náhodných procházek, v našem případě délky 5. Myšlenkou je, že krátké procházky zůstanou v komunitě daného vrcholu.
+\end{itemize}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{l | r | r}
+        Algoritmus      & Počet komponent   & Modularita    \\\hline\hline
+        Girvan-Newman   & 433               & $0,849$       \\
+        Fast-Greedy     & 414               & $0,820$       \\
+        Louvain         & 395               & $0,861$       \\
+        Walktrap        & 698               & $0,790$       \\
+    \end{tabular}
+    \caption{}
+    \label{tab:community}
+\end{table}
+
+Podle Tabulky \ref{tab:community} hodnotíme jako nejlepší Louvainův algoritmus, který dosáhl nejvěší modularity s nejmenším počtem komunit. Celkově všechny
+algoritmy dosahují podobných modularit. Nejhůř vychází algoritmus Walktrap s velkým počtem komunit. Velikosti jednotlivých komunit dle algoritmů můžeme vidět
+v Obrázcích \ref{fig:gnc}, \ref{fig:fgc}, \ref{fig:lc}, \ref{fig:wtc}.
+
+\image{1}{../grafy/girvanNewmanCommunitySize.pdf}{fig:gnc}{Komunity podle Girvan-Newmanova algoritmu}
+\image{1}{../grafy/fastGreedyCommunitySize.pdf}{fig:fgc}{Komunity podle Fast-Greedy algoritmu}
+\image{1}{../grafy/louvainCommunitySize.pdf}{fig:lc}{Komunity podle Louvainova algoritmu}
+\image{1}{../grafy/walkTrapCommunitySize.pdf}{fig:wtc}{Komunity podle Walktrap algoritmu}
+
+\subsection{Šíření jevů}
+Šíření jevů, např. nákazy v sítí se dá simulovat SIR modelem, kde v každém momentu je vrchol v jednom ze stavu:
+\begin{itemize}
+    \item S - nenakaženy, může být nakažen
+    \item I - nakažený, může nakazit sousedy
+    \item R - uzdraven, už nemůže být znovu nakažen
+\end{itemize}
+
+Na začátku se vybere náhodně určitý počet nakažených vrcholů, ty s určitou pravděpodobností nakazí své sousedy. Nakažený vrchol je uzdraven po určeném počtu kroků.
+Uzdravený vrchol již nemůže být nakažen. Pokud bude na počátku vybrán vrchol s vysokým stupňěm tak se bude epidemie šířit rychle, pokud naopak s nizkým stupněm tak pomaleji.
+Navíc, tím že síť je rozdělena do komponent mohou být určité komponenty zcela imunní pokud nebude nakažen žadný vrchol, který do nich patří.
+
+\bibliography{citations}
+\bibliographystyle{ieeetr}
+
+\end{document}

@@ -1,0 +1,54 @@
+# General Relativity and Quantum Cosmology collaboration network
+
+Vertex count:		5242
+Edge count:			14496 (with 12 self-loops)
+Average distance:	6.049
+Diameter:			17
+Avg.Clust.Coeff:	0.529
+Avg.Closeness.Cent: 1.465085e-07
+Avg.Ecc:			9.557
+Avg.Between.Cent:	8324.959
+
+Degree (with loops):
+	Average degree:		5.531
+	Min degree:			1
+	Max degree:			81
+Degree (without loops)
+	Average degree:		5.526
+	Min degree:			0
+	Max degree:			81
+
+Clustering-Finding communities
+	( Girvan-Newman ) cluster_edge_betweenness 
+		433 komunit - length(table(eb$membership))
+		modularity: 0.849
+	Fast-Greedy
+		414 komunit
+		modularity: 0.820
+	Louvain
+		395 komunit
+		modularity:	0.861
+	Walktrap
+		698 komunit
+		modularity 0.790
+
+Samples (25%)
+	RNS
+		Vertex count:		1313
+		Edge count:			6197
+		Average distance:	5.608
+		Diameter:			15
+		Avg.Clust.Coeff:	0.639
+		Avg.Closeness.Cent: 2.363728e-06
+		Avg.Ecc:			8.750
+		Avg.Between.Cent:	1925.416
+	RES
+		Vertex count:		1312
+		Edge count:			2371
+		Average distance:	6.646
+		Diameter:			17
+		Avg.Clust.Coeff:	0.466
+		Avg.Closeness.Cent: 1.086165e-06
+		Avg.Ecc:			7.813
+		Avg.Between.Cent:	1317.335
+
