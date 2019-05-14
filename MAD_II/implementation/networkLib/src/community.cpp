@@ -148,6 +148,19 @@ CommunityEvolveArray CommunityFinder::girvan_newman_divisive_clustering(const Ne
             break;
         }
     }
+    
+    CommunityArray lastIter = result.back();
+    for (size_t i = 0; i < lastIter.size(); i++)
+    {
+        auto community = lastIter[i];
+        messageBuffer << "Community: " << community.id << " with modularity: " << community.modularity << " community vertices: " <<  std::endl;
+        messageBuffer << "\t";
+        for (const uint &v : community.vertices)
+            messageBuffer << v << ", ";
+        messageBuffer << std::endl;
+    }
+    
+
     messageBuffer << "Finished Girvan-Newman clustering." << std::endl;
     return result;
 }
