@@ -10,13 +10,24 @@
 using namespace azgra::networkLib;
 int main(int argc, char **argv)
 {
-    std::string file = argv[1];
-    std::string folder = argv[2];
-    auto network = NetworkMatrix(file.c_str(), "\t", true);
-    fprintf(stdout, "Loaded VC: %u, EC: %u\n", network.vertex_count(), network.edge_count());
+    GeneratorParameters p;
+    p.isSet = true;
+    p.newEdgesInStep = 3;
+    p.initialSize = 10;
+    p.finalSize = 1000;
+    p.probability = 0.25f;
+    p.model = NetworkModel_Bianconi;
+    auto n = NetworkGenerator::generate_network(p);
+    fprintf(stdout, "Generated, VC: %u, EC: %u\n", n.vertex_count(), n.edge_count());
 
-    auto sirResult = SIR_epidemic_model(network, 250, 0.3f, 6, 1000);
-    save_cummulated_epidemic_stats(sirResult, folder.c_str());
+    // std::string file = argv[1];
+    // std::string folder = argv[2];
+    // auto network = NetworkMatrix(file.c_str(), "\t", true);
+    // fprintf(stdout, "Loaded VC: %u, EC: %u\n", network.vertex_count(), network.edge_count());
+
+    // auto sirResult = SIR_epidemic_model(network, 250, 0.3f, 6, 1000);
+    // save_cummulated_epidemic_stats(sirResult, folder.c_str());
+
     //save_epidemic_stats(sirResult, folder.c_str());
     // float p = 0.25f;
     // NetworkMatrix rns = NetworkFilters::filter_random_node_sampling(network, p);

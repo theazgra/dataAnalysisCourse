@@ -277,14 +277,21 @@ NetworkMatrix NetworkGenerator::Bianconi(const uint initialSize, const uint fina
 
     std::discrete_distribution<int> chooseNeighborOfNeighbor({1 - probability, probability});
     std::vector<uint> neighbors;
-    std::uniform_int_distribution<> randomVertexGenerator;
+
+    std::discrete_distribution<int> randomVertexGenerator;
     for (uint step = 0; step < (finalSize - initialSize); step++)
     {
         neighbors.clear();
         neighbors.reserve(newEdgesInStep);
 
         newVertexIndex = initialSize + step;
-        randomVertexGenerator = std::uniform_int_distribution<>(0, newVertexIndex - 1);
+        std::vector<float> weights(step + initialSize);
+        for (size_t i = 0; i < step + initialSize; i++)
+        {
+            weights[i] = 1.0f / static_cast<float>(initialSize + i);
+        }
+
+        randomVertexGenerator = std::discrete_distribution<int>(weights.begin(), weights.end()); //, newVertexIndex - 1);
         uint newRandomNeigh = randomVertexGenerator(randomGenerator);
 
         neighbors.push_back(newRandomNeigh);
@@ -309,7 +316,6 @@ NetworkMatrix NetworkGenerator::Bianconi(const uint initialSize, const uint fina
                 } while (find(neighbors, neighbor));
 
                 neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
             }
             else // Choose some random neighbor of neighbor
             {
@@ -321,7 +327,6 @@ NetworkMatrix NetworkGenerator::Bianconi(const uint initialSize, const uint fina
                 } while (find(neighbors, neighbor));
 
                 neighbors.push_back(neighbor);
-                lastConnectedVertex = neighbor;
             }
         }
 
