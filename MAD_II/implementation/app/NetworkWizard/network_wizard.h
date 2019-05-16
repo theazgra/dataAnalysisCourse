@@ -56,6 +56,7 @@ private slots:
     void generate_network();
     void alg_community_girvan_newman();
     void algorithm_completed();
+    void epidemic_simulation();
 };
 
 #endif // NETWORKWIZARD_H

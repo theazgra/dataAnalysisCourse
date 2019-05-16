@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 {
     // std::string file = argv[1];
     // std::string folder = argv[2];
-    
+
     // auto network = NetworkMatrix(file.c_str(), "\t", true);
     // fprintf(stdout, "Loaded VC: %u, EC: %u\n", network.vertex_count(), network.edge_count());
     // int initInfected = network.vertex_count() * 0.10f;
@@ -34,15 +34,16 @@ int main(int argc, char **argv)
     auto ml = MultiLayerNetwork<std::string>::import_from_mpx("../../../../data/florentine.mpx");
     //auto ml = MultiLayerNetwork<uint>::import_from_temporal_data("../../../../data/ht09_contact_list.dat", '\t', hour * 10);
 
-    std::vector<uint> layers = ml.get_all_layers_ids();// {0, 2, 4}; //ml.get_all_layers_ids();
+    std::vector<uint> layers = ml.get_all_layers_ids(); // {0, 2, 4}; //ml.get_all_layers_ids();
     auto neighCent = ml.get_actors_neighborhood_centrality(layers);
     auto neighCentEx = ml.get_actors_exclusive_neighborhood_centrality(layers);
     auto actorDeg = ml.get_actors_degree_centrality(layers);
     auto red = ml.get_actors_connective_redundancy(layers);
+
     for (auto &&actorCent : neighCent)
     {
-        fprintf(stdout, "Actor: %-5u, ncent: %5u, xncent.: %5u Degree cent: %5u, Conn redundancy: %5.4f\n", actorCent.first,
-                actorCent.second, neighCentEx[actorCent.first], actorDeg[actorCent.first], red[actorCent.first]);
+        fprintf(stdout, "Actor: %-15s, Degree cent: %5u ncent: %5u, xncent.: %5u  Conn redundancy: %5.4f\n", actorCent.first.c_str(),
+                actorDeg[actorCent.first], actorCent.second, neighCentEx[actorCent.first], red[actorCent.first]);
     }
 
     return 0;

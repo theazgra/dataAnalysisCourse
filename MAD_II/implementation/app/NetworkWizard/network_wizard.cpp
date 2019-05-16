@@ -14,6 +14,7 @@ NetworkWizard::NetworkWizard(QWidget * parent) :
     connect(ui->miViewVertexInfo, &QAction::triggered, this, &NetworkWizard::open_vertex_info);
     connect(ui->miGenerate, &QAction::triggered, this, &NetworkWizard::generate_network);
     connect(ui->miGirvanNewman, &QAction::triggered, this, &NetworkWizard::alg_community_girvan_newman);
+    connect(ui->miES, &QAction::triggered, this, &NetworkWizard::epidemic_simulation);
 
     connect(&newNetworkWatcher, SIGNAL(finished()), this, SLOT(network_load_completed()));
     connect(&reportWatcher, SIGNAL(finished()), this, SLOT(report_created()));
@@ -184,6 +185,27 @@ void NetworkWizard::log_generate_params(const azgra::networkLib::GeneratorParame
         default:
             break;
     }
+}
+
+void NetworkWizard::epidemic_simulation()
+{
+    EpidemicDialog * dialog = new EpidemicDialog();
+    int result = dialog->exec();
+
+    if (result == QDialog::Accepted)
+    {
+        EpidemicParams params = dialog->get_params();
+
+
+
+        QFuture<AlgorithmResult> algorithmJob = QtConcurrent::run(epidemic_simulation_async,
+                                                                  this->state.network,
+                                                                  params);
+
+        algorithmWatcher.setFuture(algorithmJob);
+        show_loader();
+    }
+    delete dialog;
 }
 
 
@@ -389,6 +411,13 @@ void NetworkWizard::algorithm_completed()
             // TODO: Display community info window with table like this
             // Community Id | Vertex count | Modularity | Inner edge count
             vertexInfoForm->show();
+
+        }
+        break;
+        case Alg_Epidemic:
+        {
+            append_to_log(QString("Finished epidemic simulation in %1 ms").arg(result.elapsedMilliseconds));
+            append_to_log(result.log);
 
         }
         break;

@@ -4,12 +4,14 @@
 #include <networkLib/community.h>
 #include <sstream>
 #include <networkLib/Stopwatch.h>
+#include <epidemic_dialog.h>
 
 using namespace azgra::networkLib;
 
 enum Algorithm
 {
-    Alg_GirvanNewman
+    Alg_GirvanNewman,
+    Alg_Epidemic
 };
 
 
@@ -49,6 +51,47 @@ inline NetworkMatrix generate_network_async(const GeneratorParameters params)
     NetworkMatrix generated = NetworkGenerator::generate_network(params);
 
     return generated;
+}
+
+inline AlgorithmResult epidemic_simulation_async(const NetworkMatrix &network, const EpidemicParams &params)
+{
+    std::stringstream algLog;
+
+    std::vector<EpidemicIterationInfo> result;
+
+    azgra::Stopwatch stopwatch;
+
+    stopwatch.start();
+    switch (params.selectedModel)
+    {
+        case epidemic_impl::Model_SI:
+        {
+            result = SI_epidemic_model(network, params.initialInfected, params.infectionProb, params.iterationCount, algLog);
+        }
+        break;
+        case epidemic_impl::Model_SIS:
+        {
+            result = SIS_epidemic_model(network, params.initialInfected, params.infectionProb, params.recoveryTime, params.iterationCount, algLog);
+        }
+        break;
+        case epidemic_impl::Model_SIR:
+        {
+            result = SIR_epidemic_model(network, params.initialInfected, params.infectionProb, params.recoveryTime, params.iterationCount, algLog);
+        }
+        break;
+    }
+    stopwatch.stop();
+    if (params.resultFileName.length() > 0)
+    {
+        save_cummulated_epidemic_stats(result, params.resultFileName.toStdString().c_str());
+    }
+
+    AlgorithmResult algResult(Alg_Epidemic);
+    algResult.elapsedMilliseconds = stopwatch.elapsed_milliseconds();
+    algResult.log = QString::fromStdString(algLog.str());
+
+    return algResult;
+
 }
 
 inline AlgorithmResult girvan_newman_async(const NetworkMatrix &network, const uint maxIterCount, const float targetModularity,
