@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        epidemic_dialog.cpp \
         generate_dialog.cpp \
         girvan_newman_dialog.cpp \
         import_dialog.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
         vertex_info_model.cpp
 
 HEADERS += \
+        epidemic_dialog.h \
         generate_dialog.h \
         girvan_newman_dialog.h \
         import_dialog.h \
@@ -44,6 +46,7 @@ HEADERS += \
         wizard_state.h
 
 FORMS += \
+        epidemic_dialog.ui \
         generate_dialog.ui \
         girvan_newman_dialog.ui \
         import_dialog.ui \

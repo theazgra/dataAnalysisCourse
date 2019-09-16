@@ -379,6 +379,7 @@
      <addaction name="miGirvanNewman"/>
     </widget>
     <addaction name="menuCommunity"/>
+    <addaction name="miES"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -429,6 +430,11 @@
   <action name="miGirvanNewman">
    <property name="text">
     <string>Girvan-Newman clustering</string>
+   </property>
+  </action>
+  <action name="miES">
+   <property name="text">
+    <string>Epidemic simulation</string>
    </property>
   </action>
  </widget>

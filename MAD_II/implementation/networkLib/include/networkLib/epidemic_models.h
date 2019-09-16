@@ -1,6 +1,7 @@
 #pragma once
 #include <networkLib/network_matrix.h>
 #include <string>
+#include <sstream>
 
 namespace azgra::networkLib
 {
@@ -120,10 +121,34 @@ static EpidemicIterationInfo get_epidemic_iteration_info(const uint time, const 
 template <Model epidemiaModel>
 static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &network,
                                                          const uint initialInfectedCount, const float infectionProbability,
-                                                         const uint recoveryTime, const uint iterationCount)
+                                                         const uint recoveryTime, const uint iterationCount,
+                                                         std::stringstream &messageBuffer)
 {
-    fprintf(stdout, "Initial infected count: %u\nInfection probability: %.4f\nRecovery time: %u\nIteration count: %u\n",
-            initialInfectedCount, infectionProbability, recoveryTime, iterationCount);
+    switch (epidemiaModel)
+    {
+    case Model_SI:
+    {
+        messageBuffer << "Selected epidemic model: SI" << std::endl;
+    }
+    break;
+    case Model_SIS:
+    {
+        messageBuffer << "Selected epidemic model: SIS" << std::endl;
+    }
+    break;
+    case Model_SIR:
+    {
+        messageBuffer << "Selected epidemic model: SIR" << std::endl;
+    }
+    break;
+    }
+    messageBuffer << "Initial infected count: " << initialInfectedCount << std::endl;
+    messageBuffer << "Infection probability: " << infectionProbability << std::endl;
+    messageBuffer << "Recovery time: " << recoveryTime << std::endl;
+    messageBuffer << "Iteration count : " << iterationCount << std::endl;
+
+    // fprintf(stdout, "Initial infected count: %u\nInfection probability: %.4f\nRecovery time: %u\nIteration count: %u\n",
+    //         initialInfectedCount, infectionProbability, recoveryTime, iterationCount);
 
     uint vertexCount = network.vertex_count();
     std::vector<VertexState> states;
@@ -249,34 +274,38 @@ static std::vector<EpidemicIterationInfo> epidemic_model(const NetworkMatrix &ne
         EpidemicIterationInfo itInfo = get_epidemic_iteration_info(time, states);
         result[time] = itInfo;
 
+        messageBuffer << "Finished iteration " << time << std::endl;
+        messageBuffer << "S: " << itInfo.sCount << ", I: " << itInfo.iCount << ", R: " << itInfo.rCount << std::endl;
         //fprintf(stdout, "Finised iteration %u\n", time);
     }
+    messageBuffer << "Completed epidemic simulation..." << std::endl;
 
     return result;
 } // namespace epidemic_impl
 }; // namespace epidemic_impl
 
 inline std::vector<EpidemicIterationInfo> SI_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
-                                                            const float infectionProbability, const uint iterationCount)
+                                                            const float infectionProbability, const uint iterationCount,
+                                                            std::stringstream &log)
 {
     return epidemic_impl::epidemic_model<epidemic_impl::Model_SI>(network, initialInfectedCount,
-                                                                  infectionProbability, 0, iterationCount);
+                                                                  infectionProbability, 0, iterationCount, log);
 }
 
 inline std::vector<EpidemicIterationInfo> SIS_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
                                                              const float infectionProbability, const uint recoveryTime,
-                                                             const uint iterationCount)
+                                                             const uint iterationCount, std::stringstream &log)
 {
     return epidemic_impl::epidemic_model<epidemic_impl::Model_SIS>(network, initialInfectedCount,
-                                                                   infectionProbability, recoveryTime, iterationCount);
+                                                                   infectionProbability, recoveryTime, iterationCount, log);
 }
 
 inline std::vector<EpidemicIterationInfo> SIR_epidemic_model(const NetworkMatrix &network, const uint initialInfectedCount,
                                                              const float infectionProbability, const uint recoveryTime,
-                                                             const uint iterationCount)
+                                                             const uint iterationCount, std::stringstream &log)
 {
     return epidemic_impl::epidemic_model<epidemic_impl::Model_SIR>(network, initialInfectedCount,
-                                                                   infectionProbability, recoveryTime, iterationCount);
+                                                                   infectionProbability, recoveryTime, iterationCount, log);
 }
 
 inline void print_epidemic_stats(const std::vector<EpidemicIterationInfo> &stats)
