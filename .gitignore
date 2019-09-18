@@ -90,3 +90,5 @@ MAD_II/implementation/app/build-debug
 MAD_II/analysis/hist.rbin
 MAD_II/analysis/hist.RData
 MAD_II/analysis/cluster_edge_betweenness.rbin
+.idea/
+cmake-build-*/

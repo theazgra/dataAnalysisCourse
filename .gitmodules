@@ -1,0 +1,3 @@
+[submodule "MAD_III/AzgraCppLibrary"]
+	path = MAD_III/AzgraCppLibrary
+	url = git@github.com:theazgra/AzgraCppLibrary.git
