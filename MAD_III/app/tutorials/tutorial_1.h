@@ -6,9 +6,29 @@
 #include <azgra/io/text_file_functions.h>
 #include <azgra/collection/vector_utilities.h>
 #include <azgra/collection/vector_linq.h>
+#include <sstream>
 
 template<typename T>
 using Transaction = std::set<T>;
+
+#define MAKE_ASSOCIATION_RULE(x, y) std::make_pair<std::vector<int>, std::vector<int>>(std::vector<int>(x), std::vector<int>(y))
+
+template<typename ItemType>
+struct AssociationRule
+{
+    std::vector<ItemType> lhs;
+    std::vector<ItemType> rhs;
+    float confidence = 0.0f;
+
+    AssociationRule()
+    {}
+
+    AssociationRule(std::vector<ItemType> _lhs, std::vector<ItemType> _rhs, float conf) : lhs(_lhs), rhs(_rhs), confidence(conf)
+    {}
+};
+
+template<typename ItemType>
+using AssociationRules = std::vector<AssociationRule<ItemType>>;
 
 template<typename ItemType>
 struct Subset
@@ -93,9 +113,8 @@ float subset_support(const std::vector<Transaction<int>> &transactions, const Tr
     return support;
 }
 
-void task_2(const char *dataFile, float minSupport)
+std::vector<Transaction<int>> load_transactions(const char *dataFile)
 {
-    bool verbose = false;
     std::function<Transaction<int>(const azgra::string::SmartStringView<char> &)>
             lineToTransaction = [](const azgra::string::SmartStringView<char> &line)
     {
@@ -113,12 +132,15 @@ void task_2(const char *dataFile, float minSupport)
     };
 
     std::vector<Transaction<int>> transactions = azgra::io::parse_by_lines(dataFile, lineToTransaction);
-    // PRINT_SIZE_T(transactions.size());
-    // print_subsets(transactions,"%c, ");
+    return transactions;
+}
 
+std::vector<std::vector<Subset<int>>> generate_frequent_item_sets(const std::vector<Transaction<int>> &transactions, float minSupport)
+{
+    bool verbose = false;
     auto items = get_items(transactions);
     size_t itemCount = items.size();
-    fprintf(stdout,"Item count: %lu\n", itemCount);
+    fprintf(stdout, "Item count: %lu\n", itemCount);
 
     std::vector<std::vector<Subset<int>>> subsets;
     subsets.emplace_back();
@@ -140,7 +162,7 @@ void task_2(const char *dataFile, float minSupport)
             if (levelSubsets.size() == 0)
             {
                 fprintf(stdout, "No items satisfying minimum support.\n");
-                return;
+                return subsets;
             }
         }
         else
@@ -152,11 +174,11 @@ void task_2(const char *dataFile, float minSupport)
             {
                 const Subset<int> current = subsets[treeLevel][currentSubsetIndex];
 
-                if (verbose)
-                {
-                    fprintf(stdout, "current subset: ");
-                    current.print();
-                }
+//                if (verbose)
+//                {
+//                    fprintf(stdout, "current subset: ");
+//                    current.print();
+//                }
 
 
                 for (size_t neighborSubsetIndex = currentSubsetIndex + 1;
@@ -198,44 +220,98 @@ void task_2(const char *dataFile, float minSupport)
                             levelSubsets.push_back( // NOLINT(hicpp-use-emplace,modernize-use-emplace)
                                     Subset<int>(possiblyNewSubset, support));
 
-                           if(verbose)
-                           {
-                               fprintf(stdout, "\t successful merge  with:  ");
-                               neighbor.print();
-                           }
+//                            if (verbose)
+//                            {
+//                                fprintf(stdout, "\t successful merge  with:  ");
+//                                neighbor.print();
+//                            }
                         }
-                        else
-                        {
-                            if(verbose)
-                            {
-                                fprintf(stdout, "\t failed, low support, with:  ");
-                                neighbor.print();
-                            }
-                        }
+//                        else
+//                        {
+//                            if (verbose)
+//                            {
+//                                fprintf(stdout, "\t failed, low support, with:  ");
+//                                neighbor.print();
+//                            }
+//                        }
                     }
-                    else
-                    {
-                        if(verbose)
-                        {
-                            fprintf(stdout, "\t failed, already exists, with:  ");
-                            neighbor.print();
-                        }
-                    }
+//                    else
+//                    {
+//                        if (verbose)
+//                        {
+//                            fprintf(stdout, "\t failed, already exists, with:  ");
+//                            neighbor.print();
+//                        }
+//                    }
                 }
             }
         }
 
         subsets.push_back(levelSubsets);
-//        fprintf(stdout, "This level new subsets:\n");
-//        for (const auto levelSubset : levelSubsets)
-//        {
-//            levelSubset.print();
-//        }
     }
+    return subsets;
+}
 
-    for (size_t i = 0; i < subsets.size(); ++i)
+std::vector<AssociationRules<int>> generate_association_rules(const std::vector<Transaction<int>> &transactions,
+                                                              const std::vector<std::vector<Subset<int>>> &fis,
+                                                              const float minConf)
+{
+    std::vector<AssociationRules<int>> treeLevelsAssocRules;
+
+    for (const std::vector<Subset<int>> &treeLevel : fis)
     {
-        const std::vector<Subset<int>> level = subsets[i];
+        // We dont care about empty tree levels and item sets with just one item.
+        if (treeLevel.empty() || treeLevel[0].items.size() == 1)
+            continue;
+
+
+        size_t itemSetSize = treeLevel[0].items.size();
+        assert(itemSetSize > 1);
+
+        AssociationRules<int> levelRules;
+
+        for (const Subset<int> &itemSet : treeLevel)
+        {
+            auto itemSetSubsets = azgra::collection::generate_subsets_of_size(azgra::collection::set_as_vector(itemSet.items),
+                                                                              (itemSetSize - 1));
+
+            float XuY_Support = itemSet.support;
+            for (const std::vector<int> &itemSetSubset: itemSetSubsets)
+            {
+                std::set<int> itemSetSubsetAsSet = azgra::collection::vector_as_set(itemSetSubset);
+                float X_Support = subset_support(transactions, itemSetSubsetAsSet);
+                float ruleConf = XuY_Support / X_Support;
+                if (ruleConf >= minConf)
+                {
+                    auto rightSideOfTheRule = azgra::collection::except(itemSet.items.begin(), itemSet.items.end(),
+                                                                        itemSetSubsetAsSet.begin(), itemSetSubsetAsSet.end()
+                    );
+                    levelRules.push_back(AssociationRule(itemSetSubset, rightSideOfTheRule, ruleConf));
+                }
+            }
+        }
+
+        treeLevelsAssocRules.push_back(levelRules);
+    }
+    return treeLevelsAssocRules;
+}
+
+void tutorial_1()
+{
+    const char *transactionFile = "/mnt/d/gitrepos/dataAnalysisCourse/MAD_III/data/chess.dat";
+    float minSupp = 0.950f;
+    float minConf = 0.500f;
+    // 1. Vygenerujte všechny kombinace bez opakování o délce 3 z 6 možných.
+//    auto generatedSubsets = azgra::collection::generate_subsets_of_size<int>({1, 2, 3, 4, 5, 6}, 3);
+//    print_subsets(generatedSubsets);
+
+    // 2. Na jednom z testovacích souborů (chess, connect) vygenerujte četné vzory a vypočtěte Support.
+    auto transactions = load_transactions(transactionFile);
+    auto FIS = generate_frequent_item_sets(transactions, minSupp);
+
+    for (size_t i = 0; i < FIS.size(); ++i)
+    {
+        const std::vector<Subset<int>> level = FIS[i];
         if (!level.empty())
         {
             fprintf(stdout, "Subsets of size: %lu\n", i);
@@ -245,14 +321,30 @@ void task_2(const char *dataFile, float minSupport)
             }
         }
     }
-}
+    // 3. Z vygenerovaných četných vzorů vypište pravidla a jejich Confidence
+    auto assocRulesLevels = generate_association_rules(transactions, FIS, minConf);
+    for (const auto &assocRuleLevel : assocRulesLevels)
+    {
+        if (assocRuleLevel.empty())
+            continue;
+        size_t ruleSize = assocRuleLevel[0].lhs.size() + 1;
+        fprintf(stdout, "Printing rules of size: %lu\n", ruleSize);
 
-void tutorial_1()
-{
-    // 1. Vygenerujte všechny kombinace bez opakování o délce 3 z 6 možných.
-//    auto generatedSubsets = azgra::collection::generate_subsets_of_size<int>({1, 2, 3, 4, 5, 6}, 3);
-//    print_subsets(generatedSubsets);
+        for (const auto &assocRule : assocRuleLevel)
+        {
+            std::stringstream ss;
+            ss << "[";
+            for (const auto &lhsItem : assocRule.lhs)
+                ss << lhsItem << ",";
 
-    // 2. Na jednom z testovacích souborů (chess, connect) vygenerujte četné vzory a vypočtěte Support.
-    task_2("/mnt/d/gitrepos/dataAnalysisCourse/MAD_III/data/chess.dat",0.95f);
+            ss << "] --> [";
+            for (const auto &rhsItem : assocRule.rhs)
+                ss << rhsItem << ",";
+            ss << "]";
+            fprintf(stdout, "%s\t Confidence: %.4f\n", ss.str().c_str(), assocRule.confidence);
+        }
+        fprintf(stdout, "\n");
+    }
+
+
 };
