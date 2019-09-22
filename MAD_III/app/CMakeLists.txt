@@ -3,6 +3,7 @@ project(app)
 
 
 add_executable(${PROJECT_NAME} main.cpp
+        data_analysis/patterns.h
         tutorials/tutorial_1.h)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
