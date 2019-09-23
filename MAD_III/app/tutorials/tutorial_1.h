@@ -2,13 +2,25 @@
 
 #include "../data_analysis/patterns.h"
 
+template<typename T = int>
+static void print_subsets(const std::vector<std::vector<T>> &subsets, const char *format = "%i, ")
+{
+    for (const std::vector<T> &subset : subsets)
+    {
+        for (const T &subsetItem : subset)
+        {
+            fprintf(stdout, format, subsetItem);
+        }
+        fprintf(stdout, "\n");
+    }
+}
+
 void tutorial_1()
 {
     // 1. Vygenerujte všechny kombinace bez opakování o délce 3 z 6 možných.
-    //    auto generatedSubsets = azgra::collection::generate_subsets_of_size<int>({1, 2, 3, 4, 5, 6}, 3);
-    //    print_subsets(generatedSubsets);
-
-    const char *transactionFile = "/mnt/d/gitrepos/dataAnalysisCourse/MAD_III/data/chess.dat";
+    auto generatedSubsets = azgra::collection::generate_subsets_of_size<int>({1, 2, 3, 4, 5, 6}, 3);
+    print_subsets(generatedSubsets);
+    const char *transactionFile = "/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/chess.dat";
     float minSupp = 0.950f;
     float minConf = 0.500f;
 
