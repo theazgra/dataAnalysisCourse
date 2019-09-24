@@ -1,49 +1,59 @@
 #pragma once
+
 #include <networkLib/libs.h>
 
 namespace azgra::networkLib
 {
 
-struct Cluster
-{
-    bool isDeleted = false;
-    uint representative;
-    std::vector<uint> vertices;
-
-    Cluster() {}
-
-    Cluster(uint v)
+    struct Cluster
     {
-        vertices.push_back(v);
-        representative = v;
-    }
+        bool isDeleted = false;
+        uint representative;
+        std::vector<uint> vertices;
 
-    Cluster(const std::vector<uint> &a, const std::vector<uint> &b)
+        Cluster()
+        {}
+
+        Cluster(uint v)
+        {
+            vertices.push_back(v);
+            representative = v;
+        }
+
+        Cluster(const std::vector<uint> &a, const std::vector<uint> &b)
+        {
+            vertices.insert(vertices.begin(), a.begin(), a.end());
+            vertices.insert(vertices.end(), b.begin(), b.end());
+
+            representative = min(vertices);
+        }
+
+        bool operator==(const Cluster &b) const
+        {
+            return (vertices.data() == b.vertices.data());
+        }
+    };
+
+    struct ClusterCandidate
     {
-        vertices.insert(vertices.begin(), a.begin(), a.end());
-        vertices.insert(vertices.end(), b.begin(), b.end());
+        Cluster i;
+        Cluster j;
+        float similarity;
+        double distance;
 
-        representative = min(vertices);
-    }
+        void set_new_dist(Cluster i, Cluster j, double dist)
+        {
+            this->i = i;
+            this->j = j;
+            distance = dist;
+        }
 
-    bool operator==(const Cluster &b) const
-    {
-        return (vertices.data() == b.vertices.data());
-    }
-};
-
-struct ClusterCandidate
-{
-    Cluster i;
-    Cluster j;
-    float similarity;
-
-    void set_new(Cluster i, Cluster j, float sim)
-    {
-        this->i = i;
-        this->j = j;
-        similarity = sim;
-    }
-};
+        void set_new(Cluster i, Cluster j, float sim)
+        {
+            this->i = i;
+            this->j = j;
+            similarity = sim;
+        }
+    };
 
 }; // namespace azgra::networkLib
