@@ -213,10 +213,8 @@ find_clusters_hierarchical(const azgra::Matrix<double> &distanceMatrix,
 
 void tutorial_2()
 {
-    //size_t reqClusterCount = 3;
-    //const char *dataFile = "/mnt/d/gitRepos/dataAnalysisCourse/MAD_III/data/clusters3.csv";
     size_t reqClusterCount = 5;
-    const char *dataFile = "/mnt/d/gitRepos/dataAnalysisCourse/MAD_III/data/clusters5n.csv";
+    const char *dataFile = "/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/clusters5n.csv";
     std::function<Point<double>(const azgra::string::SmartStringView<char> &)> fn = [](const azgra::string::SmartStringView<char> &line)
     {
         auto splitted = line.split(";");
@@ -255,6 +253,22 @@ void tutorial_2()
                 printf("%u, ", v);
 
             printf("\n");
+        }
+
+        // Output clustering result to csv file.
+        {
+            id=1;
+            std::ofstream csvStream("clusteringResult.csv", std::ios::out);
+            always_assert(csvStream.is_open());
+            for (const azgra::networkLib::Cluster &c : clusters)
+            {
+                for (const uint &v : c.vertices)
+                {
+                    const Point p = points[v];
+                    csvStream << p.x  << ';' << p.y << ';' << id << std::endl;
+                }
+                ++id;
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 @echo off
-echo Pulling repository
+echo "Pulling repository"
 git pull
 
 cd AzgraCppLibrary
-echo Pulling AzgraCppLibrary submodule
-git pull
+echo "Pulling AzgraCppLibrary submodule"
+git pull origin master
 cd ../
