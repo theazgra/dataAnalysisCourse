@@ -214,7 +214,7 @@ find_clusters_hierarchical(const azgra::Matrix<double> &distanceMatrix,
 void tutorial_2()
 {
     size_t reqClusterCount = 5;
-    const char *dataFile = "/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/clusters5n.csv";
+    const char *dataFile = "/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/clusters5.csv";
     std::function<Point<double>(const azgra::string::SmartStringView<char> &)> fn = [](const azgra::string::SmartStringView<char> &line)
     {
         auto splitted = line.split(";");
@@ -243,7 +243,7 @@ void tutorial_2()
         auto clusters = find_clusters_hierarchical(distanceMatrix,
                                                    points,
                                                    reqClusterCount,
-                                                   azgra::networkLib::LinkageType::LinkageType_Single);
+                                                   azgra::networkLib::LinkageType::LinkageType_Complete);
 
         int id = 1;
         for (const azgra::networkLib::Cluster &c : clusters)
