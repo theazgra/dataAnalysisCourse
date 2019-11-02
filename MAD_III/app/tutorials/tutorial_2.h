@@ -221,7 +221,7 @@ void tutorial_2()
         always_assert(splitted.size() == 2);
         return Point<double>(atof(splitted[0].data()), atof(splitted[1].data())); // NOLINT(cert-err34-c)
     };
-    std::vector<Point<double>> points = azgra::io::parse_by_lines(dataFile, fn);
+    std::vector<Point<double>> points = azgra::io::parse_by_lines<Point<double>>(dataFile, fn);
     fprintf(stdout, "Read %lu points\n", points.size());
     size_t pointCount = points.size();
 
