@@ -3,6 +3,21 @@
 #include "decision_tree/loading.h"
 #include "decision_tree/DecisionTree.h"
 
+static void print_confusion_matrix(const azgra::Matrix<azgra::u32> &mat)
+{
+    std::stringstream ss;
+    for (size_t row = 0; row < mat.rows(); ++row)
+    {
+        for (size_t col = 0; col < mat.cols(); ++col)
+        {
+            ss << mat.at(row, col) << " ";
+        }
+        ss << '\n';
+    }
+    ss << '\n';
+    fprintf(stdout, "%s", ss.str().c_str());
+}
+
 int main(int, char **)
 {
     // TODO: Rozdeleni na trenovaci xa testovaci dataset + Confusion Matrix
@@ -39,8 +54,9 @@ int main(int, char **)
         TreeBuilder numericalBuilder(kFoldDataset[i].first, 2);
         numericalBuilder.build(10, 15);
 
-        double numericalPrec = numericalBuilder.test_classification(kFoldDataset[i].second);
-        fprintf(stdout, "Numerical classification precision on test dataset: %.5f\n", numericalPrec);
+        ClassificationResult classification = numericalBuilder.test_classification(kFoldDataset[i].second);
+        fprintf(stdout, "Numerical classification precision on test dataset: %.5f\n", classification.precision);
+        print_confusion_matrix(classification.confusionMatrix);
     }
 
     return 0;

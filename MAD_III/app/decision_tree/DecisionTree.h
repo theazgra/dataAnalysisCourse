@@ -3,6 +3,7 @@
 #include <azgra/azgra.h>
 #include <type_traits>
 #include <azgra/collection/enumerable.h>
+#include <azgra/matrix.h>
 #include "dataset.h"
 #include <map>
 
@@ -14,6 +15,12 @@ namespace DecisionTree
     {
         SplitType_Categorical,
         SplitType_Numerical
+    };
+
+    struct ClassificationResult
+    {
+        double precision;
+        azgra::Matrix<azgra::u32> confusionMatrix;
     };
 
     template<typename T>
@@ -83,7 +90,7 @@ namespace DecisionTree
 
         SplitNode<T> m_root;
 
-        std::pair<T,T> get_attribute_interval_for_transactions(const Enumerable<size_t> &transactions, const size_t attributeIndex)
+        std::pair<T, T> get_attribute_interval_for_transactions(const Enumerable<size_t> &transactions, const size_t attributeIndex)
         {
             T min = std::numeric_limits<T>::max();
             T max = std::numeric_limits<T>::min();
@@ -96,7 +103,7 @@ namespace DecisionTree
                 if (value > max)
                     max = value;
             }
-            return std::make_pair(min,max);
+            return std::make_pair(min, max);
         }
 
         SplitNode<T> get_new_split_node()
@@ -414,17 +421,33 @@ namespace DecisionTree
             return (m_categorical ? classify_categorical(transaction) : classify_numerical(transaction));
         }
 
-        double test_classification(Dataset<T> &testDataset)
+        ClassificationResult test_classification(Dataset<T> &testDataset)
         {
+            const auto classes = testDataset.classes;
+            const size_t classCount = classes.size();
+            std::map<int, int> classMap;
+            int index = 0;
+            for (const auto &c : classes)
+            {
+                classMap[c] = index++;
+            }
+
+            ClassificationResult result = {};
+            result.confusionMatrix = azgra::Matrix<azgra::u32>(classCount, classCount, 0);
+
+
             size_t correct = 0;
             for (Transaction<T> &t : testDataset.transactions)
             {
                 t.guessedClassIndex = classify(t);
+                result.confusionMatrix.at(classMap[t.classIndex], classMap[t.guessedClassIndex]) += 1;
                 if (t.guessedClassIndex == t.classIndex)
+                {
                     ++correct;
+                }
             }
-            double precision = static_cast<double> (correct) / static_cast<double   >(testDataset.transactions.size());
-            return precision;
+            result.precision = static_cast<double> (correct) / static_cast<double   >(testDataset.transactions.size());
+            return result;
         }
 
     };

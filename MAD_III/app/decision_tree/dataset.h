@@ -57,6 +57,8 @@ namespace DecisionTree
         {
             Dataset<T> test;
             Dataset<T> train;
+            test.classes = dataset.classes;
+            train.classes = dataset.classes;
 
             const size_t testFrom = i * foldSize;
             const size_t testTo = foldSize + (i * foldSize);
