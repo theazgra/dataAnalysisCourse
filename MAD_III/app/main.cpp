@@ -18,16 +18,31 @@ static void print_confusion_matrix(const azgra::Matrix<azgra::u32> &mat)
     fprintf(stdout, "%s", ss.str().c_str());
 }
 
+
 int main(int, char **)
 {
     // TODO: Rozdeleni na trenovaci xa testovaci dataset + Confusion Matrix
     using namespace DecisionTree;
     using namespace azgra::collection;
 
-//    auto categoricalTicTacToe = load_categorial("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/tic-tac-toe.csv", ';', 9);
-//    fprintf(stdout, "Loaded %lu categorical transactions with %lu classes  and %lu categories\n",
-//            categoricalTicTacToe.transactions.size(), categoricalTicTacToe.classes.size(), categoricalTicTacToe.categories.size());
-//
+    auto categoricalTicTacToe = load_categorial("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/tic-tac-toe.csv", ';', 9);
+    fprintf(stdout, "Loaded %lu categorical transactions with %lu classes  and %lu categories\n",
+            categoricalTicTacToe.transactions.size(), categoricalTicTacToe.classes.size(), categoricalTicTacToe.categories.size());
+
+    auto kFoldDatasetTTT = create_cross_validation_datasets(categoricalTicTacToe, 5);
+
+    for (size_t i = 0; i < kFoldDatasetTTT.size(); ++i)
+    {
+        fprintf(stdout, "Train dataset size: %lu\nTest dataset size: %lu\n",
+                kFoldDatasetTTT[i].first.transactions.size(), kFoldDatasetTTT[i].second.transactions.size());
+        TreeBuilder numericalBuilder(kFoldDatasetTTT[i].first, 2);
+        numericalBuilder.build(10, 15);
+
+        ClassificationResult classification = numericalBuilder.test_classification(kFoldDatasetTTT[i].second);
+        fprintf(stdout, "Categorical classification precision on test dataset: %.5f\n", classification.precision);
+        print_confusion_matrix(classification.confusionMatrix);
+    }
+
 //    auto trainTest = split_dataset(categoricalTicTacToe, 0.2);
 //    fprintf(stdout, "Train dataset size: %lu\nTest dataset size: %lu\n",
 //            trainTest.first.transactions.size(), trainTest.second.transactions.size());

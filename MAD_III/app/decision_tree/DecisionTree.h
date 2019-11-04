@@ -28,6 +28,7 @@ namespace DecisionTree
     {
         size_t attributeIndex;
         T attributeValue = T();
+        T minAttributeValue = T();
         SplitType nodeType = SplitType::SplitType_Categorical;
         azgra::collection::Enumerable<size_t> transactionIds;
         std::vector<SplitNode<T>> children;
@@ -254,12 +255,13 @@ namespace DecisionTree
                 if (attributeChildNode.height > m_currentHeight)
                     m_currentHeight = attributeChildNode.height;
 
+                attributeChildNode.minAttributeValue = from;
                 attributeChildNode.attributeValue = to;
                 attributeChildNode.transactionIds = node.transactionIds
                         .where([this, attributeIndex, from, to](const size_t &tId)
                                {
                                    const T attribValue = m_dataset.transactions[tId].attributeValues[attributeIndex];
-                                   return (attribValue > from && attribValue <= to);
+                                   return (attribValue >= from && attribValue <= to);
                                });
 
                 if (attributeChildNode.transactionIds.count() <= 0)
@@ -349,7 +351,7 @@ namespace DecisionTree
             }
         }
 
-        int internal_classify(const Transaction<T> &transaction, std::function<bool(const T &, const T &)> testFunc)
+        int internal_classify(const Transaction<T> &transaction, std::function<bool(const SplitNode<T> &, const T &)> testFunc)
         {
             SplitNode<T> currentNode = m_root;
             bool found = true;
@@ -361,31 +363,33 @@ namespace DecisionTree
                 T value = transaction.attributeValues[currentNode.attributeIndex];
                 for (const SplitNode<T> &child : currentNode.children)
                 {
-                    if (testFunc(child.attributeValue, value))
+                    if (testFunc(child, value))
                     {
                         found = true;
                         currentNode = child;
                         break;
                     }
                 }
+                if (found)
+                { break; }
             }
             return currentNode.predicatedClass;
         }
 
         int classify_categorical(const Transaction<T> &transaction)
         {
-            std::function<bool(const T &, const T &)> test = [=](const T &nodeVal, const T &transVal)
+            std::function<bool(const SplitNode<T> &, const T &)> test = [](const SplitNode<T> &node, const T &transVal)
             {
-                return (nodeVal == transVal);
+                return (node.attributeValue == transVal);
             };
             return internal_classify(transaction, test);
         }
 
         int classify_numerical(const Transaction<T> &transaction)
         {
-            std::function<bool(const T &, const T &)> test = [=](const T &nodeVal, const T &transVal)
+            std::function<bool(const SplitNode<T> &, const T &)> test = [](const SplitNode<T> &node, const T &transVal)
             {
-                return (transVal <= nodeVal);
+                return (transVal >= node.minAttributeValue && transVal <= node.attributeValue);
             };
             return internal_classify(transaction, test);
         }

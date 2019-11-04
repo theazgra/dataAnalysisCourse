@@ -50,8 +50,12 @@ namespace DecisionTree
     template<typename T>
     std::vector<std::pair<Dataset<T>, Dataset<T>>> create_cross_validation_datasets(Dataset<T> &dataset, const size_t k)
     {
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(dataset.transactions.begin(), dataset.transactions.end(),g);
         std::vector<std::pair<Dataset<T>, Dataset<T>>> kFold(k);
         const size_t foldSize = dataset.transactions.size() / k;
+
 
         for (size_t i = 0; i < k; ++i)
         {
