@@ -25,6 +25,7 @@ int main(int, char **)
     using namespace DecisionTree;
     using namespace azgra::collection;
 
+    fprintf(stdout, "=== Tic-Tac-Toe ===\n");
     auto categoricalTicTacToe = load_categorial("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/tic-tac-toe.csv", ';', 9);
     fprintf(stdout, "Loaded %lu categorical transactions with %lu classes  and %lu categories\n",
             categoricalTicTacToe.transactions.size(), categoricalTicTacToe.classes.size(), categoricalTicTacToe.categories.size());
@@ -36,7 +37,7 @@ int main(int, char **)
         fprintf(stdout, "Train dataset size: %lu\nTest dataset size: %lu\n",
                 kFoldDatasetTTT[i].first.transactions.size(), kFoldDatasetTTT[i].second.transactions.size());
         TreeBuilder numericalBuilder(kFoldDatasetTTT[i].first, 2);
-        numericalBuilder.build(10, 15);
+        numericalBuilder.build(20, 15);
 
         ClassificationResult classification = numericalBuilder.test_classification(kFoldDatasetTTT[i].second);
         fprintf(stdout, "Categorical classification precision on test dataset: %.5f\n", classification.precision);
@@ -53,20 +54,19 @@ int main(int, char **)
 //    double prec = builder.test_classification(trainTest.second);
 //    fprintf(stdout, "Categorical classification precision on test dataset: %.5f\n", prec);
 
+    fprintf(stdout, "=== Iris ===\n");
     auto numericalIris = load_numerical("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/iris.csv", ';', 4);
     fprintf(stdout, "Loaded %lu numerical transactions with %lu classes\n",
             numericalIris.transactions.size(), numericalIris.classes.size());
 
-    auto trainTestIris = split_dataset(numericalIris, 0.2);
+    //auto trainTestIris = split_dataset(numericalIris, 0.2);
     auto kFoldDataset = create_cross_validation_datasets(numericalIris, 5);
-    fprintf(stdout, "Train dataset size: %lu\nTest dataset size: %lu\n",
-            trainTestIris.first.transactions.size(), trainTestIris.second.transactions.size());
 
     for (size_t i = 0; i < kFoldDataset.size(); ++i)
     {
         fprintf(stdout, "Train dataset size: %lu\nTest dataset size: %lu\n",
                 kFoldDataset[i].first.transactions.size(), kFoldDataset[i].second.transactions.size());
-        TreeBuilder numericalBuilder(kFoldDataset[i].first, 2);
+        TreeBuilder numericalBuilder(kFoldDataset[i].first, 3);
         numericalBuilder.build(10, 15);
 
         ClassificationResult classification = numericalBuilder.test_classification(kFoldDataset[i].second);

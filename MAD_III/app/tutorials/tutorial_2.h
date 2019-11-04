@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "openmp-use-default-none"
 #pragma once
 
 #include <networkLib/network_matrix.h>
@@ -272,5 +270,3 @@ void tutorial_2()
         }
     }
 }
-
-#pragma clang diagnostic pop

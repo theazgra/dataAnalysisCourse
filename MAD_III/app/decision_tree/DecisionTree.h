@@ -225,7 +225,7 @@ namespace DecisionTree
 
         T get_interval_size(const T &min, const T &max)
         {
-            always_assert(max > min);
+            always_assert(max >= min);
             if (min >= 0)
                 return (max - min);
             else
@@ -264,10 +264,11 @@ namespace DecisionTree
                                    return (attribValue >= from && attribValue <= to);
                                });
 
-                if (attributeChildNode.transactionIds.count() <= 0)
-                {
-                    azgra::print_if(true, "No transaction in node.\n");
-                }
+//                if (attributeChildNode.transactionIds.count() <= 0)
+//                {
+//                    //always_assert(false && );
+//                    //azgra::print_if(true, "No transaction in node.\n");
+//                }
 
                 attributeSplit.nodes[i] = attributeChildNode;
             }
@@ -363,6 +364,8 @@ namespace DecisionTree
                 T value = transaction.attributeValues[currentNode.attributeIndex];
                 for (const SplitNode<T> &child : currentNode.children)
                 {
+                    if (child.transactionIds.count() <= 0)
+                        continue;
                     if (testFunc(child, value))
                     {
                         found = true;
