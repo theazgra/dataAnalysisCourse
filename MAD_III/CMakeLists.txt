@@ -9,5 +9,5 @@ if (OPENMP_FOUND)
 endif ()
 
 add_subdirectory(AzgraCppLibrary)
-add_subdirectory(../MAD_II/implementation/networkLib networkLibBuild)
+# add_subdirectory(../MAD_II/implementation/networkLib networkLibBuild)
 add_subdirectory(app)
