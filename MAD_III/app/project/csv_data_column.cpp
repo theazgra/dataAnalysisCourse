@@ -7,11 +7,20 @@ CsvDataColumn::CsvDataColumn(DataColumnType columnType, const std::string &colum
     m_name = columnName;
 }
 
-std::vector<std::vector<double>> CsvDataColumn::convert_to_data_columns()
+
+void CsvDataColumn::initialize_unique_values()
+{
+    if (m_type == DataColumnType::DataColumnType_Categorical)
+    {
+        m_uniqueValues = azgra::collection::distinct(m_values.begin(), m_values.end());
+    }
+}
+
+
+std::pair<std::vector<std::vector<double>>, std::vector<std::string>> CsvDataColumn::convert_to_data_columns() const
 {
     switch (m_type)
     {
-
         case DataColumnType_Numerical:
             return numerical_column_to_data_column();
         case DataColumnType_CategoricalOrdinal:
@@ -22,7 +31,7 @@ std::vector<std::vector<double>> CsvDataColumn::convert_to_data_columns()
     throw std::runtime_error("Wrong column type");
 }
 
-std::vector<std::vector<double>> CsvDataColumn::numerical_column_to_data_column()
+std::pair<std::vector<std::vector<double>>, std::vector<std::string>> CsvDataColumn::numerical_column_to_data_column() const
 {
     // Just convert string values to doubles.
     const auto columnValues = azgra::collection::select(m_values.begin(), m_values.end(), [](const std::string &value)
@@ -30,24 +39,30 @@ std::vector<std::vector<double>> CsvDataColumn::numerical_column_to_data_column(
         return std::stod(value);
     });
 
-    return {columnValues};
+    return {{columnValues},
+            {m_name}};
 }
 
-std::vector<std::vector<double>> CsvDataColumn::categorical_column_to_data_column()
+std::pair<std::vector<std::vector<double>>, std::vector<std::string>> CsvDataColumn::categorical_column_to_data_column() const
 {
     // Binarization of values.
-    const auto uniqueValues = azgra::collection::distinct(m_values.begin(), m_values.end());
-    std::vector<std::vector<double>> columns(uniqueValues.size(), std::vector<double>(m_values.size(), 0.0));
+    std::vector<std::vector<double>> columns(m_uniqueValues.size(), std::vector<double>(m_values.size(), 0.0));
+    std::vector<std::string> binColNames(m_uniqueValues.size());
+
+    for (size_t i = 0; i < m_uniqueValues.size(); ++i)
+    {
+        binColNames[i] = m_name + "_" + m_uniqueValues[i];
+    }
 
     for (size_t rowIndex = 0; rowIndex < m_values.size(); ++rowIndex)
     {
-        const auto columnIndex = azgra::collection::find_index(uniqueValues.begin(), uniqueValues.end(), m_values[rowIndex]);
+        const auto columnIndex = azgra::collection::find_index(m_uniqueValues.begin(), m_uniqueValues.end(), m_values[rowIndex]);
         columns[columnIndex][rowIndex] = 1.0;
     }
-    return columns;
+    return {columns, binColNames};
 }
 
-std::vector<std::vector<double>> CsvDataColumn::categorical_ordinal_column_to_data_column()
+std::pair<std::vector<std::vector<double>>, std::vector<std::string>> CsvDataColumn::categorical_ordinal_column_to_data_column() const
 {
     //one,two,three,four, five, six, seven,eight, nine,ten, eleven, twelve
 
@@ -87,7 +102,7 @@ std::vector<std::vector<double>> CsvDataColumn::categorical_ordinal_column_to_da
         throw std::runtime_error("Unsupported ordinal value");
     });
 
-    return {columnValues};
+    return {{columnValues}, {m_name}};
 }
 
 void CsvDataColumn::move_value(const size_t row, std::string &value)
@@ -95,4 +110,25 @@ void CsvDataColumn::move_value(const size_t row, std::string &value)
     m_values[row] = std::move(value);
 }
 
+const std::string &CsvDataColumn::column_name() const
+{
+    return m_name;
+}
 
+size_t CsvDataColumn::data_column_count() const
+{
+    switch (m_type)
+    {
+        case DataColumnType_Numerical:
+        case DataColumnType_CategoricalOrdinal:
+            return 1;
+        case DataColumnType_Categorical:
+            return m_uniqueValues.size();
+    }
+    throw std::runtime_error("Invalid column type.");
+}
+
+size_t CsvDataColumn::transaction_count() const
+{
+    return m_values.size();
+}

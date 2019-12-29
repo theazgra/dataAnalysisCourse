@@ -7,7 +7,7 @@ add_executable(${PROJECT_NAME} main.cpp
         tutorials/tutorial_1.h
         tutorials/tutorial_2.h
         decision_tree/loading.cpp decision_tree/dataset.h decision_tree/DecisionTree.cpp
-        project/csv_data_column.cpp project/ecsv_loader.cpp)
+        project/csv_data_column.cpp project/ecsv_loader.cpp project/ecsv.cpp project/dataframe.cpp)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
