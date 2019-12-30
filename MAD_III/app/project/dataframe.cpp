@@ -35,8 +35,6 @@ void DataFrame::min_max_scaling(const double min, const double max)
         }
     }
 
-//    X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
-//    X_scaled = X_std * (max - min) + min
 
     for (size_t row = 0; row < m_values.rows(); ++row)
     {
@@ -44,7 +42,6 @@ void DataFrame::min_max_scaling(const double min, const double max)
         {
             if (mins[col] == maxes[col])
             {
-                //fprintf(stdout, "Column %s has same max as min, can be skipped\n", m_columnNames[col].c_str());
                 continue;
             }
             if (m_values.at(row, col) != 0)
@@ -67,5 +64,27 @@ azgra::Matrix<double> const &DataFrame::get_data() const
     return m_values;
 }
 
+size_t DataFrame::get_attribute_count() const
+{
+    return m_attributeCount;
+}
 
+void DataFrame::finish_initialization()
+{
+    m_attributeCount = m_values.cols();
+}
 
+size_t DataFrame::get_target_attribute_index() const
+{
+    return m_targetAttributeIndex;
+}
+
+size_t DataFrame::size() const
+{
+    return m_values.rows();
+}
+
+double DataFrame::operator()(const size_t transactionId, const size_t column) const
+{
+    return m_values.at(transactionId, column);
+}
