@@ -1,5 +1,12 @@
 #include "dataframe.h"
 
+DataFrame::DataFrame(DataFrame &&moveSrc) noexcept
+{
+    m_columnNames = std::move(moveSrc.m_columnNames);
+    m_values = std::move(moveSrc.m_values);
+    m_attributeCount = moveSrc.m_attributeCount;
+    m_targetAttributeIndex = moveSrc.m_targetAttributeIndex;
+}
 
 void DataFrame::print_header() const
 {

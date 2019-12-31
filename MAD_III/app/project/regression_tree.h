@@ -142,7 +142,7 @@ private:
 
 public:
 
-    explicit RegressionTreeBuilder(const DataFrame &df, const size_t minSamplesSplit = 2, const size_t maxTreeHeight = 9999);
+    explicit RegressionTreeBuilder(DataFrame &df, const size_t minSamplesSplit = 2, const size_t maxTreeHeight = 9999);
 
     [[nodiscard]] RegressionTree build() const;
 

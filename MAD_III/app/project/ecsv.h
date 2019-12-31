@@ -13,4 +13,3 @@ public:
 
     [[nodiscard]] DataFrame convert_to_dataframe() const;
 };
-

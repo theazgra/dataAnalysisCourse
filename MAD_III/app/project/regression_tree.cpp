@@ -44,14 +44,14 @@ double RegressionTree::predict(const DataFrame &df, const size_t rowIndex) const
     return m_root.predict(df, rowIndex);
 }
 
-RegressionTreeBuilder::RegressionTreeBuilder(const DataFrame &df, size_t minSamplesSplit, size_t maxTreeHeight)
+RegressionTreeBuilder::RegressionTreeBuilder(DataFrame &df, size_t minSamplesSplit, size_t maxTreeHeight)
 {
     if (df.size() <= 0)
     {
         throw std::runtime_error("Empty DataFrame");
     }
 
-    m_trainDataset = df;
+    m_trainDataset = std::move(df);
     m_minSamplesSplit = minSamplesSplit;
     m_maxTreeHeight = maxTreeHeight;
 }

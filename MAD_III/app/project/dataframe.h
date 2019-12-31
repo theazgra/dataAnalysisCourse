@@ -19,6 +19,10 @@ private:
 public:
     DataFrame() = default;
 
+    DataFrame(DataFrame &&moveSrc) noexcept;
+
+    DataFrame &operator=(DataFrame &&other) noexcept = default;
+
     void print_header() const;
 
     void min_max_scaling(double min, double max);

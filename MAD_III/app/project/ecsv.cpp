@@ -15,7 +15,8 @@ DataFrame ECsv::convert_to_dataframe() const
                                                         { return c.data_column_count(); }, 0);
 
     df.m_columnNames.resize(dfColumnCount);
-    df.m_values = azgra::Matrix<double>(m_transactionCount, dfColumnCount, 0.0);
+    auto dfMat = azgra::Matrix<double>(m_transactionCount, dfColumnCount, 0.0);
+    df.m_values = std::move(dfMat);
 
     size_t dataColIndex = 0;
     size_t dataColNameIndex = 0;
@@ -26,7 +27,7 @@ DataFrame ECsv::convert_to_dataframe() const
         for (const auto &dataColumn : dataColumns)
         {
             always_assert(dataColumn.size() == m_transactionCount);
-            df.m_values.col(dataColIndex++, dataColumn);
+            df.m_values.col(dataColIndex++, dataColumn.begin(), dataColumn.end());
         }
 
         for (const auto &colName : dataColumnNames)
