@@ -38,4 +38,6 @@ public:
     [[nodiscard]] size_t get_target_attribute_index() const;
 
     [[nodiscard]] size_t size() const;
+
+    azgra::Matrix<double> const& matrix() const;
 };

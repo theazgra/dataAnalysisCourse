@@ -95,3 +95,8 @@ double DataFrame::operator()(const size_t transactionId, const size_t column) co
 {
     return m_values.at(transactionId, column);
 }
+
+azgra::Matrix<double> const &DataFrame::matrix() const
+{
+    return m_values;
+}

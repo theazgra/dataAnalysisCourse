@@ -128,8 +128,6 @@ private:
      */
     DataFrame m_trainDataset;
 
-    void build_tree(TreeNode &node) const;
-
     /**
      * Find the best value for the numeric split of selected attribute.
      * @param currentNode Current node, parent to the new split node.
@@ -145,8 +143,5 @@ public:
     explicit RegressionTreeBuilder(DataFrame &df, const size_t minSamplesSplit = 2, const size_t maxTreeHeight = 9999);
 
     [[nodiscard]] RegressionTree build() const;
-
-
-//
 
 };

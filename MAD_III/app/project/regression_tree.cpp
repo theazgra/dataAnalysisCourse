@@ -64,17 +64,11 @@ RegressionTree RegressionTreeBuilder::build() const
     auto transactionIds = azgra::collection::Enumerable<size_t>::range(0, m_trainDataset.size()).to_vector();
     tree.m_root = TreeNode(transactionIds);
 
-    build_tree(tree.m_root);
+    create_best_split(tree.m_root);
 
     fprintf(stdout, "Built regression tree of height %lu\n", tree.m_currentHeight);
 
     return tree;
-}
-
-
-void RegressionTreeBuilder::build_tree(TreeNode &node) const
-{
-    //create_best_split(node, f);
 }
 
 TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex) const
@@ -88,11 +82,17 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
     // NOTE(Moravec):   At first we will try the split on all values.
     //                  In case this solution is slow we will use every tenth percentile.
 
+    const auto columnItBegin = m_trainDataset.matrix().col_cbegin(attributeIndex);
+    const auto columnItEnd = m_trainDataset.matrix().col_cend(attributeIndex);
+
+    const auto uniqueSplitValues = distinct(columnItBegin, columnItEnd);
+    const size_t numberOfPossibleSplits = uniqueSplitValues.size();
+
     // All the candidates
-    std::vector<TreeNodeCandidate> candidates(nodeTransactionCount);
-    for (size_t i = 0; i < nodeTransactionCount; ++i)
+    std::vector<TreeNodeCandidate> candidates(numberOfPossibleSplits);
+    for (size_t i = 0; i < numberOfPossibleSplits; ++i)
     {
-        const double splitValue = m_trainDataset(currentNode.transactionIds[i], attributeIndex);
+        const double splitValue = uniqueSplitValues[i];
 
         TreeNodeCandidate candidate = TreeNodeCandidate(attributeIndex, splitValue);
 
