@@ -56,25 +56,42 @@ RegressionResult RegressionTree::test_prediction(const DataFrame &df, const std:
 {
 
     const size_t testSize = tIds.size();
+
+    double trueValueSum = 0.0;
+    std::vector<double> trueValues(testSize);
     const size_t targetAttributeIndex = df.get_target_attribute_index();
+    for (size_t i = 0; i < tIds.size(); ++i)
+    {
+        trueValues[i] = df(tIds[i], targetAttributeIndex);
+        trueValueSum += trueValues[i];
+    }
+
+    const double trueValueMean = trueValueSum / static_cast<double>(testSize);
 
     RegressionResult rr = {};
 
-    double trueValue, predictedValue, error;
-    for (const size_t tId : tIds)
+    double r2Numerator = 0.0;
+    double r2Denumerator = 0.0;
+
+    double predictedValue, error;
+
+    for (size_t i = 0; i < tIds.size(); ++i)
     {
-        trueValue = df(tId, targetAttributeIndex);
-        predictedValue = predict(df, tId);
+        predictedValue = predict(df, tIds[i]);
 
         if (verbose)
-            fprintf(stdout, "== T: %.4f P: %.4f\n", trueValue, predictedValue);
+        { fprintf(stdout, "== T: %.4f P: %.4f\n", trueValues[i], predictedValue); }
 
-        error = predictedValue - trueValue;
+        error = trueValues[i] - predictedValue;
         rr.mse += pow(error, 2);
         rr.mae += abs(error);
         rr.maxError = std::max(rr.maxError, abs(error));
+
+        r2Numerator += pow((trueValues[i] - predictedValue), 2);
+        r2Denumerator += pow((trueValues[i] - trueValueMean), 2);
     }
 
+    rr.r2 = 1.0 - (r2Numerator / r2Denumerator);
     rr.mse /= static_cast<double>(testSize);
     rr.mae /= static_cast<double>(testSize);
 

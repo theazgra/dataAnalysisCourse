@@ -47,11 +47,10 @@ int main(int argc, char **argv)
     const auto indices = df.get_train_test_indices(sampleSize, 0.8, true);
     fprintf(stdout, "Train DF size: %lu\nTest DF size: %lu\n", indices.first.size(), indices.second.size());
 
-    test_regression_tree(df, indices, 500);
-//    test_regression_tree(df, indices, 15);
-//    test_regression_tree(df, indices, 10);
-//    test_regression_tree(df, indices, 5);
-//    test_regression_tree(df, indices, 2);
+    test_regression_tree(df, indices, 15);
+    test_regression_tree(df, indices, 10);
+    test_regression_tree(df, indices, 5);
+    test_regression_tree(df, indices, 2);
 
     return 0;
 }
