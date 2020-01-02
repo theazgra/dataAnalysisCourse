@@ -13,6 +13,7 @@ enum DataColumnType
 class CsvDataColumn
 {
 private:
+    bool isTarget = false;
     DataColumnType m_type = DataColumnType_Numerical;
     std::string m_name;
     std::vector<std::string> m_values{};
@@ -40,4 +41,9 @@ public:
     [[nodiscard]] const std::string &column_name() const;
 
     void initialize_unique_values();
+
+    void set_as_target_column();
+
+    [[nodiscard]] bool is_target() const;
+
 };

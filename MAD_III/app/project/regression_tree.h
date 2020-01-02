@@ -5,11 +5,13 @@
 #include <memory>
 
 
-//struct ClassificationResult
-//{
-//    double precision;
-//    azgra::Matrix<azgra::u32> confusionMatrix;
-//};
+struct RegressionResult
+{
+    double mse = 0.0;
+    double mae = 0.0;
+    double maxError = 0.0;
+    double r2 = -1.0;
+};
 
 struct TreeNode
 {
@@ -52,6 +54,9 @@ struct TreeNode
 struct TreeNodeCandidate : TreeNode
 {
     size_t splitAttributeIndex{};
+    size_t lChildSize{};
+    size_t rChildSize{};
+    bool isPure = false;
 
     TreeNodeCandidate() = default;
 
@@ -78,35 +83,7 @@ public:
 
     [[nodiscard]] double predict(const DataFrame &df, size_t rowIndex) const;
 
-//    ClassificationResult test_classification(Dataset <T> &testDataset)
-//    {
-//        const auto classes = testDataset.classes;
-//        const size_t classCount = classes.size();
-//        std::map<int, int> classMap;
-//        int index = 0;
-//        for (const auto &c : classes)
-//        {
-//            classMap[c] = index++;
-//        }
-//
-//        ClassificationResult result = {};
-//        result.confusionMatrix = azgra::Matrix<azgra::u32>(classCount, classCount, 0);
-//
-//
-//        size_t correct = 0;
-//        for (Transaction <T> &t : testDataset.transactions)
-//        {
-//            t.guessedClassIndex = classify(t);
-//            result.confusionMatrix.at(classMap[t.classIndex], classMap[t.guessedClassIndex]) += 1;
-//            if (t.guessedClassIndex == t.classIndex)
-//            {
-//                ++correct;
-//            }
-//        }
-//        result.precision = static_cast<double> (correct) / static_cast<double   >(testDataset.transactions.size());
-//        return result;
-//    }
-
+    [[nodiscard]] RegressionResult test_prediction(const DataFrame &df, const std::vector<size_t> &tIds, bool verbose = false) const;
 };
 
 
@@ -133,15 +110,18 @@ private:
      */
     std::vector<size_t> m_trainIndices;
 
+    size_t m_maxHeight = 0;
+    size_t m_nodeCount = 0;
+
     /**
      * Find the best value for the numeric split of selected attribute.
      * @param currentNode Current node, parent to the new split node.
      * @param attributeIndex Selected attribute.
      * @return Best attribute slit.
      */
-    [[nodiscard]] TreeNodeCandidate find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex) const;
+    [[nodiscard]] TreeNodeCandidate find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex);
 
-    void create_best_split(TreeNode &node) const;
+    void create_best_split(TreeNode &node);
 
 public:
 
@@ -150,6 +130,8 @@ public:
                                    size_t minSamplesSplit = 2,
                                    size_t maxTreeHeight = 9999);
 
-    [[nodiscard]] RegressionTree build() const;
+    [[nodiscard]] RegressionTree build();
+
+    DataFrame &df();
 
 };

@@ -113,8 +113,8 @@ std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_in
     const auto trainDfSize = static_cast<size_t> (floorf(static_cast<float>(size()) * trainDatasetPercentage));
     const auto testDfSize = size() - trainDfSize;
 
-    const auto trainIndices = tIds.copy_part(testDfSize).to_vector();
-    const auto testIndices = tIds.copy_part(testDfSize, trainDfSize).to_vector();
+    const auto trainIndices = tIds.copy_part(trainDfSize).to_vector();
+    const auto testIndices = tIds.copy_part(trainDfSize, testDfSize).to_vector();
     always_assert(trainIndices.size() == trainDfSize);
     always_assert(testIndices.size() == testDfSize);
 

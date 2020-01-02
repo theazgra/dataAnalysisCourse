@@ -36,8 +36,9 @@ DataFrame ECsv::convert_to_dataframe() const
         }
     }
 
+    df.m_attributeCount = dataColIndex;
     // Last column is target.
-    df.m_targetAttributeIndex = m_columns.size() - 1;
+    df.m_targetAttributeIndex = df.m_attributeCount - 1;
 
     df.finish_initialization();
 

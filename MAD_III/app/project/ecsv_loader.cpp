@@ -32,6 +32,8 @@ ECsv ECsvLoader::load_ecsv_file(const char *inputFile, bool skipRowWithMissingFi
         columns[i] = CsvDataColumn(columnTypes[i], csvCells[ECSV_COLUMN_NAME_ROW][i], rowCount);
     }
 
+    columns[columnCount-1].set_as_target_column();
+
     for (size_t row = 0; row < rowCount; ++row)
     {
         for (size_t col = 0; col < columnCount; ++col)

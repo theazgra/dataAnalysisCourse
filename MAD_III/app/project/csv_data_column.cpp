@@ -102,7 +102,8 @@ std::pair<std::vector<std::vector<double>>, std::vector<std::string>> CsvDataCol
         throw std::runtime_error("Unsupported ordinal value");
     });
 
-    return {{columnValues}, {m_name}};
+    return {{columnValues},
+            {m_name}};
 }
 
 void CsvDataColumn::move_value(const size_t row, std::string &value)
@@ -131,4 +132,14 @@ size_t CsvDataColumn::data_column_count() const
 size_t CsvDataColumn::transaction_count() const
 {
     return m_values.size();
+}
+
+bool CsvDataColumn::is_target() const
+{
+    return isTarget;
+}
+
+void CsvDataColumn::set_as_target_column()
+{
+    isTarget = true;
 }
