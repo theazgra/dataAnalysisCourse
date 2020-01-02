@@ -22,6 +22,47 @@ void test_regression_tree(DataFrame &df,
 
 }
 
+void test_regression_tree_n(DataFrame &df,
+                            const std::pair<std::vector<size_t>, std::vector<size_t>> &indices,
+                            const size_t minSampleLeaf,
+                            const size_t n)
+{
+    using namespace azgra::collection;
+    std::vector<RegressionResult> rrs(n);
+
+    double bestR2 = -100.0;
+    for (size_t i = 0; i < n; ++i)
+    {
+        RegressionTreeBuilder rtBuilder(df, indices.first, minSampleLeaf, 1000);
+        RegressionTree rt = rtBuilder.build();
+        df = std::move(rtBuilder.df());
+        rrs[i] = rt.test_prediction(df, indices.second);
+        bestR2 = std::max(bestR2, rrs[i].r2);
+    }
+
+    const double meanMAE = sum(rrs.begin(), rrs.end(), [](const RegressionResult &rr)
+    { return rr.mae; }, 0.0) / static_cast<double>(n);
+    const double meanMSE = sum(rrs.begin(), rrs.end(), [](const RegressionResult &rr)
+    { return rr.mse; }, 0.0) / static_cast<double>(n);
+    const double meanR2 = sum(rrs.begin(), rrs.end(), [](const RegressionResult &rr)
+    { return rr.r2; }, 0.0) / static_cast<double>(n);
+    fprintf(stdout, "=== Regression tree ===\n Mean MinSamplesLeaf = %lu\n  Mean results of %lu runs\n  MSE: %.5f\n  MAE: %.5f\n  "
+                    "R2: %.5f\n",
+            minSampleLeaf,
+            n,
+            meanMSE,
+            meanMAE,
+            meanR2);
+
+
+    fprintf(stdout, "Best R2: %.5f\n", bestR2);
+
+    for (const auto &rr : rrs)
+    {
+        fprintf(stdout, "R2: %.5f\n", rr.r2);
+    }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -32,6 +73,11 @@ int main(int argc, char **argv)
         dfFile = argv[1];
         sampleSize = 0.15;
     }
+
+    // TODO(Moravec):   1. Do more shuffles of df when doing multiple runs
+    //                  2. Look into tree pruning
+    //                  3. Look how to do better implementation of splits
+
     fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
 
     DataFrame df;
@@ -39,7 +85,7 @@ int main(int argc, char **argv)
     df = e_csv.convert_to_dataframe();
 
     df.print_header();
-//    df.min_max_scaling(0.0, 1.0);
+    //df.min_max_scaling(0.0, 1.0);
 
     azgra::io::save_matrix_to_csv(df.matrix(), ';', "df.csv");
 
@@ -47,10 +93,10 @@ int main(int argc, char **argv)
     const auto indices = df.get_train_test_indices(sampleSize, 0.8, true);
     fprintf(stdout, "Train DF size: %lu\nTest DF size: %lu\n", indices.first.size(), indices.second.size());
 
-    test_regression_tree(df, indices, 15);
-    test_regression_tree(df, indices, 10);
-    test_regression_tree(df, indices, 5);
-    test_regression_tree(df, indices, 2);
+//    test_regression_tree(df, indices, 15);
+//    test_regression_tree(df, indices, 10);
+//    test_regression_tree(df, indices, 5);
+    test_regression_tree_n(df, indices, 2, 20);
 
     return 0;
 }

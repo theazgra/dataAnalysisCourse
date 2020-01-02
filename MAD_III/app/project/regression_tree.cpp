@@ -1,6 +1,6 @@
 #include "regression_tree.h"
 
-constexpr int MAX_NUMBER_OF_SPLITS = 10;
+constexpr int MAX_NUMBER_OF_SPLITS = 15;
 
 void TreeNode::calculate_predicted_value(const DataFrame &df)
 {
