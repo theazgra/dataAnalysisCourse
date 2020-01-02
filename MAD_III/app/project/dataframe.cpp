@@ -48,6 +48,9 @@ void DataFrame::min_max_scaling(const double min, const double max)
     {
         for (size_t col = 0; col < colCount; ++col)
         {
+            if (col == m_targetAttributeIndex)
+                continue;
+
             if (mins[col] == maxes[col])
             {
                 continue;

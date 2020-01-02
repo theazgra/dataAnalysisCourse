@@ -294,6 +294,7 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
         return;
     }
 #if 1
+    // NOTE(Moravec): Parallel branch.
     // We want to test split on all attributes except the target attribute.
     std::vector<TreeNodeCandidate> possibleSplits;
     possibleSplits.reserve(attributeCount - 1);
@@ -333,6 +334,8 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
     }
 
 #else
+    // NOTE(Moravec): Single - thread branch.
+
     // We want to test split on all attributes except the target attribute.
     TreeNodeCandidate bestCandidate{};
     bestCandidate.mse = std::numeric_limits<double>::max();

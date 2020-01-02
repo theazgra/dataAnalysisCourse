@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         sampleSize = 0.15;
     }
 
-    // TODO(Moravec):   0. Speed of split.
+    // TODO(Moravec):
     //                  1. Do more shuffles of df when doing multiple runs
     //                  2. Look into tree pruning
     //                  3. Look how to do better implementation of splits
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     df = e_csv.convert_to_dataframe();
 
     df.print_header();
-    //df.min_max_scaling(0.0, 1.0);
+    df.min_max_scaling(0.0, 1.0);
 
     azgra::io::save_matrix_to_csv(df.matrix(), ';', "df.csv");
 
