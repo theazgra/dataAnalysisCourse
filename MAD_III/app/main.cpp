@@ -74,9 +74,11 @@ int main(int argc, char **argv)
         sampleSize = 0.15;
     }
 
-    // TODO(Moravec):   1. Do more shuffles of df when doing multiple runs
+    // TODO(Moravec):   0. Speed of split.
+    //                  1. Do more shuffles of df when doing multiple runs
     //                  2. Look into tree pruning
     //                  3. Look how to do better implementation of splits
+    //                  4. PCA
 
     fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
 
