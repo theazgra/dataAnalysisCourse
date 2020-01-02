@@ -41,7 +41,9 @@ public:
 
     [[nodiscard]] azgra::Matrix<double> const &matrix() const;
 
-    [[nodiscard]] std::pair<std::vector<size_t>, std::vector<size_t>> get_train_test_indices(float trainDatasetPercentage, bool shuffle);
+    [[nodiscard]] std::pair<std::vector<size_t>, std::vector<size_t>> get_train_test_indices(float sampleSize,
+                                                                                             float trainDatasetPercentage,
+                                                                                             bool shuffle);
 
     [[nodiscard]] std::vector<double> get_attribute_values_for_transactions(size_t attributeIndex, const std::vector<size_t> &tIds) const;
 };

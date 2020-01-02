@@ -1,5 +1,7 @@
 #include "regression_tree.h"
 
+constexpr int MAX_NUMBER_OF_SPLITS = 10;
+
 void TreeNode::calculate_predicted_value(const DataFrame &df)
 {
     // Punish empty node with maximum MSE.
@@ -17,16 +19,6 @@ void TreeNode::calculate_predicted_value(const DataFrame &df)
     }
     predictedValue = sum / static_cast<double>(transactionIds.size());
     always_assert(!isnan(predictedValue));
-
-    // Calculate MSE.
-    sum = 0.0;
-    for (const auto tId : transactionIds)
-    {
-        sum += pow((df(tId, targetColumn) - predictedValue), 2);
-    }
-    mse = sum / static_cast<double>(transactionIds.size());
-
-    always_assert(!isnan(mse));
 }
 
 double TreeNode::predict(const DataFrame &df, const size_t rowIndex) const
@@ -101,6 +93,7 @@ RegressionTreeBuilder::RegressionTreeBuilder(DataFrame &df,
 
 
     m_df = std::move(df);
+    m_targetAttributeIndex = m_df.get_target_attribute_index();
     m_trainIndices = trainIndices;
     m_minSamplesSplit = minSamplesSplit;
     m_maxTreeHeight = maxTreeHeight;
@@ -124,6 +117,23 @@ RegressionTree RegressionTreeBuilder::build()
     return tree;
 }
 
+void RegressionTreeBuilder::calculate_candidate_mse(TreeNodeCandidate &candidate, const std::vector<size_t> &tIds)
+{
+    double mse = 0.0;
+    double originalValue, predictedValue;
+    for (const auto tId : tIds)
+    {
+        originalValue = m_df(tId, m_targetAttributeIndex);
+
+        predictedValue = (originalValue <= candidate.splitValueUpperBound) ?
+                         candidate.lChild->predictedValue : candidate.rChild->predictedValue;
+
+        mse += pow((originalValue - predictedValue), 2);
+    }
+    mse /= static_cast<double>(tIds.size());
+    candidate.mse = mse;
+}
+
 TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex)
 {
     using namespace azgra::collection;
@@ -137,9 +147,8 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
 
     const auto columnTrainValues = m_df.get_attribute_values_for_transactions(attributeIndex, currentNode.transactionIds);
 
-    const auto uniqueSplitValues = distinct(columnTrainValues.begin(), columnTrainValues.end());
+    auto uniqueSplitValues = distinct(columnTrainValues.begin(), columnTrainValues.end());
     const size_t numberOfPossibleSplits = uniqueSplitValues.size();
-
     if (numberOfPossibleSplits == 1)
     {
         // The node is pure.
@@ -150,22 +159,33 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
     }
 
     const size_t childHeight = currentNode.height + 1;
-    if (childHeight > m_maxHeight)
+    m_maxHeight = std::max(m_maxHeight, childHeight);
+
+
+    // Reduce the number of possible split count to MAX_NUMBER_OF_SPLITS
+    std::sort(uniqueSplitValues.begin(), uniqueSplitValues.end());
+    std::array<double, MAX_NUMBER_OF_SPLITS> splitValues{};
+    const size_t splitCount = (numberOfPossibleSplits > MAX_NUMBER_OF_SPLITS) ? MAX_NUMBER_OF_SPLITS : numberOfPossibleSplits;
+
+    for (size_t j = 0; j < splitCount; ++j)
     {
-        m_maxHeight = childHeight;
-        //fprintf(stdout, "New max height: %lu\n", m_maxHeight);
+        if (numberOfPossibleSplits <= MAX_NUMBER_OF_SPLITS)
+        {
+            splitValues[j] = uniqueSplitValues[j];
+        }
+        else
+        {
+            // every tenth percentile
+            const auto srcIndex = static_cast<size_t>(0.1 + (0.1 * static_cast<float>(j)) * static_cast<float>(numberOfPossibleSplits));
+            splitValues[j] = uniqueSplitValues[srcIndex];
+        }
     }
 
     // All the candidates
-    std::vector<TreeNodeCandidate> candidates(numberOfPossibleSplits);
-    for (size_t i = 0; i < numberOfPossibleSplits; ++i)
+    std::vector<TreeNodeCandidate> candidates;
+    for (size_t i = 0; i < splitCount; ++i)
     {
-        const double splitValue = uniqueSplitValues[i];
-
-        TreeNodeCandidate candidate = TreeNodeCandidate(attributeIndex, splitValue);
-
-        candidate.lChild = std::make_unique<TreeNode>(childHeight);
-        candidate.rChild = std::make_unique<TreeNode>(childHeight);
+        const double splitValue = splitValues[i];
 
         std::vector<size_t> lChildTransactions = where(currentNode.transactionIds.begin(),
                                                        currentNode.transactionIds.end(),
@@ -173,12 +193,22 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
                                                        {
                                                            return (m_df(tId, attributeIndex) <= splitValue);
                                                        });
+
+        if (lChildTransactions.empty())
+            continue;
+
         // rChild gets all the remaining transactions.
         std::vector<size_t> rChildTransactions = except(currentNode.transactionIds.begin(),
                                                         currentNode.transactionIds.end(),
                                                         lChildTransactions.begin(),
                                                         lChildTransactions.end());
 
+        if (rChildTransactions.empty())
+            continue;
+
+        TreeNodeCandidate candidate = TreeNodeCandidate(attributeIndex, splitValue);
+        candidate.lChild = std::make_unique<TreeNode>(childHeight);
+        candidate.rChild = std::make_unique<TreeNode>(childHeight);
 
         candidate.lChild->transactionIds = std::move(lChildTransactions);
         candidate.rChild->transactionIds = std::move(rChildTransactions);
@@ -186,22 +216,26 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
         candidate.lChild->calculate_predicted_value(m_df);
         candidate.rChild->calculate_predicted_value(m_df);
 
-        candidate.mse = (candidate.lChild->mse + candidate.rChild->mse) / 2.0;
+        calculate_candidate_mse(candidate, currentNode.transactionIds);
         candidate.lChildSize = candidate.lChild->transactionIds.size();
         candidate.rChildSize = candidate.rChild->transactionIds.size();
 
-        candidates[i] = std::move(candidate);
+        candidates.emplace_back(std::move(candidate));
     }
+    always_assert(!candidates.empty() && "No valid candidates for attribute.");
 
     // Select the best candidate, the lowest MSE.
-    TreeNodeCandidate bestCandidate = std::move(*(std::min_element(candidates.begin(),
-                                                                   candidates.end(),
-                                                                   [](const TreeNodeCandidate &a, const TreeNodeCandidate &b)
-                                                                   {
-                                                                       return (a.mse < b.mse);
-                                                                   })));
+    TreeNodeCandidate bestCandidate = std::move(candidates[0]);
+    for (size_t i = 1; i < candidates.size(); ++i)
+    {
+        if (candidates[i].mse < bestCandidate.mse)
+        {
+            bestCandidate = std::move(candidates[i]);
+        }
+    }
 
     always_assert(!isnan(bestCandidate.predictedValue));
+    always_assert(bestCandidate.mse != -1.0);
 
     return bestCandidate;
 }
@@ -209,7 +243,6 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
 void RegressionTreeBuilder::create_best_split(TreeNode &node)
 {
     const size_t attributeCount = m_df.get_attribute_count();
-    const size_t targetAttributeIndex = m_df.get_target_attribute_index();
     const size_t nodeSampleCount = node.transactionIds.size();
     // Stop criteria for splitting.
     if ((node.height > m_maxTreeHeight) || (nodeSampleCount < m_minSamplesSplit))
@@ -224,7 +257,7 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
 
     for (size_t attributeIndex = 0; attributeIndex < attributeCount; ++attributeIndex)
     {
-        if (attributeIndex == targetAttributeIndex)
+        if (attributeIndex == m_targetAttributeIndex)
         { continue; }
 
         possibleSplits.push_back(find_best_split_for_attribute(node, attributeIndex));
@@ -241,15 +274,19 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
     }
 
     // Select the best candidate, the lowest MSE.
-    TreeNodeCandidate bestCandidate = std::move(*(std::min_element(possibleSplits.begin(),
-                                                                   possibleSplits.end(),
-                                                                   [](const TreeNodeCandidate &a, const TreeNodeCandidate &b)
-                                                                   {
-                                                                       return (a.mse < b.mse);
-                                                                   })));
+    TreeNodeCandidate bestCandidate = std::move(possibleSplits[0]);
+    for (size_t i = 1; i < possibleSplits.size(); ++i)
+    {
+        if (possibleSplits[i].mse < bestCandidate.mse)
+        {
+            bestCandidate = std::move(possibleSplits[i]);
+        }
+    }
+
+    always_assert((bestCandidate.rChild && bestCandidate.lChild) && "Best candidate doesn't have children!");
 
     always_assert(bestCandidate.splitAttributeIndex < attributeCount &&
-                  bestCandidate.splitAttributeIndex != targetAttributeIndex);
+                  bestCandidate.splitAttributeIndex != m_targetAttributeIndex);
 
     node.splitAttributeIndex = bestCandidate.splitAttributeIndex;
     node.splitValueUpperBound = bestCandidate.splitValueUpperBound;

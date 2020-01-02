@@ -102,7 +102,9 @@ azgra::Matrix<double> const &DataFrame::matrix() const
     return m_values;
 }
 
-std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_indices(const float trainDatasetPercentage, bool shuffle)
+std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_indices(const float samplePercentage,
+                                                                                      const float trainDatasetPercentage,
+                                                                                      bool shuffle)
 {
     auto tIds = azgra::collection::Enumerable<size_t>::range(0, size());
     if (shuffle)
@@ -110,8 +112,10 @@ std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_in
         tIds.shuffle_in_place();
     }
 
-    const auto trainDfSize = static_cast<size_t> (floorf(static_cast<float>(size()) * trainDatasetPercentage));
-    const auto testDfSize = size() - trainDfSize;
+    const auto sampleSize = static_cast<size_t> (floorf(static_cast<float>(size()) * samplePercentage));
+
+    const auto trainDfSize = static_cast<size_t> (floorf(static_cast<float>(sampleSize) * trainDatasetPercentage));
+    const auto testDfSize = sampleSize - trainDfSize;
 
     const auto trainIndices = tIds.copy_part(trainDfSize).to_vector();
     const auto testIndices = tIds.copy_part(trainDfSize, testDfSize).to_vector();

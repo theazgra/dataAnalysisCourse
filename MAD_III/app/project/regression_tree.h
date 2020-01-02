@@ -2,6 +2,7 @@
 
 #include "dataframe.h"
 #include <azgra/collection/enumerable.h>
+#include <array>
 #include <memory>
 
 
@@ -42,7 +43,7 @@ struct TreeNode
     }
 
     /**
-     * Calculate predicated value as a mean of target value. Also calculate MSE.
+     * Calculate predicated value as a mean of target values
      * @param df DataFrame.
      */
     void calculate_predicted_value(const DataFrame &df);
@@ -87,9 +88,15 @@ public:
 };
 
 
+
+
 class RegressionTreeBuilder
 {
 private:
+    /**
+     * Maximum number of tested splits on attribute.
+     */
+
     /**
      * The maximum height of the tree.
      */
@@ -110,8 +117,20 @@ private:
      */
     std::vector<size_t> m_trainIndices;
 
+    /**
+     * Current maximum height of the tree.
+     */
     size_t m_maxHeight = 0;
+
+    /**
+     * Current node count in the tree.
+     */
     size_t m_nodeCount = 0;
+
+    /**
+     * Index of the target attribute.
+     */
+    size_t m_targetAttributeIndex;
 
     /**
      * Find the best value for the numeric split of selected attribute.
@@ -120,6 +139,8 @@ private:
      * @return Best attribute slit.
      */
     [[nodiscard]] TreeNodeCandidate find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex);
+
+    void calculate_candidate_mse(TreeNodeCandidate &candidate, const std::vector<size_t> &tIds);
 
     void create_best_split(TreeNode &node);
 

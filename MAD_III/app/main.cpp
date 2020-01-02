@@ -7,7 +7,7 @@ void test_regression_tree(DataFrame &df,
                           const size_t minSampleLeaf)
 {
     // builder move the dataframe
-    RegressionTreeBuilder rtBuilder(df, indices.first, minSampleLeaf);
+    RegressionTreeBuilder rtBuilder(df, indices.first, minSampleLeaf, 1000);
     RegressionTree rt = rtBuilder.build();
     df = std::move(rtBuilder.df());
 
@@ -23,37 +23,35 @@ void test_regression_tree(DataFrame &df,
 }
 
 
-int main(int, char **)
+int main(int argc, char **argv)
 {
-    DataFrame df;
+    char *dfFile = const_cast<char *> ("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/car_import2.csv");
+    float sampleSize = 1.0;
+    if (argc > 1)
     {
-        const ECsv e_csv = ECsvLoader::load_ecsv_file("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/car_import2.csv", false);
-        df = e_csv.convert_to_dataframe();
+        dfFile = argv[1];
+        sampleSize = 0.15;
     }
+    fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
+
+    DataFrame df;
+    const ECsv e_csv = ECsvLoader::load_ecsv_file(dfFile, false);
+    df = e_csv.convert_to_dataframe();
 
     df.print_header();
-    df.min_max_scaling(0.0, 1.0);
+//    df.min_max_scaling(0.0, 1.0);
 
     azgra::io::save_matrix_to_csv(df.matrix(), ';', "df.csv");
 
 
+    const auto indices = df.get_train_test_indices(sampleSize, 0.8, true);
+    fprintf(stdout, "Train DF size: %lu\nTest DF size: %lu\n", indices.first.size(), indices.second.size());
 
-    const auto indices = df.get_train_test_indices(0.8, true);
-
-    test_regression_tree(df,indices, 15);
-    test_regression_tree(df,indices, 10);
-    test_regression_tree(df,indices, 5);
-    test_regression_tree(df,indices, 2);
-
-
-
-    // builder move the dataframe
-//    RegressionTreeBuilder rtBuilder(df, trainDF, 5);
-//    RegressionTree rt = rtBuilder.build();
-//    df = std::move(rtBuilder.df());
-//
-//    [[maybe_unused]] const auto regressionScore = rt.test_prediction(df, testDF);
-
+    test_regression_tree(df, indices, 500);
+//    test_regression_tree(df, indices, 15);
+//    test_regression_tree(df, indices, 10);
+//    test_regression_tree(df, indices, 5);
+//    test_regression_tree(df, indices, 2);
 
     return 0;
 }
