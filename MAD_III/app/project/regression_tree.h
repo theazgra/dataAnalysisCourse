@@ -126,7 +126,12 @@ private:
     /**
      * Dataset used for training.
      */
-    DataFrame m_trainDataset;
+    DataFrame m_df;
+
+    /**
+     * Train row indices into m_df.
+     */
+    std::vector<size_t> m_trainIndices;
 
     /**
      * Find the best value for the numeric split of selected attribute.
@@ -140,7 +145,10 @@ private:
 
 public:
 
-    explicit RegressionTreeBuilder(DataFrame &df, const size_t minSamplesSplit = 2, const size_t maxTreeHeight = 9999);
+    explicit RegressionTreeBuilder(DataFrame &df,
+                                   const std::vector<size_t> &trainIndices,
+                                   size_t minSamplesSplit = 2,
+                                   size_t maxTreeHeight = 9999);
 
     [[nodiscard]] RegressionTree build() const;
 

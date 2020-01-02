@@ -1,7 +1,7 @@
 #pragma once
 
 #include <azgra/matrix.h>
-#include <azgra/collection/enumerable_functions.h>
+#include <azgra/collection/enumerable.h>
 #include <sstream>
 
 class DataFrame
@@ -39,5 +39,9 @@ public:
 
     [[nodiscard]] size_t size() const;
 
-    azgra::Matrix<double> const& matrix() const;
+    [[nodiscard]] azgra::Matrix<double> const &matrix() const;
+
+    [[nodiscard]] std::pair<std::vector<size_t>, std::vector<size_t>> get_train_test_indices(float trainDatasetPercentage, bool shuffle);
+
+    [[nodiscard]] std::vector<double> get_attribute_values_for_transactions(size_t attributeIndex, const std::vector<size_t> &tIds) const;
 };

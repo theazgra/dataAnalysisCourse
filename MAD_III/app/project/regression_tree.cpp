@@ -44,14 +44,19 @@ double RegressionTree::predict(const DataFrame &df, const size_t rowIndex) const
     return m_root.predict(df, rowIndex);
 }
 
-RegressionTreeBuilder::RegressionTreeBuilder(DataFrame &df, size_t minSamplesSplit, size_t maxTreeHeight)
+RegressionTreeBuilder::RegressionTreeBuilder(DataFrame &df,
+                                             const std::vector<size_t> &trainIndices,
+                                             size_t minSamplesSplit,
+                                             size_t maxTreeHeight)
 {
     if (df.size() <= 0)
     {
         throw std::runtime_error("Empty DataFrame");
     }
 
-    m_trainDataset = std::move(df);
+
+    m_df = std::move(df);
+    m_trainIndices = trainIndices;
     m_minSamplesSplit = minSamplesSplit;
     m_maxTreeHeight = maxTreeHeight;
 }
@@ -61,7 +66,7 @@ RegressionTree RegressionTreeBuilder::build() const
     RegressionTree tree;
     tree.m_currentHeight = 1;
 
-    auto transactionIds = azgra::collection::Enumerable<size_t>::range(0, m_trainDataset.size()).to_vector();
+    auto transactionIds = m_trainIndices;
     tree.m_root = TreeNode(transactionIds);
 
     create_best_split(tree.m_root);
@@ -82,10 +87,9 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
     // NOTE(Moravec):   At first we will try the split on all values.
     //                  In case this solution is slow we will use every tenth percentile.
 
-    const auto columnItBegin = m_trainDataset.matrix().col_cbegin(attributeIndex);
-    const auto columnItEnd = m_trainDataset.matrix().col_cend(attributeIndex);
+    const auto columnTrainValues = m_df.get_attribute_values_for_transactions(attributeIndex, currentNode.transactionIds);
 
-    const auto uniqueSplitValues = distinct(columnItBegin, columnItEnd);
+    const auto uniqueSplitValues = distinct(columnTrainValues.begin(), columnTrainValues.end());
     const size_t numberOfPossibleSplits = uniqueSplitValues.size();
 
     // All the candidates
@@ -103,7 +107,7 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
                                                        currentNode.transactionIds.end(),
                                                        [this, attributeIndex, splitValue](const size_t tId)
                                                        {
-                                                           return (m_trainDataset(tId, attributeIndex) <= splitValue);
+                                                           return (m_df(tId, attributeIndex) <= splitValue);
                                                        });
         // rChild gets all the remaining transactions.
         std::vector<size_t> rChildTransactions = except(currentNode.transactionIds.begin(),
@@ -115,8 +119,8 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
         candidate.lChild->transactionIds = std::move(lChildTransactions);
         candidate.rChild->transactionIds = std::move(rChildTransactions);
 
-        candidate.lChild->calculate_predicted_value(m_trainDataset);
-        candidate.rChild->calculate_predicted_value(m_trainDataset);
+        candidate.lChild->calculate_predicted_value(m_df);
+        candidate.rChild->calculate_predicted_value(m_df);
 
         candidate.mse = (candidate.lChild->mse + candidate.rChild->mse) / 2.0;
 
@@ -136,8 +140,8 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
 
 void RegressionTreeBuilder::create_best_split(TreeNode &node) const
 {
-    const size_t attributeCount = m_trainDataset.get_attribute_count();
-    const size_t targetAttributeIndex = m_trainDataset.get_target_attribute_index();
+    const size_t attributeCount = m_df.get_attribute_count();
+    const size_t targetAttributeIndex = m_df.get_target_attribute_index();
     const size_t nodeTransactionCount = node.transactionIds.size();
     // Stop criteria for splitting.
     if ((node.height > m_maxTreeHeight) || (nodeTransactionCount < m_minSamplesSplit))

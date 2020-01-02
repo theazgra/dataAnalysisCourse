@@ -1,3 +1,4 @@
+#include <azgra/collection/enumerable.h>
 #include "dataframe.h"
 
 DataFrame::DataFrame(DataFrame &&moveSrc) noexcept
@@ -99,4 +100,33 @@ double DataFrame::operator()(const size_t transactionId, const size_t column) co
 azgra::Matrix<double> const &DataFrame::matrix() const
 {
     return m_values;
+}
+
+std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_indices(const float trainDatasetPercentage, bool shuffle)
+{
+    auto tIds = azgra::collection::Enumerable<size_t>::range(0, size());
+    if (shuffle)
+    {
+        tIds.shuffle_in_place();
+    }
+
+    const auto trainDfSize = static_cast<size_t> (floorf(static_cast<float>(size()) * trainDatasetPercentage));
+    const auto testDfSize = size() - trainDfSize;
+
+    const auto trainIndices = tIds.copy_part(testDfSize).to_vector();
+    const auto testIndices = tIds.copy_part(testDfSize, trainDfSize).to_vector();
+    always_assert(trainIndices.size() == trainDfSize);
+    always_assert(testIndices.size() == testDfSize);
+
+    return {trainIndices, testIndices};
+}
+
+std::vector<double> DataFrame::get_attribute_values_for_transactions(const size_t attributeIndex, const std::vector<size_t> &tIds) const
+{
+    std::vector<double> result(tIds.size());
+    for (size_t i = 0; i < tIds.size(); ++i)
+    {
+        result[i] = m_values.at(tIds[i], attributeIndex);
+    }
+    return result;
 }
