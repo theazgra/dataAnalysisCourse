@@ -2,25 +2,6 @@
 
 constexpr int MAX_NUMBER_OF_SPLITS = 15;
 
-void TreeNode::calculate_predicted_value(const DataFrame &df)
-{
-    // Punish empty node with maximum MSE.
-    if (transactionIds.empty())
-    {
-        predictedValue = NAN;
-        mse = std::numeric_limits<double>::max();
-        return;
-    }
-    const size_t targetColumn = df.get_target_attribute_index();
-    double sum = 0.0;
-    for (const auto tId : transactionIds)
-    {
-        sum += df(tId, targetColumn);
-    }
-    predictedValue = sum / static_cast<double>(transactionIds.size());
-    always_assert(!isnan(predictedValue));
-}
-
 double TreeNode::predict(const DataFrame &df, const size_t rowIndex) const
 {
     const double value = df(rowIndex, splitAttributeIndex);
@@ -44,6 +25,25 @@ double TreeNode::predict(const DataFrame &df, const size_t rowIndex) const
     {
         return rChild->predict(df, rowIndex);
     }
+}
+
+void TreeNode::calculate_predicted_value(const DataFrame &df)
+{
+    // Punish empty node with maximum MSE.
+    if (transactionIds.empty())
+    {
+        predictedValue = NAN;
+        mse = std::numeric_limits<double>::max();
+        return;
+    }
+    const size_t targetColumn = df.get_target_attribute_index();
+    double sum = 0.0;
+    for (const auto tId : transactionIds)
+    {
+        sum += df(tId, targetColumn);
+    }
+    predictedValue = sum / static_cast<double>(transactionIds.size());
+    always_assert(!isnan(predictedValue));
 }
 
 
@@ -134,6 +134,37 @@ RegressionTree RegressionTreeBuilder::build()
     return tree;
 }
 
+double RegressionTreeBuilder::calculate_predicted_value(const std::vector<size_t> &tIds)
+{
+    double sum = 0.0;
+    for (const size_t tId : tIds)
+    {
+        sum += m_df(tId, m_targetAttributeIndex);
+    }
+    const double predictedValue = sum / static_cast<double>(tIds.size());
+    return predictedValue;
+}
+
+double RegressionTreeBuilder::calculate_split_mse(const double splitValue,
+                                                  const double lChildValue,
+                                                  const double rChildValue,
+                                                  const std::vector<size_t> &tIds)
+{
+    double mse = 0.0;
+    double originalValue, predictedValue;
+    for (const auto tId : tIds)
+    {
+        originalValue = m_df(tId, m_targetAttributeIndex);
+
+        predictedValue = (originalValue <= splitValue) ?
+                         lChildValue : rChildValue;
+
+        mse += pow((originalValue - predictedValue), 2);
+    }
+    mse /= static_cast<double>(tIds.size());
+    return mse;
+}
+
 void RegressionTreeBuilder::calculate_candidate_mse(TreeNodeCandidate &candidate, const std::vector<size_t> &tIds)
 {
     double mse = 0.0;
@@ -159,9 +190,6 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
     always_assert(nodeTransactionCount >= m_minSamplesSplit && "Node doesn't have enough samples for split");
 
 
-    // NOTE(Moravec):   At first we will try the split on all values.
-    //                  In case this solution is slow we will use every tenth percentile.
-
     const auto columnTrainValues = m_df.get_attribute_values_for_transactions(attributeIndex, currentNode.transactionIds);
 
     auto uniqueSplitValues = distinct(columnTrainValues.begin(), columnTrainValues.end());
@@ -177,7 +205,6 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
 
     const size_t childHeight = currentNode.height + 1;
     m_maxHeight = std::max(m_maxHeight, childHeight);
-
 
     // Reduce the number of possible split count to MAX_NUMBER_OF_SPLITS
     std::sort(uniqueSplitValues.begin(), uniqueSplitValues.end());
@@ -198,8 +225,12 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
         }
     }
 
-    // All the candidates
-    std::vector<TreeNodeCandidate> candidates;
+    TreeNodeCandidate bestCandidate(attributeIndex, 0.0);
+    bestCandidate.mse = std::numeric_limits<double>::max();
+    bestCandidate.lChild = std::make_unique<TreeNode>(childHeight);
+    bestCandidate.rChild = std::make_unique<TreeNode>(childHeight);
+
+    bool found = false;
     for (size_t i = 0; i < splitCount; ++i)
     {
         const double splitValue = splitValues[i];
@@ -223,36 +254,32 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
         if (rChildTransactions.empty())
             continue;
 
-        TreeNodeCandidate candidate = TreeNodeCandidate(attributeIndex, splitValue);
-        candidate.lChild = std::make_unique<TreeNode>(childHeight);
-        candidate.rChild = std::make_unique<TreeNode>(childHeight);
+        const double lChildPredictedValue = calculate_predicted_value(lChildTransactions);
+        const double rChildPredictedValue = calculate_predicted_value(rChildTransactions);
+        const double splitMse = calculate_split_mse(splitValue, lChildPredictedValue, rChildPredictedValue, currentNode.transactionIds);
 
-        candidate.lChild->transactionIds = std::move(lChildTransactions);
-        candidate.rChild->transactionIds = std::move(rChildTransactions);
-
-        candidate.lChild->calculate_predicted_value(m_df);
-        candidate.rChild->calculate_predicted_value(m_df);
-
-        calculate_candidate_mse(candidate, currentNode.transactionIds);
-        candidate.lChildSize = candidate.lChild->transactionIds.size();
-        candidate.rChildSize = candidate.rChild->transactionIds.size();
-
-        candidates.emplace_back(std::move(candidate));
-    }
-    always_assert(!candidates.empty() && "No valid candidates for attribute.");
-
-    // Select the best candidate, the lowest MSE.
-    TreeNodeCandidate bestCandidate = std::move(candidates[0]);
-    for (size_t i = 1; i < candidates.size(); ++i)
-    {
-        if (candidates[i].mse < bestCandidate.mse)
+        if (splitMse < bestCandidate.mse)
         {
-            bestCandidate = std::move(candidates[i]);
+            found = true;
+
+            bestCandidate.mse = splitMse;
+            bestCandidate.splitValueUpperBound = splitValue;
+
+            bestCandidate.lChildSize = lChildTransactions.size();
+            bestCandidate.rChildSize = rChildTransactions.size();
+
+            bestCandidate.lChild->transactionIds = std::move(lChildTransactions);
+            bestCandidate.rChild->transactionIds = std::move(rChildTransactions);
+
+            bestCandidate.lChild->predictedValue = lChildPredictedValue;
+            bestCandidate.rChild->predictedValue = rChildPredictedValue;
         }
     }
 
+    always_assert(found && "No valid candidates for attribute.");
     always_assert(!isnan(bestCandidate.predictedValue));
     always_assert(bestCandidate.mse != -1.0);
+    always_assert(bestCandidate.rChild && bestCandidate.lChild);
 
     return bestCandidate;
 }
@@ -266,18 +293,23 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
     {
         return;
     }
-
-
+#if 1
     // We want to test split on all attributes except the target attribute.
     std::vector<TreeNodeCandidate> possibleSplits;
     possibleSplits.reserve(attributeCount - 1);
-
-    for (size_t attributeIndex = 0; attributeIndex < attributeCount; ++attributeIndex)
+    omp_set_num_threads(8);
+    size_t attributeIndex;
+#pragma omp parallel for default(none) private(attributeIndex) shared(node, possibleSplits, m_targetAttributeIndex)
+    for (attributeIndex = 0; attributeIndex < attributeCount; ++attributeIndex)
     {
         if (attributeIndex == m_targetAttributeIndex)
         { continue; }
 
-        possibleSplits.push_back(find_best_split_for_attribute(node, attributeIndex));
+        auto attributeSplit = find_best_split_for_attribute(node, attributeIndex);
+#pragma omp critical
+        {
+            possibleSplits.push_back(std::move(attributeSplit));
+        };
     }
 
     const bool allChildrenArePure = azgra::collection::all(possibleSplits.begin(), possibleSplits.end(), [](const TreeNodeCandidate &a)
@@ -299,6 +331,33 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
             bestCandidate = std::move(possibleSplits[i]);
         }
     }
+
+#else
+    // We want to test split on all attributes except the target attribute.
+    TreeNodeCandidate bestCandidate{};
+    bestCandidate.mse = std::numeric_limits<double>::max();
+    bool foundSplit = false;
+
+    for (size_t attributeIndex = 0; attributeIndex < attributeCount; ++attributeIndex)
+    {
+        if (attributeIndex == m_targetAttributeIndex)
+        { continue; }
+
+        auto attributeSplit = find_best_split_for_attribute(node, attributeIndex);
+        if (!attributeSplit.isPure && (attributeSplit.mse < bestCandidate.mse))
+        {
+            always_assert(attributeSplit.rChild && attributeSplit.lChild);
+            foundSplit = true;
+            bestCandidate = std::move(attributeSplit);
+        }
+    }
+
+    if (!foundSplit)
+    {
+        return;
+    }
+
+#endif
 
     always_assert((bestCandidate.rChild && bestCandidate.lChild) && "Best candidate doesn't have children!");
 

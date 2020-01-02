@@ -46,6 +46,15 @@ void test_regression_tree_n(DataFrame &df,
     { return rr.mse; }, 0.0) / static_cast<double>(n);
     const double meanR2 = sum(rrs.begin(), rrs.end(), [](const RegressionResult &rr)
     { return rr.r2; }, 0.0) / static_cast<double>(n);
+
+
+
+
+    for (const auto &rr : rrs)
+    {
+        fprintf(stdout, "R2: %.5f\n", rr.r2);
+    }
+
     fprintf(stdout, "=== Regression tree ===\n Mean MinSamplesLeaf = %lu\n  Mean results of %lu runs\n  MSE: %.5f\n  MAE: %.5f\n  "
                     "R2: %.5f\n",
             minSampleLeaf,
@@ -54,13 +63,7 @@ void test_regression_tree_n(DataFrame &df,
             meanMAE,
             meanR2);
 
-
     fprintf(stdout, "Best R2: %.5f\n", bestR2);
-
-    for (const auto &rr : rrs)
-    {
-        fprintf(stdout, "R2: %.5f\n", rr.r2);
-    }
 }
 
 
@@ -91,14 +94,13 @@ int main(int argc, char **argv)
 
     azgra::io::save_matrix_to_csv(df.matrix(), ';', "df.csv");
 
-
     const auto indices = df.get_train_test_indices(sampleSize, 0.8, true);
     fprintf(stdout, "Train DF size: %lu\nTest DF size: %lu\n", indices.first.size(), indices.second.size());
 
 //    test_regression_tree(df, indices, 15);
 //    test_regression_tree(df, indices, 10);
-//    test_regression_tree(df, indices, 5);
-    test_regression_tree_n(df, indices, 2, 20);
+    test_regression_tree_n(df, indices, 2, 100);
+
 
     return 0;
 }

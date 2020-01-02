@@ -4,7 +4,7 @@
 #include <azgra/collection/enumerable.h>
 #include <array>
 #include <memory>
-
+#include <omp.h>
 
 struct RegressionResult
 {
@@ -88,8 +88,6 @@ public:
 };
 
 
-
-
 class RegressionTreeBuilder
 {
 private:
@@ -141,6 +139,12 @@ private:
     [[nodiscard]] TreeNodeCandidate find_best_split_for_attribute(const TreeNode &currentNode, const size_t attributeIndex);
 
     void calculate_candidate_mse(TreeNodeCandidate &candidate, const std::vector<size_t> &tIds);
+    [[nodiscard]] double calculate_predicted_value(const std::vector<size_t> &tIds);
+
+    [[nodiscard]] double calculate_split_mse(double splitValue,
+                                             double lChildValue,
+                                             double rChildValue,
+                                             const std::vector<size_t> &tIds);
 
     void create_best_split(TreeNode &node);
 
