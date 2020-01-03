@@ -78,7 +78,6 @@ int main(int argc, char **argv)
     }
 
     // TODO(Moravec):
-    //                  1. Do more shuffles of df when doing multiple runs
     //                  2. Look into tree pruning
     //                  3. Look how to do better implementation of splits
     //                  4. PCA
