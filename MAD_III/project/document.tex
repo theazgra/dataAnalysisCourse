@@ -1,0 +1,110 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[section]{placeins}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{mathrsfs}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{dirtytalk}
+\usepackage{siunitx}
+\usepackage{subcaption}
+
+
+%\usepackage{titlesec}
+%\newcommand{\sectionbreak}{\clearpage}
+%\setlist{nosep}
+
+\newcommand{\image}[4]{\begin{figure}[ht!] \centering \includegraphics[width=#4\linewidth]{Figures/#1} \caption{#2} \label{#3} \end{figure}}
+\pgfplotsset{
+	compat=1.9, 
+	width=7cm,
+	/pgfplots/ybar legend/.style={
+    /pgfplots/legend image code/.code={%
+       \draw[##1,/tikz/.cd,yshift=-0.25em]
+        (0cm,0cm) rectangle (3pt,0.8em);},
+   },
+   /pgf/number format/use comma
+}
+\pgfplotsset{%
+    axis line origin/.style args={#1,#2}{
+        x filter/.append code={ % Check for empty or filtered out numbers
+            \ifx\pgfmathresult\empty\else\pgfmathparse{\pgfmathresult-#1}\fi
+        },
+        y filter/.append code={
+            \ifx\pgfmathresult\empty\else\pgfmathparse{\pgfmathresult-#2}\fi
+        },
+        xticklabel=\pgfmathparse{\tick+#1}\pgfmathprintnumber{\pgfmathresult},
+        yticklabel=\pgfmathparse{\tick+#2}\pgfmathprintnumber{\pgfmathresult}
+    }
+}
+\author{Bc. Moravec Vojtěch}
+\title{MAD 3 projekt \\ Regrese koncentrace pevných látek v Pekingu }
+\date{ZS 2019/2020}
+
+
+\begin{document}
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Popis problému}
+Námi vybraný dataset \cite{beijing_data} se zaměřuje na znečištění vzduchu v Pekingu od 1. Ledna 2010 do 31. Prosince 2014.
+Tento dataset jsme získali z UCI Machine Learning Repository \cite{Dua:2019}.
+Znečištěním rozumíme koncentraci v mikrogramech na metr krychlový (\SI{}{\micro\gram}/$\text{m}^3$) pevných částic ve vzduchu.
+V našem připadě se jedná o částice $\text{PM}_{2,5}$, jejíchž průměr je maximálně \SI{2,5}{\micro\metre}.
+Našim cílem je tedy provést explorační analýzu datasetu a následně provést předpověď, regresi koncentrace znečištění
+vzhledem k času a přiloženým meteorologickým datům.  
+
+\section{Popis datasetu}
+Dataset obsahuje celkem 43 824 záznamů a 12 atributů, nepočítáme-li číslo řádku. Ve 2 067 řádcích chybí cílová 
+koncentrace a proto byly tyto řádky ihned odstraněny. Všechny záznamy jsou snímany v čase, tedy známe datum a čas měření, z něhož
+jsme vytvořili další atribut den v týdnu. Pro regresi máme tedy k dispozici 12 atributů, kde vetšina je numerická, až na směr větru resp. den v týdnu,
+které nabývají 4 resp. 7 hodnot.
+
+% TODO(Moravec): rok,mesic,den v tydnu jako kategorialni pro binarizaci
+
+% \begin{tabular}
+%     \begin{table}{}
+%         Název atributu
+%         Typ atributu
+%         Průměr
+%         Směrodatná odchylka
+%         Minimální hodnota
+%         Maximální hodnota
+%     \end{table}
+% \end{tabular}
+
+
+% week_day	day	month	year	hour	dew_point	temperature	pressure	wind_speed	hours_snow	hours_rain	pm2.5
+% count	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000
+% mean	4.001892	15.685514	6.513758	2012.042771	11.502311	1.750174	12.401561	1016.442896	23.866747	0.055344	0.194866	98.613215
+% std	1.994789	8.785539	3.454199	1.415311	6.924848	14.433658	12.175215	10.300733	49.617495	0.778875	1.418165	92.050387
+% min	1.000000	1.000000	1.000000	2010.000000	0.000000	-40.000000	-19.000000	991.000000	0.450000	0.000000	0.000000	0.000000
+% 25%	2.000000	8.000000	4.000000	2011.000000	5.000000	-10.000000	2.000000	1008.000000	1.790000	0.000000	0.000000	29.000000
+% 50%	4.000000	16.000000	7.000000	2012.000000	12.000000	2.000000	14.000000	1016.000000	5.370000	0.000000	0.000000	72.000000
+% 75%	6.000000	23.000000	10.000000	2013.000000	18.000000	15.000000	23.000000	1025.000000	21.910000	0.000000	0.000000	137.000000
+% max	7.000000	31.000000	12.000000	2014.000000	23.000000	28.000000	42.000000	1046.000000	565.490000	27.000000	36.000000	994.000000
+
+
+
+\section{Předzpracování}
+
+\section{Regrese}
+
+\bibliography{citations}
+\bibliographystyle{ieeetr}
+
+\FloatBarrier
+\newpage
+\end{document}

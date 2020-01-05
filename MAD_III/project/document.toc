@@ -1,0 +1,5 @@
+\babel@toc {czech}{}
+\contentsline {section}{\numberline {1}Popis problému}{3}{section.1}% 
+\contentsline {section}{\numberline {2}Popis datasetu}{3}{section.2}% 
+\contentsline {section}{\numberline {3}Předzpracování}{3}{section.3}% 
+\contentsline {section}{\numberline {4}Regrese}{3}{section.4}% 

@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
 
     DataFrame df;
-    const ECsv e_csv = ECsvLoader::load_ecsv_file(dfFile, false);
+    const ECsv e_csv = ECsvLoader::load_ecsv_file(dfFile, true);
     df = e_csv.convert_to_dataframe();
 
     df.print_header();
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 
 //    test_regression_tree(df, indices, 15);
 //    test_regression_tree(df, indices, 10);
-    test_regression_tree_n(df, indices, 2, 100);
+    test_regression_tree_n(df, indices, 2, 20);
 
 
     return 0;
