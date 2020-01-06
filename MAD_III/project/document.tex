@@ -17,13 +17,17 @@
 \usepackage{dirtytalk}
 \usepackage{siunitx}
 \usepackage{subcaption}
+\usepackage{gensymb}
+
+
 
 
 %\usepackage{titlesec}
 %\newcommand{\sectionbreak}{\clearpage}
 %\setlist{nosep}
 
-\newcommand{\image}[4]{\begin{figure}[ht!] \centering \includegraphics[width=#4\linewidth]{Figures/#1} \caption{#2} \label{#3} \end{figure}}
+\newcommand{\pmQuant}[0]{$\text{PM}_{2.5}$}
+\newcommand{\image}[4]{\begin{figure}[ht!] \centering \includegraphics[width=#4\linewidth]{#1} \caption{#2} \label{#3} \end{figure}}
 \pgfplotsset{
 	compat=1.9, 
 	width=7cm,
@@ -62,43 +66,113 @@
 Námi vybraný dataset \cite{beijing_data} se zaměřuje na znečištění vzduchu v Pekingu od 1. Ledna 2010 do 31. Prosince 2014.
 Tento dataset jsme získali z UCI Machine Learning Repository \cite{Dua:2019}.
 Znečištěním rozumíme koncentraci v mikrogramech na metr krychlový (\SI{}{\micro\gram}/$\text{m}^3$) pevných částic ve vzduchu.
-V našem připadě se jedná o částice $\text{PM}_{2,5}$, jejíchž průměr je maximálně \SI{2,5}{\micro\metre}.
+V našem připadě se jedná o částice $\text{PM}_{2.5}$, jejíchž průměr je maximálně \SI{2,5}{\micro\metre}.
 Našim cílem je tedy provést explorační analýzu datasetu a následně provést předpověď, regresi koncentrace znečištění
 vzhledem k času a přiloženým meteorologickým datům.  
 
 \section{Popis datasetu}
 Dataset obsahuje celkem 43 824 záznamů a 12 atributů, nepočítáme-li číslo řádku. Ve 2 067 řádcích chybí cílová 
 koncentrace a proto byly tyto řádky ihned odstraněny. Všechny záznamy jsou snímany v čase, tedy známe datum a čas měření, z něhož
-jsme vytvořili další atribut den v týdnu. Pro regresi máme tedy k dispozici 12 atributů, kde vetšina je numerická, až na směr větru resp. den v týdnu,
-které nabývají 4 resp. 7 hodnot.
+jsme vytvořili další atribut den v týdnu. Pro regresi máme tedy k dispozici 12 atributů, kde vetšina je numerická. 
+Tyto numerické atributy, spolu s cílovým atributem jsou shrnuty v Tabulce \ref{tab:numericColDesc}.
 
-% TODO(Moravec): rok,mesic,den v tydnu jako kategorialni pro binarizaci
+\begin{table}[ht!]
+    \centering
+    \begin{tabular}{l | r | r | r | r}
 
-% \begin{tabular}
-%     \begin{table}{}
-%         Název atributu
-%         Typ atributu
-%         Průměr
-%         Směrodatná odchylka
-%         Minimální hodnota
-%         Maximální hodnota
-%     \end{table}
-% \end{tabular}
+        Název atributu                                      & Průměr    & $\sigma$  & Min       & Max       \\\hline\hline
+        Rosný bod (\degree C)                                      & 1,7502    & 14,4337   & -40,0000  & 28,0000   \\   
+        Teplota (\degree C)                                        & 12,4016   & 12,1752   & -19,0000  & 42,0000   \\
+        Tlak (hPa)                                          & 1016,4429 & 10,3007   & 991,0000  & 1046,0000 \\
+        Rychlost větru (m/s)                                & 23,8667   & 49,6175   & 0,4500    & 565,4900  \\       
+        Doba sněžení (hod.)                                 & 0,0553    & 0,7789    & 0,0000    & 27,0000   \\           
+        Doba deště (hod.)                                   & 0,1949    & 1,4182    & 0,0000    & 36,0000   \\           
+        Koncentrace $\text{PM}_{2.5}$ (\SI{}{\micro\gram}/$\text{m}^3$) & 98,6132   & 92.0504   & 0,0000    & 994,0000  \\           
+    \end{tabular}
+    \caption{Souhrn numerických atributů}
+    \label{tab:numericColDesc}
+\end{table}
 
+Směr větru je kategoriální atribut, nabývající 4 různých hodnot, jejich distribuci můžeme vidět v grafu na Obrázku \ref{fig:wind_dir_dist}.
+Originální měřená data obsahovala celkem 16 různých směrů větru, ale autoři je seskupili do 5, kde 4 nalezeneme v našem datasetu.
+Hodnota CV znamená klidný, proměnný směr. Na Obrázku \ref{fig:target_by_wind_dir} můžeme vidět závislost cílové proměnné právě na směru větru,
+všimneme si, že největší koncentrace pevných látek ve vzduchu je právě při klidném větru a naopak nejmenší, když vítr fouká severozápadně.
+\image{wind_dir_dist.pdf}{Absolutní četnosti směru větru}{fig:wind_dir_dist}{0.7}
+\image{target_by_wind_dir.pdf}{Koncentrace \pmQuant vzhledem ke směru větru}{fig:target_by_wind_dir}{0.9}
 
-% week_day	day	month	year	hour	dew_point	temperature	pressure	wind_speed	hours_snow	hours_rain	pm2.5
-% count	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000	41757.000000
-% mean	4.001892	15.685514	6.513758	2012.042771	11.502311	1.750174	12.401561	1016.442896	23.866747	0.055344	0.194866	98.613215
-% std	1.994789	8.785539	3.454199	1.415311	6.924848	14.433658	12.175215	10.300733	49.617495	0.778875	1.418165	92.050387
-% min	1.000000	1.000000	1.000000	2010.000000	0.000000	-40.000000	-19.000000	991.000000	0.450000	0.000000	0.000000	0.000000
-% 25%	2.000000	8.000000	4.000000	2011.000000	5.000000	-10.000000	2.000000	1008.000000	1.790000	0.000000	0.000000	29.000000
-% 50%	4.000000	16.000000	7.000000	2012.000000	12.000000	2.000000	14.000000	1016.000000	5.370000	0.000000	0.000000	72.000000
-% 75%	6.000000	23.000000	10.000000	2013.000000	18.000000	15.000000	23.000000	1025.000000	21.910000	0.000000	0.000000	137.000000
-% max	7.000000	31.000000	12.000000	2014.000000	23.000000	28.000000	42.000000	1046.000000	565.490000	27.000000	36.000000	994.000000
+\subsection{Časové atributy}
+Každý záznam v datasetu obsahuje informaci o dnu, měsící, roku a hodině, kdy byl vytvořen. My jsme dále přidali den v týdnu.
+Všechny tyto atributy mohou být reprezentovány jako numerické nebo jako kategoriální. Aby jsme se mohli rozhodnout jak budeme
+s těmity atributy pracovat podíváme se na krabicové grafy cílového atributu v závislosti na dnu, měsící atd.
+Nejprve se podíváme na závislost pro dny v týdnu, tu můžeme vidět na Obrázku \ref{fig:target_by_wd}.
 
+\image{target_by_week_day.pdf}{Koncentrace \pmQuant vzhledem ke dnu v týdnu}{fig:target_by_wd}{1.0}
 
+Zde nepozorujeme žádnou velkou závislost. Podobný výsledek můžeme vidět u dnu měsíce \ref{fig:target_by_day}, 
+měsíců \ref{fig:target_by_month} i roků \ref{fig:target_by_year}.
+Koncentrace cílového atributu kolísá a nemůžeme najít žádnou závislost, že by se vzrůstajícím dnem, měsícem koncentrace
+\pmQuant rostla či klesala. Rozhodli jsme se tedy, že s atributy budeme pracovat jako s kategoriálními.
+Navíc vytvoříme další dataset, kde den v měsící zcela odstraníme.
 
-\section{Předzpracování}
+\image{target_by_month_day.pdf}{Koncentrace \pmQuant vzhledem ke dnu v měsící}{fig:target_by_day}{1.0}
+\image{target_by_month.pdf}{Koncentrace \pmQuant vzhledem k měsící }{fig:target_by_month}{1.0}
+\image{target_by_year.pdf}{Koncentrace \pmQuant vzhledem k roku}{fig:target_by_year}{1.0}
+
+V prílohách ještě najdeme koncentrace vzhledem ke dnu v týdnu \ref{fig:target_by_wd_yearly} a měsící \ref{fig:target_by_month_yearly} 
+zvlášť pro každý rok.
+
+\FloatBarrier
+\subsection{Distribuce hodnot a odlehlá pozorování numerických atributů}
+Většina hodnot rosného bodu se pohybuje v rozmezí od -20 \degree C do 20 \degree C. V rosném bodě nepozorujeme
+žádné odlehlé pozorování. Krabicový graf a histrogram můžeme vidět na Obrázku \ref{fig:dewpt_analys}. 
+Dále můžeme vidět grafy pro teplotu a to na Obrázku \ref{fig:temp_analys}. Pro teplotu jsme také nenalezli
+odlehlé pozorování, to stejné platí pro atmosferický tlak.
+
+\image{dewpt.pdf}{Krabicový graf, histrogram rosného bodu}{fig:dewpt_analys}{0.8}
+\image{temp.pdf}{Krabicový graf, histrogram teploty}{fig:temp_analys}{0.8}
+
+Nejvíce odlehlých pozorování nalezneme pro rychlost větru, jedná se o 4 893 záznamů z celkových 41 757.
+Tyto pozorování můžeme vidět na grafu v Obrázku \ref{fig:wndspeed_analys}. Na histogramu vedle si všimneme,
+že rychlost větru je většinou do 100 m/s. Odlehlé pozorování tedy odpovídají extrémum, kdy se do Pekingu dostal silný vítr.
+Tak stejně odlehlé pozorování najdeme u doby sněžení a deště. Obrázky \ref{fig:hsnow_analys} a \ref{fig:hrain_analys}.
+Drtivou většinu času v Pekingu nesněží ani neprší více jak hodinu v kuse, proto jsou hodnoty od 1 - 2 hodin označeny za odlehlé 
+pozorování. Dlé mého názoru by bylo špatné rozhodnutí tyto hodnoty odstranit, neboť právě ony mohou značit
+určitý pokles či vzrůst koncentrace \pmQuant
+
+\image{wndspd.pdf}{Krabicový graf, histrogram rychlost větru}{fig:wndspeed_analys}{0.8}
+\image{hsnow.pdf}{Krabicový graf, histrogram doba sněžení}{fig:hsnow_analys}{0.8}
+\image{hrain.pdf}{Krabicový graf, histrogram doba deště}{fig:hrain_analys}{0.8}
+
+Pro cílový atribut koncentrace \pmQuant bylo nalezeneo 1773 odlehlých pozorování, jak můžeme vidět v Obrázku \ref{fig:pm25_analys}.
+Tyto odlehlé pozorování budou odstraněny pro všechny datasety, pro které budeme zkoušet regresi.
+Odlehlé pozorování z předchozích atributů odstraníme v nově vytvořeném datasetu a vyzkoušíme jaký vliv
+bude mít jejich přitomnost či absence. 
+
+\image{pm25.pdf}{Krabicový graf, histrogram koncentrace \pmQuant}{fig:pm25_analys}{0.8}
+
+\section{Předzpracování datasetu}
+Zde si popíšeme operace, které jsme provedli s originálním datasetem, aby jsme získali naše datasety, nad kterými budeme
+zkoušet regresi. 
+První dataset jsme získali tak, že jsme odstranili odlehlé pozorování cílového atributu \pmQuant a provedli binarizaci atributů
+den v týdnu, den v měsící, měsíc, rok a hodina. Výsledný dataset jsme následně normalizovali do rozmezí 0,0 až 1,0.
+Pro druhý dataset jsme provedli to stejné ale odstranili jsme den měření, následně jsme provedli normalizaci.
+Pro třetí dataset jsme odstranili všechny odlehlé pozorování, provedli binarizaci atributů a následnou normalizaci.
+Z tohoto datasetu jsme následně pomocí redukce dimenze vytvořili ještě další 2 datasety, kterým jsme nechali 20 resp. 10
+nejdůležitějších atributů. Souhrn datasetu nalezeneme v Tabulce \ref{tab:regression_datasets}.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l | r | r}
+        Jméno                       & Počet transakcí   & Počet attributů \\\hline\hline
+        df\_binAll                   & 39984             & 89 \\
+        df\_binNoDay                 & 39984             & 58 \\
+        df\_noOut\_binNoDay           & 33512             & 58 \\
+        df\_noOut\_binNoDay\_20attr    & 33512             & 20 \\  
+        df\_noOut\_binNoDay\_10attr    & 33512             & 10 \\
+    \end{tabular}
+    \caption{Souhrn datasetů pro regresi}
+    \label{tab:regression_datasets}
+\end{table}
 
 \section{Regrese}
 
@@ -107,4 +181,9 @@ které nabývají 4 resp. 7 hodnot.
 
 \FloatBarrier
 \newpage
+\section{Přílohy}
+
+\image{target_by_wd_by_year.pdf}{Koncentrace \pmQuant vzhledem ke dnu v týdnu pro každý rok}{fig:target_by_wd_yearly}{1.0}
+\image{target_by_month_by_year.pdf}{Koncentrace \pmQuant vzhledem k měsíci pro každý rok}{fig:target_by_month_yearly}{1.0}
+
 \end{document}

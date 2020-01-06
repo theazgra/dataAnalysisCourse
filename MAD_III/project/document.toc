@@ -1,5 +1,8 @@
 \babel@toc {czech}{}
 \contentsline {section}{\numberline {1}Popis problému}{3}{section.1}% 
 \contentsline {section}{\numberline {2}Popis datasetu}{3}{section.2}% 
-\contentsline {section}{\numberline {3}Předzpracování}{3}{section.3}% 
-\contentsline {section}{\numberline {4}Regrese}{3}{section.4}% 
+\contentsline {subsection}{\numberline {2.1}Časové atributy}{4}{subsection.2.1}% 
+\contentsline {subsection}{\numberline {2.2}Distribuce hodnot a odlehlá pozorování numerických atributů}{6}{subsection.2.2}% 
+\contentsline {section}{\numberline {3}Předzpracování datasetu}{9}{section.3}% 
+\contentsline {section}{\numberline {4}Regrese}{10}{section.4}% 
+\contentsline {section}{\numberline {5}Přílohy}{11}{section.5}% 
