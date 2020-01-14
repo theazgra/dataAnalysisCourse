@@ -71,15 +71,13 @@ int main(int argc, char **argv)
 {
     char *dfFile = const_cast<char *> ("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/car_import_shuffled.csv");
     float sampleSize = 1.0;
+//    char *dfFile = const_cast<char *> ("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/beijing_pm25_ecsv.csv");
+//    float sampleSize = 0.3;
     if (argc > 1)
     {
         dfFile = argv[1];
-        sampleSize = 0.15;
+        sampleSize = 0.3;
     }
-
-    // TODO(Moravec):
-    //                  2. Look into tree pruning
-    //                  3. Look how to do better implementation of splits
 
     fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
 

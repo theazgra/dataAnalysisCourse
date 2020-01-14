@@ -211,6 +211,7 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
     std::array<double, MAX_NUMBER_OF_SPLITS> splitValues{};
     const size_t splitCount = (numberOfPossibleSplits > MAX_NUMBER_OF_SPLITS) ? MAX_NUMBER_OF_SPLITS : numberOfPossibleSplits;
 
+    const float percentile = (1.0 / static_cast<float>(MAX_NUMBER_OF_SPLITS));
     for (size_t j = 0; j < splitCount; ++j)
     {
         if (numberOfPossibleSplits <= MAX_NUMBER_OF_SPLITS)
@@ -219,8 +220,10 @@ TreeNodeCandidate RegressionTreeBuilder::find_best_split_for_attribute(const Tre
         }
         else
         {
+
+
             // every tenth percentile
-            const auto srcIndex = static_cast<size_t>(0.1 + (0.1 * static_cast<float>(j)) * static_cast<float>(numberOfPossibleSplits));
+            const auto srcIndex = static_cast<size_t>(percentile + (percentile * static_cast<float>(j)) * static_cast<float>(numberOfPossibleSplits));
             splitValues[j] = uniqueSplitValues[srcIndex];
         }
     }
