@@ -69,7 +69,7 @@ void test_regression_tree_n(DataFrame &df,
 
 int main(int argc, char **argv)
 {
-    char *dfFile = const_cast<char *> ("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/car_import2.csv");
+    char *dfFile = const_cast<char *> ("/mnt/d/codes/git/dataAnalysisCourse/MAD_III/data/car_import_shuffled.csv");
     float sampleSize = 1.0;
     if (argc > 1)
     {
@@ -80,7 +80,6 @@ int main(int argc, char **argv)
     // TODO(Moravec):
     //                  2. Look into tree pruning
     //                  3. Look how to do better implementation of splits
-    //                  4. PCA
 
     fprintf(stdout, "Building regression tree for df: %s\n", dfFile);
 
@@ -88,17 +87,17 @@ int main(int argc, char **argv)
     const ECsv e_csv = ECsvLoader::load_ecsv_file(dfFile, true);
     df = e_csv.convert_to_dataframe();
 
-    df.print_header();
     df.min_max_scaling(0.0, 1.0);
 
     azgra::io::save_matrix_to_csv(df.matrix(), ';', "df.csv");
 
-    const auto indices = df.get_train_test_indices(sampleSize, 0.8, true);
+    const auto indices = df.get_train_test_indices(sampleSize, 0.8, false);
     fprintf(stdout, "Train DF size: %lu\nTest DF size: %lu\n", indices.first.size(), indices.second.size());
 
-//    test_regression_tree(df, indices, 15);
-//    test_regression_tree(df, indices, 10);
-    test_regression_tree_n(df, indices, 2, 20);
+    test_regression_tree(df, indices, 10);
+    test_regression_tree(df, indices, 5);
+    test_regression_tree(df, indices, 2);
+//    test_regression_tree_n(df, indices, 2, 20);
 
 
     return 0;

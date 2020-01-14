@@ -113,7 +113,15 @@ std::pair<std::vector<size_t>, std::vector<size_t>> DataFrame::get_train_test_in
     if (shuffle)
     {
         tIds.shuffle_in_place();
+        std::stringstream ss;
+        for (const auto &id : tIds)
+        {
+            ss << id << ' ';
+        }
+        ss << '\n';
+        fprintf(stdout, "%s", ss.str().c_str());
     }
+
 
     const auto sampleSize = static_cast<size_t> (floorf(static_cast<float>(size()) * samplePercentage));
 
