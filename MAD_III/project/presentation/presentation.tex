@@ -1,0 +1,171 @@
+\documentclass{beamer}%[9pt]
+\usetheme[
+    sectionpage=progressbar,
+    progressbar=frametitle,
+    background=light
+   ] {metropolis} 
+
+
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage[export]{adjustbox}
+
+\let\oldfootnotesize\footnotesize
+\renewcommand*{\footnotesize}{\oldfootnotesize\tiny}
+
+\newcommand{\pmQuant}[0]{$\text{PM}_{2.5}\:$}
+\newcommand{\image}[2]{\begin{figure}[ht!] \centering \includegraphics[width=#2\linewidth]{#1} \end{figure}}
+\newcommand{\croppedColorMap}[1]{\begin{figure}[ht!] \centering \adjincludegraphics[width=0.9\linewidth,trim={0 {.6\width} 0 0},clip]{#1} \end{figure}}    
+
+
+\newenvironment{cols}{\begin{columns}}{\end{columns}}
+\newenvironment{col}[1]{\begin{column}{{#1\linewidth}}}{\end{column}}
+\newenvironment{hcol}{\begin{column}{{0.5\linewidth}}}{\end{column}}
+
+\author{Bc. Moravec Vojtěch}
+\title{Regrese znečištění v Pekingu \\ MAD 3 projekt}
+\date{ZS 2019/2020}
+\institute{Vysoká škola báňská – Technická univerzita Ostrava}
+
+\begin{document}
+\maketitle
+\begin{frame}{Cíl}
+    \begin{itemize}
+        \item Provést explorační analýzu
+        \item Připravit datasety pro regresi
+        \item Provést a ohodnotit regresi
+    \end{itemize}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Informace ohledně datasetu}
+    \begin{itemize}
+        \item 1 Transakce = Záznam o měření koncentrace pevných části \pmQuant ve vzduchu (\SI{}{\micro\gram}/$\text{m}^3$)
+        \item Data od 1.1.2010 až do 31.12.2014
+        \item 43 824 záznamů a 12 atributů
+        \begin{itemize}
+            \item 6 numerických atributů + 1 cílový
+            \item zbylé atributy reprezentují datum a čas
+            \item z data (den, měsíc, rok) jsme vytvořili nový atribut \\ "den v týdnu"
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Časové atributy}
+    \begin{itemize}
+        \item Jak pracovat s atributy dne, měsíce, roku, hodiny, dne v týdnu?
+        \item Zpracovat jako numerický nebo kategoriální atribut?
+        \item Podíváme se na závilost cílového atributu, vzhledem k těmto atributům
+        \begin{itemize}
+            \item Nalezneme-li závislost (např. koncentrace roste s měsícem) - numerický
+            \item Jinak kategoriální a provedeme jejich binarizaci
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Koncentrace vzhledem k měsíci}
+    Nevidíme žádnou závislost, že koncentrace klesá nebo roste spolu s měsícem.
+    \image{../target_by_month_day.pdf}{1.0}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Koncentrace vzhledem k dnu týdne}
+    Koncentrace \pmQuant je nezávislá na dnu týdne.
+    \image{../target_by_week_day.pdf}{1.0}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Odlehlé pozorování}
+    Odlehlé pozorování nalezené pro:
+    \begin{itemize}
+        \item Rychlost větru (4 893) \footnotemark[1]
+        \item Doba deště (1 739) \footnotemark[1]
+        \item Doba sněžení (368) \footnotemark[1]
+        \item Koncentrace \pmQuant (1 773) - všechny odstraněny
+    \end{itemize}
+    \footnotetext[1]{Odlehlé pozorování byly ponechýny v některých datasetech}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Datasety pro regresi}
+    \begin{itemize}
+        \item Ve všech datasetech byla provedena normalizace hodnot do rozmezí 0,0 až 1,0
+    \end{itemize}
+    \begin{table}
+        \centering
+        \begin{tabular}{l | r | r}
+            Dataset                         & Počet transakcí   & Počet attributů \\\hline\hline
+            df\_binAll                      & 39984             & 89 \\
+            df\_binNoDay                    & 39984             & 58 \\
+            df\_noOut\_binNoDay             & 33512             & 58 \\
+            df\_noOut\_binNoDay\_20attr     & 33512             & 20 \\  
+            df\_noOut\_binNoDay\_10attr     & 33512             & 10 \\
+        \end{tabular}
+    \end{table}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Regrese pomocí SVR}
+    \croppedColorMap{../regressionResults/svr_r2.pdf}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Regrese pomocí DecisionTreeRegressor}
+    \croppedColorMap{../regressionResults/regTree_r2.pdf}
+\end{frame}
+% -------------------------------------------- 
+\begin{frame}{Regrese pomocí MLPRegressor}
+    \croppedColorMap{../regressionResults/nn_r2.pdf}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Sourhn výsledků}
+    \begin{table}
+        \centering
+        \begin{tabular}{l | r | r | r  | r}
+            Algoritmus              & Čas učení (s) &  $R^2$ & MSE \\\hline\hline
+            SVR                     & 27,209        & 0,305  & 3326,722  \\
+            DecisionTreeRegressor   & 0,078         & 0,229  & 3731,770  \\
+            MLPRegressor            & 18,880        & 0,336  & 3172,276
+        \end{tabular}
+    \end{table}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Ansámbl metody}
+    \begin{itemize}
+        \item RandomForestRegressor vedl pouze k minimálnímu zlepšení
+        \item Nejlepší boostovací metody seřazeny podle zlepšení (od nejlepšího):
+        \begin{enumerate}
+            \item HistGradientBoostingRegressor
+            \item GradientBoostingRegressor
+            \item AdaBoostRegressor
+        \end{enumerate}
+    \end{itemize}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Boostovací metody - HistGradientBoostingRegressor}
+    \croppedColorMap{../regressionResults/hgbr_r2.pdf}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Souhrn všech regresorů}
+    \croppedColorMap{../regressionResults/ultimate.pdf}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Závěr}
+    \begin{itemize}
+        \item Provedli jsme explorační analýzu
+        \item Vytvořili jsme datasety
+        \item Otestovali jsme regresory a zhodnotili jsme je
+        \item Výsledky regresorů jsou podprůměrné
+        \item Koncentrace \pmQuant je těžko předpovidatelná
+    \end{itemize}
+\end{frame}
+% --------------------------------------------
+\section*{Děkuji za pozornost \\ Otázky?}
+\begin{frame}
+    \bibliography{../citations}
+    \bibliographystyle{ieeetr}
+\end{frame}
+\end{document}
+\end{frame}
