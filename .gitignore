@@ -9,24 +9,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -93,3 +75,5 @@ MAD_II/analysis/cluster_edge_betweenness.rbin
 .idea/
 cmake-build-*/
 .ipynb_checkpoints/
+
+regressionResults/

@@ -18,6 +18,8 @@
 \usepackage{siunitx}
 \usepackage{subcaption}
 \usepackage{gensymb}
+\usepackage[export]{adjustbox}
+
 
 
 
@@ -26,8 +28,11 @@
 %\newcommand{\sectionbreak}{\clearpage}
 %\setlist{nosep}
 
-\newcommand{\pmQuant}[0]{$\text{PM}_{2.5}$}
+\newcommand{\pmQuant}[0]{$\text{PM}_{2.5}\:$}
 \newcommand{\image}[4]{\begin{figure}[ht!] \centering \includegraphics[width=#4\linewidth]{#1} \caption{#2} \label{#3} \end{figure}}
+\newcommand{\croppedColorMap}[3]{\begin{figure}[ht!] \centering \adjincludegraphics[width=0.8\linewidth,trim={0 {.6\width} 0 0},clip]{#1} \caption{#2} \label{#3} \end{figure}}    
+\newcommand{\croppedColorMapBig}[3]{\begin{figure}[ht!] \centering \adjincludegraphics[width=1.0\linewidth,trim={0 {.6\width} 0 0},clip]{#1} \caption{#2} \label{#3} \end{figure}}    
+
 \pgfplotsset{
 	compat=1.9, 
 	width=7cm,
@@ -51,7 +56,7 @@
     }
 }
 \author{Bc. Moravec Vojtěch}
-\title{MAD 3 projekt \\ Regrese koncentrace pevných látek v Pekingu }
+\title{Regrese koncentrace pevných látek v Pekingu \\ MAD 3 projekt}
 \date{ZS 2019/2020}
 
 
@@ -62,19 +67,22 @@
 \tableofcontents
 \newpage
 
-\section{Popis problému}
+\section{Úvod}
+V tomto projektu do předmětu Metody Analýzy Dat 3, se zaměříme na regresi, neboli předpověď numerického atributu. 
 Námi vybraný dataset \cite{beijing_data} se zaměřuje na znečištění vzduchu v Pekingu od 1. Ledna 2010 do 31. Prosince 2014.
 Tento dataset jsme získali z UCI Machine Learning Repository \cite{Dua:2019}.
-Znečištěním rozumíme koncentraci v mikrogramech na metr krychlový (\SI{}{\micro\gram}/$\text{m}^3$) pevných částic ve vzduchu.
+Znečištěním v tomto případě rozumíme koncentraci pevných částic ve vzduchu.
+Koncentrace se měří v mikrogramech na metr krychlový (\SI{}{\micro\gram}/$\text{m}^3$).
 V našem připadě se jedná o částice $\text{PM}_{2.5}$, jejíchž průměr je maximálně \SI{2,5}{\micro\metre}.
-Našim cílem je tedy provést explorační analýzu datasetu a následně provést předpověď, regresi koncentrace znečištění
-vzhledem k času a přiloženým meteorologickým datům.  
+Našim cílem je tedy provést explorační analýzu datasetu, upravit dataset a následně vyzkoušet několik standardních 
+algoritmu pro regresi, předpověď koncentrace znečištění vzhledem k času a přiloženým meteorologickým datům.  
 
 \section{Popis datasetu}
-Dataset obsahuje celkem 43 824 záznamů a 12 atributů, nepočítáme-li číslo řádku. Ve 2 067 řádcích chybí cílová 
-koncentrace a proto byly tyto řádky ihned odstraněny. Všechny záznamy jsou snímany v čase, tedy známe datum a čas měření, z něhož
-jsme vytvořili další atribut den v týdnu. Pro regresi máme tedy k dispozici 12 atributů, kde vetšina je numerická. 
-Tyto numerické atributy, spolu s cílovým atributem jsou shrnuty v Tabulce \ref{tab:numericColDesc}.
+Originální dataset bez úprav obsahuje celkem 43 824 záznamů a 12 atributů, nepočítáme-li číslo řádku, které bude pro analýzu hned odstraněno. 
+V celkem 2 067 řádcích chybí cílová koncentrace a proto, byly tyto řádky také odstraněny. 
+Všechny záznamy obsahují informace o datu a čase, kdy byla koncentrace změřena. Z data jsme navíc vytvořili nový atribut dne v týdnu.
+Pro regresi máme tedy k dispozici celkem 12 atributů, kde většina je numerická. 
+Statistické vlastnosti numerických atributů, spolu s cílovým atributem jsou shrnuty v Tabulce \ref{tab:numericColDesc}.
 
 \begin{table}[ht!]
     \centering
@@ -93,88 +101,195 @@ Tyto numerické atributy, spolu s cílovým atributem jsou shrnuty v Tabulce \re
     \label{tab:numericColDesc}
 \end{table}
 
-Směr větru je kategoriální atribut, nabývající 4 různých hodnot, jejich distribuci můžeme vidět v grafu na Obrázku \ref{fig:wind_dir_dist}.
-Originální měřená data obsahovala celkem 16 různých směrů větru, ale autoři je seskupili do 5, kde 4 nalezeneme v našem datasetu.
+Dále si uvedeme informace o dalších atributech, které jsou dostupné pro každý záznam.
+
+Směr větru je kategoriální atribut, nabývající čtyřech různých hodnot, jejich distribuci můžeme vidět v grafu na Obrázku \ref{fig:wind_dir_dist}.
+Originální měřená data obsahovala celkem 16 různých směrů větru, ale autoři je seskupili do 5, kde 4 nalezneme v námi zvoleném datasetu.
 Hodnota CV znamená klidný, proměnný směr. Na Obrázku \ref{fig:target_by_wind_dir} můžeme vidět závislost cílové proměnné právě na směru větru,
 všimneme si, že největší koncentrace pevných látek ve vzduchu je právě při klidném větru a naopak nejmenší, když vítr fouká severozápadně.
 \image{wind_dir_dist.pdf}{Absolutní četnosti směru větru}{fig:wind_dir_dist}{0.7}
 \image{target_by_wind_dir.pdf}{Koncentrace \pmQuant vzhledem ke směru větru}{fig:target_by_wind_dir}{0.9}
 
-\subsection{Časové atributy}
-Každý záznam v datasetu obsahuje informaci o dnu, měsící, roku a hodině, kdy byl vytvořen. My jsme dále přidali den v týdnu.
-Všechny tyto atributy mohou být reprezentovány jako numerické nebo jako kategoriální. Aby jsme se mohli rozhodnout jak budeme
-s těmity atributy pracovat podíváme se na krabicové grafy cílového atributu v závislosti na dnu, měsící atd.
+\subsection{Atributy data a času}
+Každý záznam v datasetu obsahuje informaci o dnu, měsíci, roku a hodině, kdy byl vytvořen. My jsme dále přidali den v týdnu.
+Všechny tyto atributy mohou být reprezentovány jako numerické nebo jako kategoriální. Abychom se mohli rozhodnout, 
+jak budeme s těmito atributy pracovat podíváme se na krabicové grafy cílového atributu v závislosti na dnu, měsíci atd.
 Nejprve se podíváme na závislost pro dny v týdnu, tu můžeme vidět na Obrázku \ref{fig:target_by_wd}.
 
 \image{target_by_week_day.pdf}{Koncentrace \pmQuant vzhledem ke dnu v týdnu}{fig:target_by_wd}{1.0}
 
-Zde nepozorujeme žádnou velkou závislost. Podobný výsledek můžeme vidět u dnu měsíce \ref{fig:target_by_day}, 
-měsíců \ref{fig:target_by_month} i roků \ref{fig:target_by_year}.
-Koncentrace cílového atributu kolísá a nemůžeme najít žádnou závislost, že by se vzrůstajícím dnem, měsícem koncentrace
-\pmQuant rostla či klesala. Rozhodli jsme se tedy, že s atributy budeme pracovat jako s kategoriálními.
-Navíc vytvoříme další dataset, kde den v měsící zcela odstraníme.
+Zde nepozorujeme žádnou velkou závislost. Podobný výsledek můžeme vidět na Obrázcích pro dny měsíce \ref{fig:target_by_day}, 
+měsíců \ref{fig:target_by_month} i roky \ref{fig:target_by_year}.
+Koncentrace cílového atributu kolísá a neumíme najít žádnou závislost, která by potvrzovala, že se vzrůstajícím dnem či měsícem, koncentrace
+\pmQuant roste či klesá. Rozhodli jsme se tedy, že s atributy budeme pracovat jako s kategoriálními.
+Navíc vytvoříme další dataset, kde den v měsíci zcela odstraníme.
 
-\image{target_by_month_day.pdf}{Koncentrace \pmQuant vzhledem ke dnu v měsící}{fig:target_by_day}{1.0}
-\image{target_by_month.pdf}{Koncentrace \pmQuant vzhledem k měsící }{fig:target_by_month}{1.0}
+\image{target_by_month_day.pdf}{Koncentrace \pmQuant vzhledem ke dnu v měsíci}{fig:target_by_day}{1.0}
+\image{target_by_month.pdf}{Koncentrace \pmQuant vzhledem k měsíci }{fig:target_by_month}{1.0}
 \image{target_by_year.pdf}{Koncentrace \pmQuant vzhledem k roku}{fig:target_by_year}{1.0}
 
-V prílohách ještě najdeme koncentrace vzhledem ke dnu v týdnu \ref{fig:target_by_wd_yearly} a měsící \ref{fig:target_by_month_yearly} 
+V prílohách ještě najdeme koncentrace vzhledem ke dnu v týdnu \ref{fig:target_by_wd_yearly} a měsíci \ref{fig:target_by_month_yearly} 
 zvlášť pro každý rok.
 
 \FloatBarrier
 \subsection{Distribuce hodnot a odlehlá pozorování numerických atributů}
 Většina hodnot rosného bodu se pohybuje v rozmezí od -20 \degree C do 20 \degree C. V rosném bodě nepozorujeme
-žádné odlehlé pozorování. Krabicový graf a histrogram můžeme vidět na Obrázku \ref{fig:dewpt_analys}. 
+žádné odlehlé pozorování. Krabicový graf a histogram můžeme vidět na Obrázku \ref{fig:dewpt_analys}. 
 Dále můžeme vidět grafy pro teplotu a to na Obrázku \ref{fig:temp_analys}. Pro teplotu jsme také nenalezli
-odlehlé pozorování, to stejné platí pro atmosferický tlak.
+odlehlé pozorování, stejné platí i pro atmosférický tlak.
 
-\image{dewpt.pdf}{Krabicový graf, histrogram rosného bodu}{fig:dewpt_analys}{0.8}
-\image{temp.pdf}{Krabicový graf, histrogram teploty}{fig:temp_analys}{0.8}
+\image{dewpt.pdf}{Krabicový graf, histogram rosného bodu}{fig:dewpt_analys}{0.8}
+\image{temp.pdf}{Krabicový graf, histogram teploty}{fig:temp_analys}{0.8}
 
 Nejvíce odlehlých pozorování nalezneme pro rychlost větru, jedná se o 4 893 záznamů z celkových 41 757.
 Tyto pozorování můžeme vidět na grafu v Obrázku \ref{fig:wndspeed_analys}. Na histogramu vedle si všimneme,
-že rychlost větru je většinou do 100 m/s. Odlehlé pozorování tedy odpovídají extrémum, kdy se do Pekingu dostal silný vítr.
+že rychlost větru je většinou do 100 m/s. Odlehlé pozorování tedy odpovídají extrémům, kdy se do Pekingu dostal silný vítr.
 Tak stejně odlehlé pozorování najdeme u doby sněžení a deště. Obrázky \ref{fig:hsnow_analys} a \ref{fig:hrain_analys}.
-Drtivou většinu času v Pekingu nesněží ani neprší více jak hodinu v kuse, proto jsou hodnoty od 1 - 2 hodin označeny za odlehlé 
-pozorování. Dlé mého názoru by bylo špatné rozhodnutí tyto hodnoty odstranit, neboť právě ony mohou značit
-určitý pokles či vzrůst koncentrace \pmQuant
+Drtivou většinu času v Pekingu nesněží ani neprší více jak hodinu v kuse, proto jsou hodnoty od 1 - 2 hodin označeny jako odlehlé 
+pozorování. Dle našeho názoru by bylo špatné rozhodnutí, tyto hodnoty odstranit, neboť právě ony mohou značit
+určitý pokles či vzrůst koncentrace \pmQuant .
 
-\image{wndspd.pdf}{Krabicový graf, histrogram rychlost větru}{fig:wndspeed_analys}{0.8}
-\image{hsnow.pdf}{Krabicový graf, histrogram doba sněžení}{fig:hsnow_analys}{0.8}
-\image{hrain.pdf}{Krabicový graf, histrogram doba deště}{fig:hrain_analys}{0.8}
+\image{wndspd.pdf}{Krabicový graf, histogram rychlost větru}{fig:wndspeed_analys}{0.8}
+\image{hsnow.pdf}{Krabicový graf, histogram doba sněžení}{fig:hsnow_analys}{0.8}
+\image{hrain.pdf}{Krabicový graf, histogram doba deště}{fig:hrain_analys}{0.8}
 
-Pro cílový atribut koncentrace \pmQuant bylo nalezeneo 1773 odlehlých pozorování, jak můžeme vidět v Obrázku \ref{fig:pm25_analys}.
+Pro cílový atribut koncentrace \pmQuant bylo nalezeneo celkem 1773 odlehlých pozorování, jak můžeme vidět v Obrázku \ref{fig:pm25_analys}.
 Tyto odlehlé pozorování budou odstraněny pro všechny datasety, pro které budeme zkoušet regresi.
 Odlehlé pozorování z předchozích atributů odstraníme v nově vytvořeném datasetu a vyzkoušíme jaký vliv
-bude mít jejich přitomnost či absence. 
+bude mít jejich přítomnost či absence. 
 
-\image{pm25.pdf}{Krabicový graf, histrogram koncentrace \pmQuant}{fig:pm25_analys}{0.8}
+\image{pm25.pdf}{Krabicový graf, histogram koncentrace \pmQuant}{fig:pm25_analys}{0.8}
 
-\section{Předzpracování datasetu}
-Zde si popíšeme operace, které jsme provedli s originálním datasetem, aby jsme získali naše datasety, nad kterými budeme
-zkoušet regresi. 
-První dataset jsme získali tak, že jsme odstranili odlehlé pozorování cílového atributu \pmQuant a provedli binarizaci atributů
-den v týdnu, den v měsící, měsíc, rok a hodina. Výsledný dataset jsme následně normalizovali do rozmezí 0,0 až 1,0.
-Pro druhý dataset jsme provedli to stejné ale odstranili jsme den měření, následně jsme provedli normalizaci.
-Pro třetí dataset jsme odstranili všechny odlehlé pozorování, provedli binarizaci atributů a následnou normalizaci.
-Z tohoto datasetu jsme následně pomocí redukce dimenze vytvořili ještě další 2 datasety, kterým jsme nechali 20 resp. 10
-nejdůležitějších atributů. Souhrn datasetu nalezeneme v Tabulce \ref{tab:regression_datasets}.
+\section{Příprava datasetů}
+V této sekci popíšeme operace, které jsme provedli s originálním datasetem a uvedeme informace o všech datasetech, která jsme
+z něj vytvořili. 
+
+První dataset jsme vytvořili odstraněním odlehlých pozorování cílového atributu \pmQuant a binarizací všech časových atributů
+(den v týdnu, den v měsíci, měsíc, rok a hodina). Odlehlé pozorování cílového atributu budou odstraněny pro všechny datasety.
+
+Druhý dataset, jsme vytvořili z prvního odstraněním informace o dnu, toto jsme provedli, protože nám nedává smysl, aby měla informace
+o dnu vliv na znečištění.
+
+Pro třetí dataset jsme odstranili úplně všechny odlehlé pozorování. Z třetího datasetu bez všech odlehlých pozorování, 
+jsme vytvořili ještě 2 datasety pomocí redukce dimenze. První z těchto
+dvou obsahuje pouze 20 nejdůležitějších atributů a druhý obsahuje pouze 10 atributů.
+U všech vytvořených datasetů jsme provedli normalizaci hodnot do rozmezí 0,0 až 1,0. 
+Souhrn datasetu nalezeneme v Tabulce \ref{tab:regression_datasets}.
 
 \begin{table}
     \centering
     \begin{tabular}{l | r | r}
-        Jméno                       & Počet transakcí   & Počet attributů \\\hline\hline
-        df\_binAll                   & 39984             & 89 \\
-        df\_binNoDay                 & 39984             & 58 \\
-        df\_noOut\_binNoDay           & 33512             & 58 \\
-        df\_noOut\_binNoDay\_20attr    & 33512             & 20 \\  
-        df\_noOut\_binNoDay\_10attr    & 33512             & 10 \\
+        Jméno                           & Počet transakcí   & Počet attributů \\\hline\hline
+        df\_binAll                      & 39984             & 89 \\
+        df\_binNoDay                    & 39984             & 58 \\
+        df\_noOut\_binNoDay             & 33512             & 58 \\
+        df\_noOut\_binNoDay\_20attr     & 33512             & 20 \\  
+        df\_noOut\_binNoDay\_10attr     & 33512             & 10 \\
     \end{tabular}
     \caption{Souhrn datasetů pro regresi}
     \label{tab:regression_datasets}
 \end{table}
 
 \section{Regrese}
+
+V této sekci vyzkoušíme regresi na námi připravených datasetech. Konkrétně vyzkoušíme několik algoritmu pro 
+regresi a následně několik ansámbl metod. Všechny algoritmy pochází z Python nástroje scikit-learn \cite{scikit-learn}.
+
+Co se týče testování zvolili jsme dvě metriky:
+\begin{enumerate}
+    \item $R^2$ skóre
+    \item Průměrná kvadratická chyba (MSE)
+\end{enumerate}
+Jako hlavní metriku bereme $R^2$ skóre, která udává podíl rozptylu předvídané proměnné, předvídané z nezávislých atributů
+Nejlepší možné skóre je 1,0, které dostane regresor, který vždy predikuje správnou hodnotu. Naopak regresor, který vydá náhodnou hodnotu, 
+zahazuje vstupní argumenty dostane skóre 0,0 anebo záporné. Průměrnou kvadratickou chybu se snažíme naopak minimalizovat
+co nejblíž nule. Problém této metriky je to, že nevidíme přímou korelaci s hodnotou cílové proměnné.
+
+Testování jsme prováděli pomocí funkce \emph{cross\_validate} s $k = 3$ (3x byl proveden KFold.). Výsledné metriky,
+spolu s časem jsou průměrem, přes tyto 3 testování.
+
+\subsection{Algoritmy regrese}
+Pro regresi jsme zvolili 3 různé algoritmy (názvy dle tříd ve scikit-learn), jedná se o SVR, DecisionTreeRegressor a MLPRegressor.
+U SVR jsme použili RBF kernel a dále vyzkoušeli různý počet iterací a větší hodnotu penalizačního argumentu $C$.
+Výsledky SVR s $R^2$ skóre můžeme vidět na Obrázku \ref{fig:svr_r2}. 
+Všimneme si, že predikce nefunguje pro datasety s redukovaným počtem atributů a nejlepší dosažené skóre je 0,305.
+Obecně můžeme říct, že SVR potřebuje co nejvíc iterací a vyšší hodnota penalizačního argumentu $C$ pomohla.
+
+\croppedColorMap{regressionResults/svr_r2.pdf}{Výsledky regrese pro SVR}{fig:svr_r2}
+
+Dále jsme vyzkoušeli algoritmus rozhodovacího stromu, u kterého jsme vyzkoušeli vliv minimální velikosti listu na
+kvalitě predikce. Výsledky predikce můžeme vidět na Obrázku \ref{fig:regTree_r2}. Nejlepšího skóre 0,229 jsme dosáhli
+při minimální velikosti listu 200. Celkově rozhodovací strom dosáhnul horších výsledků než SVR.
+
+\croppedColorMap{regressionResults/regTree_r2.pdf}{Výsledky regrese pro DecisionTreeRegressor}{fig:regTree_r2}
+
+Poslední vyzkoušená metoda, byla regrese založena na neuronových sítích. Zde jsme se snažili najít co nejlepší
+strukturu sítě (počet skrytých vrstev, počet neuronů ve vrstvě). Výsledky regrese najdeme v Obrázku \ref{fig:nn_r2}.
+Nejlepších výsledku jsme dosáhli se základní neuronovou sítí, která má 100 neuronů v jedné skryté vrstvě. Dále fungovali
+dobře sítě se třemi skrytými vrstvami se třemi nebo pěti neurony. Zvýšení počtu iterací nevedlo k lepším výsledkům.
+
+\croppedColorMap{regressionResults/nn_r2.pdf}{Výsledky regrese pro MLPRegressor}{fig:nn_r2}
+
+V Tabulce \ref{tab:regression_results} můžeme vidět shrnutí všech 3 algoritmů s jejich nejlepšími výsledky. Všimneme si, že DecisionTreeRegressor
+vydává nejhorší výsledky ze tří testovaných, ale za to je mnohonásobně rychlejší v natrénování. Obecně jsme doufali v lepší výsledky s $R^2$ skóre alespoň 0,5
+čehož bohužel nedosáhnul žádný algoritmus. Toto může být následek toho, co jsme viděli již v explorační analýze, že cílový atribut nebyl příliš závislý
+na žádném atributu data a času, kterých je poměrně hodně.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l | r | r | r  | r}
+        Algoritmus              & Čas učení (s) &  $R^2$ & MSE \\\hline\hline
+        SVR                     & 27,209        & 0,305  & 3326,722  \\
+        DecisionTreeRegressor   & 0,078         & 0,229  & 3731,770  \\
+        MLPRegressor            & 18,880        & 0,336  & 3172,276
+    \end{tabular}
+    \caption{Shrnutí nejpších výsledků algoritmů}
+    \label{tab:regression_results}
+\end{table}
+
+\subsection{Ansámbl metody}
+Dále jsme se rozhodli, vyzkoušet ansámbl metody pro zlepšení výsledků algoritmu DecisionTreeRegressor. Tento algoritmus pracoval velice rychle,
+ale jeho výsledky byly nejslabší, je tedy dobrým adeptem pro tyto metody. Navíc některé umí pracovat pouze s rozhodovacími stromy. 
+Vyzkoušeli jsme jeden průměrovací algoritmus RandomForestRegressor a tři boostovací algoritmy GradientBoostingRegressor,
+HistGradientBoostingRegressor a AdaBoostRegressor.
+
+RandomForestRegressor využívá několika stromů k získání lepších výsledků, v našem případě jsme využili 100 stromů.
+RandomForestRegressor dokázal zlepšít $R^2$ skóre v nejlepším případě o 0,051. Výsledky můžeme vidět v Tabulce \ref{tab:rfr}.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l | r | r | r  | r}
+        Dataset                         & Čas učení (s) &  $R^2$    & MSE \\\hline\hline
+        df\_binAll                      & 22,923        & 0,260     & 3533,602 \\ 
+        df\_binNoDay                    & 15,468        & 0,242     & 3618,715 \\
+        df\_noOut\_binNoDay             & 12,429        & 0,282     & 3471,420 \\
+        df\_noOut\_binNoDay\_20attr     & 32,458        & -0,046    & 5043,728 \\
+        df\_noOut\_binNoDay\_10attr     & 16,515        & -0,204    & 5810,074
+    \end{tabular}
+    \caption{Výsledky regrese pro RandomForestRegressor}
+    \label{tab:rfr}
+\end{table}
+
+Oproti RandomForestRegressoru jsou na tom boostovací metody lépe, výsledky můžeme vidět na Obrázcích \ref{fig:gbr_r2}, \ref{fig:hgbr_r2} a \ref{fig:abr_r2}.
+Největší zlepšení pozorujeme u HistGradientBoostingRegressor, poté GradientBoostingRegressor a nakonec AdaBoostRegressor.
+Vylepšené výsledky už dosahují většího skóre než SVR a MLPRegressor, avšak pořád se nejedná o moc dobré výsledky.
+Souhrnné výsledky $R^2$ skóre najdeme v přílohách na Obrázku \ref{fig:ultimate_r2}, taktéž pro průměrnou kvadratickou chybu
+na Obrázku \ref{fig:ultimate_mse} a dobu učení na \ref{fig:ultimate_fit_time}.
+
+
+\croppedColorMap{regressionResults/gbr_r2.pdf}{Výsledky regrese pro GradientBoostingRegressor}{fig:gbr_r2}
+\croppedColorMap{regressionResults/hgbr_r2.pdf}{Výsledky regrese pro HistGradientBoostingRegressor}{fig:hgbr_r2}
+\croppedColorMap{regressionResults/abr_r2.pdf}{Výsledky regrese pro AdaBoostRegressor}{fig:abr_r2}
+
+
+\FloatBarrier
+\newpage
+\section{Závěr}
+V rámci této práce jsme se zaměřili na data, které pojednávají o koncentraci znečištění v Pekingu. Nad těmito daty jsme provedli 
+explorační analýzu, pomocí jejíž výsledků jsme připravili několik datasetů, které vstupovali do regrese. V rámci predikce znečištění 
+jsme vyzkoušeli několik algoritmu pro regresi, všechny z knihovny scikit-learn \cite{scikit-learn}. Poté jsme uvedli zjištěné výsledky 
+regrese, které jsme se dále rozhodli vylepšit pomocí Ansámbl metod. Ansámbl metody vedly k vylepšení skóre predikce. Avšak ano po vylepšení 
+nejsou výsledky příliš přívětivé. Nemůžeme tedy doporučit žádnou metodu pro reálnou predikci koncentrace znečištění.
 
 \bibliography{citations}
 \bibliographystyle{ieeetr}
@@ -185,5 +300,8 @@ nejdůležitějších atributů. Souhrn datasetu nalezeneme v Tabulce \ref{tab:r
 
 \image{target_by_wd_by_year.pdf}{Koncentrace \pmQuant vzhledem ke dnu v týdnu pro každý rok}{fig:target_by_wd_yearly}{1.0}
 \image{target_by_month_by_year.pdf}{Koncentrace \pmQuant vzhledem k měsíci pro každý rok}{fig:target_by_month_yearly}{1.0}
+\croppedColorMapBig{regressionResults/ultimate.pdf}{$R^2$ skóre pro všechny regresory}{fig:ultimate_r2}
+\croppedColorMapBig{regressionResults/ultimate_mse.pdf}{Průměrná kvadratická chyba pro všechny regresory}{fig:ultimate_mse}
+\croppedColorMapBig{regressionResults/ultimate_fit_time.pdf}{Čas učení pro všechny regresory}{fig:ultimate_fit_time}
 
 \end{document}

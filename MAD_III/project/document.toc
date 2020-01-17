@@ -1,8 +1,11 @@
 \babel@toc {czech}{}
-\contentsline {section}{\numberline {1}Popis problému}{3}{section.1}% 
+\contentsline {section}{\numberline {1}Úvod}{3}{section.1}% 
 \contentsline {section}{\numberline {2}Popis datasetu}{3}{section.2}% 
-\contentsline {subsection}{\numberline {2.1}Časové atributy}{4}{subsection.2.1}% 
+\contentsline {subsection}{\numberline {2.1}Atributy data a času}{4}{subsection.2.1}% 
 \contentsline {subsection}{\numberline {2.2}Distribuce hodnot a odlehlá pozorování numerických atributů}{6}{subsection.2.2}% 
-\contentsline {section}{\numberline {3}Předzpracování datasetu}{9}{section.3}% 
+\contentsline {section}{\numberline {3}Příprava datasetů}{9}{section.3}% 
 \contentsline {section}{\numberline {4}Regrese}{10}{section.4}% 
-\contentsline {section}{\numberline {5}Přílohy}{11}{section.5}% 
+\contentsline {subsection}{\numberline {4.1}Algoritmy regrese}{10}{subsection.4.1}% 
+\contentsline {subsection}{\numberline {4.2}Ansámbl metody}{12}{subsection.4.2}% 
+\contentsline {section}{\numberline {5}Závěr}{14}{section.5}% 
+\contentsline {section}{\numberline {6}Přílohy}{16}{section.6}% 
