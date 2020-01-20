@@ -50,18 +50,18 @@ void test_regression_tree_n(DataFrame &df,
 
 
 
-    for (const auto &rr : rrs)
-    {
-        fprintf(stdout, "R2: %.5f\n", rr.r2);
-    }
+//    for (const auto &rr : rrs)
+//    {
+//        fprintf(stdout, "R2: %.5f\n", rr.r2);
+//    }
 
-    fprintf(stdout, "=== Regression tree ===\n Mean MinSamplesLeaf = %lu\n  Mean results of %lu runs\n  MSE: %.5f\n  MAE: %.5f\n  "
-                    "R2: %.5f\n",
-            minSampleLeaf,
-            n,
-            meanMSE,
-            meanMAE,
-            meanR2);
+//    fprintf(stdout, "=== Regression tree ===\n Mean MinSamplesLeaf = %lu\n  Mean results of %lu runs\n  MSE: %.5f\n  MAE: %.5f\n  "
+//                    "R2: %.5f\n",
+//            minSampleLeaf,
+//            n,
+//            meanMSE,
+//            meanMAE,
+//            meanR2);
 
     fprintf(stdout, "Best R2: %.5f\n", bestR2);
 }
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     test_regression_tree(df, indices, 10);
     test_regression_tree(df, indices, 5);
     test_regression_tree(df, indices, 2);
-//    test_regression_tree_n(df, indices, 2, 20);
+//    test_regression_tree_n(df, indices, 2, 10);
 
 
     return 0;

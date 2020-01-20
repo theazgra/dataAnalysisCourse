@@ -129,7 +129,7 @@ RegressionTree RegressionTreeBuilder::build()
 
     tree.m_currentHeight = m_maxHeight;
 
-    fprintf(stdout, "Built regression tree of height %lu with %lu nodes\n", tree.m_currentHeight, m_nodeCount);
+    //fprintf(stdout, "Built regression tree of height %lu with %lu nodes\n", tree.m_currentHeight, m_nodeCount);
 
     return tree;
 }
@@ -296,7 +296,7 @@ void RegressionTreeBuilder::create_best_split(TreeNode &node)
     {
         return;
     }
-#if 1
+#if 0
     // NOTE(Moravec): Parallel branch.
     // We want to test split on all attributes except the target attribute.
     std::vector<TreeNodeCandidate> possibleSplits;
