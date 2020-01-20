@@ -419,7 +419,7 @@ namespace DecisionTree
             m_root.transactionIds = azgra::collection::Enumerable<size_t>::range(0, m_dataset.transactions.size());
             //create_best_split(m_root);
             build_tree(m_root);
-            fprintf(stdout, "Built classification tree of height %lu\n", m_currentHeight);
+            //  fprintf(stdout, "Built classification tree of height %lu\n", m_currentHeight);
         }
 
 

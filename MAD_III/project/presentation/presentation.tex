@@ -31,29 +31,30 @@
 \newenvironment{hcol}{\begin{column}{{0.5\linewidth}}}{\end{column}}
 
 \author{Bc. Moravec Vojtěch}
-\title{Regrese znečištění v Pekingu \\ MAD 3 projekt}
+\title{Regrese koncentrace \pmQuant v Pekingu \\ MAD 3 projekt}
 \date{ZS 2019/2020}
 \institute{Vysoká škola báňská – Technická univerzita Ostrava}
 
 \begin{document}
 \maketitle
-\begin{frame}{Cíl}
-    \begin{itemize}
-        \item Provést explorační analýzu
-        \item Připravit datasety pro regresi
-        \item Provést a ohodnotit regresi
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Cíl}
+%     \begin{itemize}
+%         \item Provést explorační analýzu
+%         \item Připravit datasety pro regresi
+%         \item Provést a ohodnotit regresi
+%     \end{itemize}
+% \end{frame}
 % --------------------------------------------
 \begin{frame}{Informace ohledně datasetu}
     \begin{itemize}
-        \item 1 Transakce = Záznam o měření koncentrace pevných části \pmQuant ve vzduchu (\SI{}{\micro\gram}/$\text{m}^3$)
-        \item Data od 1.1.2010 až do 31.12.2014
         \item 43 824 záznamů a 12 atributů
+        \item Data od 1.1.2010 až do 31.12.2014
+        \item Záznamy o měření koncentrace pevných části \pmQuant ve vzduchu (\SI{}{\micro\gram}/$\text{m}^3$)
+        \item 6 numerických atributů + 1 cílový numerický
+        \item 1 kategoriální atribut
+        \item zbylé atributy reprezentují datum a čas
         \begin{itemize}
-            \item 6 numerických atributů + 1 cílový
-            \item zbylé atributy reprezentují datum a čas
-            \item z data (den, měsíc, rok) jsme vytvořili nový atribut \\ "den v týdnu"
+            \item vytvořili jsme nový atribut "den v týdnu"
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -61,7 +62,7 @@
 \begin{frame}{Časové atributy}
     \begin{itemize}
         \item Jak pracovat s atributy dne, měsíce, roku, hodiny, dne v týdnu?
-        \item Zpracovat jako numerický nebo kategoriální atribut?
+        \item Numerický nebo kategoriální atribut?
         \item Podíváme se na závilost cílového atributu, vzhledem k těmto atributům
         \begin{itemize}
             \item Nalezneme-li závislost (např. koncentrace roste s měsícem) - numerický
@@ -88,7 +89,19 @@
         \item Doba sněžení (368) \footnotemark[1]
         \item Koncentrace \pmQuant (1 773) - všechny odstraněny
     \end{itemize}
+    
     \footnotetext[1]{Odlehlé pozorování byly ponechýny v některých datasetech}
+\end{frame}
+% --------------------------------------------
+\begin{frame}{Histogram doba sněžení, deště}
+    \image{../hrain.pdf}{0.65}
+    \image{../hsnow.pdf}{0.65}
+    % \begin{cols}
+    %     \begin{hcol}
+    %     \end{hcol}
+    %     \begin{hcol}
+    %     \end{hcol}
+    % \end{cols}
 \end{frame}
 % --------------------------------------------
 \begin{frame}{Datasety pro regresi}
