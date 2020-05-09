@@ -263,7 +263,6 @@ Dále jsme vyzkoušeli více plně propojených vrstev za poslední MaxPooling2D
 Tyto přidané \texttt{Dense} vrstvy měli každá 256 neuronů a aktivační funkci ReLU. S těmito vrstvami můžeme pozorovat zlepšení trénovací přesnosti z 0,7289 až na 0,8900 při použití 3 vrstev navíc. 
 Oproti tomu testovací přesnost dosáhla nejlepší hodnoty 0,5241 při dvou přidaných vrstvách. 
 
-
 \begin{table}[h!]
     \centering
     \begin{tabular}{r | r | r}
@@ -277,6 +276,49 @@ Oproti tomu testovací přesnost dosáhla nejlepší hodnoty 0,5241 při dvou p�
     \caption{VGG19 - Vliv plně propojených vrstev na výsledek klasifikace}
     \label{tab:vgg19_dense_test}
 \end{table}
+
+Podíváme-li se na matici záměr pro 20 nejčetnějších plemen v testovacím datasetu, pro model VGG19~\cite{vgg19} na Obrázku~\ref{fig:vgg19_conf_mat}, tak si všimneme, 
+že i když tento model dosahoval nejmenší přesnosti tak je velmi dobrý. Drtivá většina psích plemen je určena zprávně, respektive správná třída dosahuje 
+největší pravděpodobnosti. Zaměříme-li se na plemene Lakeland\_terrier, tak to je nejvíce zaměňované za Airedale, proč je tomu tak, nám bude jasné při pohledu na 
+obě plemena na Obrázku \ref{fig:lukeland_airedale}. Podobně je plemeno Great\_Pyrenees zamněňováno za plemenena Samoyed. U těchto dvou plemen, byla určena jiná 
+třída s velkou přesností, jinak je tomu u Irish\_wolfhound. Psi tohoto plemene se modelu nepodařilo přiřadit žádné třídě, pravděpodobnost byla rozdělena mezi všechny třídy s
+podobnou hodnotou.
+
+\image{vgg19_confmat.pdf}{Matice záměn pro 20 vybraných plemen, model VGG19}{fig:vgg19_conf_mat}{1.0}
+
+\begin{figure}[ht!]
+    \centering
+    % ROW BEGIN
+    \begin{subfigure}{0.35\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/lakeland.jpg}
+        \caption{Lakeland\_terrier}
+    \end{subfigure}
+    \begin{subfigure}{0.35\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/airedale.jpg}
+        \caption{Airedale}
+    \end{subfigure}
+    % ROW END
+
+    % ROW BEGIN
+    \begin{subfigure}{0.35\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/great_pyrenees.jpg}
+        \caption{Great\_Pyrenees}
+    \end{subfigure}
+    \begin{subfigure}{0.35\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/samoyed.jpg}
+        \caption{Samoyed}
+    \end{subfigure}
+    % ROW END
+
+    \caption{Zaměňované psí plemena}
+    \label{fig:lukeland_airedale}
+\end{figure}
+
+
 
 % \begin{table}[h!]
 %     \centering
