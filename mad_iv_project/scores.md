@@ -115,11 +115,7 @@ model = keras.Sequential(layers=[
 ])
 ```
 
-### Inception - t60
-- NoGenerator - loss: 0.5348 - acc: 0.8914
-- Augmented   - loss: 0.3541 - acc: 0.8988
-
-## All breeds results
+## All breeds results 300x300
 
 ### Inception
 - Base - NoDenseLayers          - loss: 1.2912 - acc: 0.8501
@@ -134,3 +130,19 @@ model = keras.Sequential(layers=[
 - Base                          - loss: 0.9943 - acc: 0.8693 <-- best and without scaling !!!
 ### Own net scaled down
 - Very bad results
+
+On colab
+- VGG19             - 0.0118
+- Xception          - 0.8476
+- InceptionV3       - 0.8513
+- InceptionResnet   - 0.8693
+
+On sumo2
+- VGG19             - 0.2787
+- Xception          - 0.8469
+- InceptionV3       - 0.8501
+- InceptionResnet   - 0.8693
+
+### Inception-ResNet 500x500
+  - train - loss: 0.2656 - acc: 0.9372 - val_loss: 0.4998 - val_acc: 0.8992
+  - test  - loss: 0.5830 - acc: 0.8956
